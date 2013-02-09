@@ -1,0 +1,33 @@
+{
+	"name":        "uecode/amazon-bundle",
+	"version":     "0.1.0",
+	"type":        "library",
+	"description": "Symfony2 Uecode Amazon Bundle",
+	"keywords":    ["php", "uecode"],
+	"homepage":    "https://github.com/uecode/amazon-bundle",
+	"license":     "MIT",
+	"authors":     [
+		{
+			"name":     "Aaron Scherer",
+			"email":    "aequasi@gmail.com",
+			"role":     "developer",
+			"homepage": "https://github.com/aequasi"
+		}
+	],
+	"support":     {
+		"email": "aaron@undergroundelephant.com"
+	},
+	"require":     {
+		"uecode/uecode-bundle": "dev-master",
+		"aws/aws-sdk-php": "2.1.*@dev",
+		"amazonwebservices/aws-sdk-for-php": "dev-master"
+	},
+	"suggest":     {
+		"monolog/monolog": "Allows more advanced logging of the application flow"
+	},
+	"autoload":    {
+		"psr-0": {
+			"Uecode\\Bundle\\AmazonBundle": ""
+		}
+	}
+}
