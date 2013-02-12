@@ -1,0 +1,4 @@
+model:
+    simpleWorkFlow:
+        amazon_class: AmazonSWF
+        uecode_class: \Uecode\Bundle\AmazonBundle\Model\SimpleWorkFlow

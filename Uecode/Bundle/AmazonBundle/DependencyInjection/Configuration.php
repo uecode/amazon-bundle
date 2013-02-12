@@ -23,8 +23,8 @@ class Configuration implements ConfigurationInterface
 		$rootNode    = $treeBuilder->root( 'uecode' );
 
 		$rootNode
+            ->append( $this->addAmazonNode() )
 			->children()
-			//->append( $this->addNode() )
 			->end();
 
 		return $treeBuilder;
@@ -32,19 +32,44 @@ class Configuration implements ConfigurationInterface
 
 	/**
 	 * @return \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition|\Symfony\Component\Config\Definition\Builder\NodeDefinition
-	 /
-	public function addNode()
+	 */
+	private function addAmazonNode()
 	{
 		$treeBuilder = new TreeBuilder();
-		$rootNode    = $treeBuilder->root( 'gearman' );
+		$rootNode    = $treeBuilder->root( 'amazon' );
 
 		$rootNode
 			->children()
-				->append( $this->addGearmanClient() )
-				->append( $this->addGearmanServer() )
+				->append( $this->addAmazonAccount() )
 			->end()
 		;
 		return $rootNode;
 	}
-	*/
+
+    private function addAmazonAccount( )
+    {
+        $treeBuilder = new TreeBuilder();
+        $rootNode    = $treeBuilder->root( 'account' );
+
+		$rootNode
+            ->children()
+                ->arrayNode( 'connections' )
+                    ->requiresAtLeastOneElement()
+                    ->useAttributeAsKey( 'name' )
+                    ->prototype( 'array' )
+                        ->children()
+                            ->scalarNode( 'key' )
+                                ->required()
+                            ->end()
+                            ->scalarNode( 'secret' )
+                                ->required()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ->end();
+
+        return $rootNode;
+    }
 }

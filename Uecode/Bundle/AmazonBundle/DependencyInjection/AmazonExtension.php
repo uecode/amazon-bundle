@@ -47,5 +47,14 @@ class AmazonExtension extends Extension
 				$container->setParameter( ltrim( $prefix . '.' . $key, '.' ), $value );
 			}
 		}
+
+        foreach( $configs[ 'uecode' ][ 'amazon' ][ 'account' ] as $name => $account ) {
+
+            $account ['name' ] = $name;
+            $config = new Config( $account );
+            $factory = new \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory( $config );
+
+            $container->setParameter( trim( $prefix. '.amazon.' . $name . '_factory' ), $factory );
+        }
 	}
 }
