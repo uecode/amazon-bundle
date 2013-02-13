@@ -8,24 +8,22 @@ namespace Uecode\Bundle\AmazonBundle\DependencyInjection;
 use \Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use \Symfony\Component\Config\Definition\ConfigurationInterface;
 
+use Uecode\Bundle\UecodeBundle\DependencyInjection\Configuration as UecodeConfiguration;
 
 /**
  * Configuration for the  Bundle
  */
-class Configuration implements ConfigurationInterface
+class Configuration extends UecodeConfiguration
 {
 	/**
 	 * {@inheritDoc}
 	 */
 	public function getConfigTreeBuilder()
 	{
-		$treeBuilder = new TreeBuilder();
+		$treeBuilder = parent::getConfigTreeBuilder();
 		$rootNode    = $treeBuilder->root( 'uecode' );
 
-		$rootNode
-            ->append( $this->addAmazonNode() )
-			->children()
-			->end();
+		$rootNode->append( $this->addAmazonNode() );
 
 		return $treeBuilder;
 	}
@@ -49,7 +47,7 @@ class Configuration implements ConfigurationInterface
     private function addAmazonAccount( )
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode    = $treeBuilder->root( 'account' );
+        $rootNode    = $treeBuilder->root( 'accounts' );
 
 		$rootNode
             ->children()
