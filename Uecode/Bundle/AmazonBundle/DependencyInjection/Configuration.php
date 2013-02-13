@@ -15,6 +15,12 @@ use Uecode\Bundle\UecodeBundle\DependencyInjection\ConfigurationInterface;
  */
 class Configuration implements ConfigurationInterface
 {
+	/**
+	 * Append configuration data by reference to the given rootNode
+	 *
+	 * @param \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition $rootNode
+	 * @return mixed
+	 */
 	public function appendTo( ArrayNodeDefinition &$rootNode )
 	{
 		$rootNode->append( $this->addAmazonNode() );
