@@ -11,13 +11,17 @@ use CFRuntime;
 // Symfony classes
 use Symfony\Component\Yaml\Yaml;
 
-// AazonBundle Exceptions
+// AmazonBundle Exceptions
 use \Uecode\Bundle\AmazonBundle\Exception\ClassNotFoundException;
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
+// Uecode Components
 use \Uecode\Bundle\UecodeBundle\Component\Config;
 
-class AmazonFactory implements Factory
+// Uecode Amazon Classes
+use Uecode\Bundle\AmazonBundle\Model\AmazonInterface;
+
+class AmazonFactory implements FactoryInterface
 {
 
     /**
@@ -38,52 +42,38 @@ class AmazonFactory implements Factory
         $this->setModelConfig( new Config( Yaml::parse( $file ) ) );
     }
 
-    /**
-     * Searches for the amazon class for the given class name and builds it.
-     * If there is a Uecode Extension for this, loads that instead and initializes.
-     *
-     * @param string $className Amazon Class name
-     * @param array $options Arguments for the Amazon Class
-     * @return CFRuntime|bool Returns the amazon class
-     * @throws ClassNotFoundException|InvalidClassException
-     */
+
+	/**
+	 * Searches for the amazon class for the given class name and builds it.
+	 * If there is a Uecode Extension for this, loads that instead and initializes.
+	 *
+	 * @param string $className Amazon Class name
+	 * @param array $options Arguments for the Amazon Class
+	 * @return CFRuntime|bool Returns the amazon class
+	 * @throws ClassNotFoundException|InvalidClassException
+	 */
     public function build( $className, array $options = array() )
     {
-        $class = $this->checkAmazonClass( $className );
-        if ( $class !== false ) {
-            $object = new $class( $options );
+		$class = $this->checkAmazonClass( $className );
+		if ( $class !== false ) {
+			$object = new $class( $options );
 
-            // Check to make sure its a valid Amazon object
-            if ( !( $object instanceof CFRuntime ) ) {
-                throw new InvalidClassException( $class );
-            }
+			// Check to make sure its a valid Amazon object
+			if ( !( $object instanceof CFRuntime ) ) {
+				throw new InvalidClassException( $class );
+			}
 
-            if ( method_exists( $object, 'initialize' ) ) {
-                $object->initialize();
-            }
+			// @TODO Add check for Amazon API v2
 
-            return $object;
-        }
+			if( $object instanceof AmazonInterface ) {
+				$object->initialize();
+			}
 
-        throw new ClassNotFoundException( $className );
-    }
+			return $object;
+		}
 
-    public function buildConfig()
-    {
-    }
-
-    /**
-     * Allows for calls like AmazonFactory::SWF( $options )
-     *
-     * @param string $name
-     * @param array $arguments
-     * @return bool|\CFRuntime
-     */
-    public function __callStatic( $name, array $arguments = array() )
-    {
-        return $this->build( $name, $arguments );
-    }
-
+		throw new ClassNotFoundException( $className );
+	}
 
     /**
      * Checks to see if the Amazon Class given exists.
@@ -95,7 +85,10 @@ class AmazonFactory implements Factory
      */
     public function checkAmazonClass( $class, $checkAmazon = true )
     {
+	    // Check to see if we have the Amazon class
         if ( class_exists( $class ) ) {
+
+	        // If we do, check to see if we have a Uecode version of this class and replace $class with that
             $this->checkUecodeClass( $class );
 
             return $class;
@@ -118,12 +111,18 @@ class AmazonFactory implements Factory
      */
     public function checkUecodeClass( &$className )
     {
+
+	    // Run through the configs
         foreach ( $this->getModelConfig()->all() as $model ) {
+
+	        // If we have an override for the amazon class, replace it
             if ( $className === $model[ 'amazon_class' ] ) {
                 $className = $model[ 'uecode_class' ];
             }
         }
 
+	    // If the given class doesn't exist, throw an error.
+	    // This shouldn't happen
         if ( !class_exists( $className ) ) {
             throw new InvalidClassException( $className );
         }

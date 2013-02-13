@@ -5,4 +5,7 @@
  */
 namespace Uecode\Bundle\AmazonBundle\Factory;
 
-interface Factory { }
+interface FactoryInterface
+{
+	public function build( $className, array $options = array() );
+}

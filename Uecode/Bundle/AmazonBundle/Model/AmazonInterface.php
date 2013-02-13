@@ -5,7 +5,7 @@
  */
 namespace Uecode\Bundle\AmazonBundle\Model;
 
-interface Amazon
+interface AmazonInterface
 {
-
+	public function initialize();
 }
