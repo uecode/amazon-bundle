@@ -8,7 +8,7 @@ namespace Uecode\Bundle\AmazonBundle\DependencyInjection;
 use \Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
-use Uecode\Bundle\UecodeBundle\DependencyInjection\ConfigurationInterface;
+use \Uecode\Bundle\UecodeBundle\DependencyInjection\ConfigurationInterface;
 
 /**
  * Configuration for the  Bundle

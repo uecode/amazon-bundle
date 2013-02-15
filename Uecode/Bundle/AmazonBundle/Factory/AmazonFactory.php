@@ -56,7 +56,11 @@ class AmazonFactory implements FactoryInterface
     {
 		$class = $this->checkAmazonClass( $className );
 		if ( $class !== false ) {
-			$object = new $class( $options );
+
+			/** @var $config array Merge given configs with account configs */
+			$this->accountConfig->setItems( $options );
+
+			$object = new $class( $this->accountConfig->all() );
 
 			// Check to make sure its a valid Amazon object
 			if ( !( $object instanceof CFRuntime ) ) {
@@ -66,7 +70,7 @@ class AmazonFactory implements FactoryInterface
 			// @TODO Add check for Amazon API v2
 
 			if( $object instanceof AmazonInterface ) {
-				$object->initialize();
+				$object->initialize( $this->accountConfig );
 			}
 
 			return $object;
