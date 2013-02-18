@@ -5,9 +5,17 @@
  */
 namespace Uecode\Bundle\AmazonBundle\Model;
 
+// Models
 use \Uecode\Bundle\AmazonBundle\Model\AmazonInterface;
-use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
 
+// Exceptions
+use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
+use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
+
+// Amazon Bundle Components
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Workflow;
+
+// Uecode Bundle Components
 use \Uecode\Bundle\UecodeBundle\Component\Config;
 
 use \AmazonSWF as SWF;
@@ -30,6 +38,48 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 */
 	protected $workflow;
 
+	/********************* Core Logic *********************
+	 *
+	 * Core Logic for our overrode Amazon Class
+	 *
+	 */
+
+	/**
+	 * @param string $name
+	 * @param float  $version
+	 * @param string $taskList
+	 * @param string $workflowClass
+	 *
+	 * @throws InvalidClassException
+	 * @return Workflow
+	 */
+	public function loadWorkflow( $name, $version = 1.0, $taskList, $workflowClass = null )
+	{
+		$workflowOptions = array(
+			'name'            => $name,
+			'version'         => $version,
+			'defaultTaskList' => $taskList
+		);
+
+		if( null === $workflowClass ) {
+			return new Workflow( $this ,$workflowOptions );
+		} else {
+			$worker = new $workflowClass( $this, $workflowOptions );
+			if( !( $worker instanceof Workflow ) ) {
+				throw new InvalidClassException( $workflowClass );
+			}
+
+			return $worker;
+		}
+	}
+
+
+	/********************* Initializers *********************
+	 *
+	 * Functions to help initialize
+	 *
+	 */
+
 	/**
 	 * Initializes the current object
 	 *
@@ -38,12 +88,12 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 */
 	public function initialize( Config $config )
 	{
-		if( $this->getInitialized() ) {
+		if ( $this->getInitialized() ) {
 			return;
 		}
 
 		$this->initializeConfigs( $config );
-		$this->setInitialized( );
+		$this->setInitialized();
 
 		return;
 	}
@@ -67,12 +117,20 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @throws InvalidConfigurationException
 	 * @return bool
 	 */
-	public function validateConfigs(  )
+	public function validateConfigs()
 	{
-		if( !$this->config->has( 'domain' ) ) {
+		if ( !$this->config->has( 'domain' ) ) {
 			throw new  InvalidConfigurationException( "Domain must be specified in this config." );
 		}
 	}
+
+
+	/********************* Overrides *********************
+	 *
+	 * Overrides to the amazon functions
+	 *
+	 */
+
 
 	public function authenticate( $operation, $payload )
 	{
@@ -81,6 +139,12 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 		return parent::authenticate( $operation, $payload );
 	}
 
+
+	/********************* Getters and Setters *********************
+	 *
+	 * Functions to help initialize
+	 *
+	 */
 
 	/**
 	 * Should be called at the end of initialize to show that the class has been initialized.
