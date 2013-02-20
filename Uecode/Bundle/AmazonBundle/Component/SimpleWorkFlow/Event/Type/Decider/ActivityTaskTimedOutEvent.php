@@ -15,12 +15,10 @@ class ActivityTaskTimedOutEvent extends AbstractEvent
 	public function __construct()
 	{
 		$this->setEventType( 'ActivityTaskTimedOut' );
-	}
-
-	public function run( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId )
-	{
-		// @TODO
-		// Need logic
-		// when an activity times out, a real application may want to retry it or report the incident
+		$this->setEventLogic( function( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
+			// @TODO
+			// Need logic
+			// when an activity times out, a real application may want to retry it or report the incident
+		} );
 	}
 }

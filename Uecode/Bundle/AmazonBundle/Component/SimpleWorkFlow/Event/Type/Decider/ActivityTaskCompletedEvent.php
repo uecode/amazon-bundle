@@ -15,14 +15,13 @@ class ActivityTaskCompletedEvent extends AbstractEvent
 	public function __construct()
 	{
 		$this->setEventType( 'ActivityTaskCompleted' );
-	}
 
-	public function run( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId )
-	{
-		if ( $workflowState === DeciderWorkerState::ACTIVITY_OPEN ) {
-			$workflowState = DeciderWorkerState::NOTHING_OPEN;
-		} else if ( $workflowState === DeciderWorkerState::TIMER_AND_ACTIVITY_OPEN ) {
-			$workflowState = DeciderWorkerState::TIMER_OPEN;
-		}
+		$this->setEventLogic( function( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
+			if ( $workflowState === DeciderWorkerState::ACTIVITY_OPEN ) {
+				$workflowState = DeciderWorkerState::NOTHING_OPEN;
+			} else if ( $workflowState === DeciderWorkerState::TIMER_AND_ACTIVITY_OPEN ) {
+				$workflowState = DeciderWorkerState::TIMER_OPEN;
+			}
+		} );
 	}
 }

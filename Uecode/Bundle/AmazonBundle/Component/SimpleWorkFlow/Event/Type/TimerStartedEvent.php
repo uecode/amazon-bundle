@@ -15,16 +15,15 @@ class TimerStartedEvent extends AbstractEvent
 	public function __construct()
 	{
 		$this->setEventType( 'TimerStarted' );
-	}
 
-	public function run( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId )
-	{
-		if ( $workflowState === DeciderWorkerState::NOTHING_OPEN || $workflowState === DeciderWorkerState::START ) {
-			$workflowState = DeciderWorkerState::TIMER_OPEN;
-		} else {
-			if ( $workflowState === DeciderWorkerState::ACTIVITY_OPEN ) {
-				$workflowState = DeciderWorkerState::TIMER_AND_ACTIVITY_OPEN;
+		$this->setEventLogic( function( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
+			if ( $workflowState === DeciderWorkerState::NOTHING_OPEN || $workflowState === DeciderWorkerState::START ) {
+				$workflowState = DeciderWorkerState::TIMER_OPEN;
+			} else {
+				if ( $workflowState === DeciderWorkerState::ACTIVITY_OPEN ) {
+					$workflowState = DeciderWorkerState::TIMER_AND_ACTIVITY_OPEN;
+				}
 			}
-		}
+		} );
 	}
 }

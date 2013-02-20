@@ -15,14 +15,13 @@ class ActivityTaskScheduledEvent extends AbstractEvent
 	public function __construct()
 	{
 		$this->setEventType( 'ActivityTaskScheduled' );
-	}
 
-	public function run( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId )
-	{
-		if ( $workflowState === DeciderWorkerState::NOTHING_OPEN ) {
-			$workflowState = DeciderWorkerState::ACTIVITY_OPEN;
-		} else if ( $workflowState === DeciderWorkerState::TIMER_OPEN ) {
-			$workflowState = DeciderWorkerState::TIMER_AND_ACTIVITY_OPEN;
-		}
+		$this->setEventLogic( function( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
+			if ( $workflowState === DeciderWorkerState::NOTHING_OPEN ) {
+				$workflowState = DeciderWorkerState::ACTIVITY_OPEN;
+			} else if ( $workflowState === DeciderWorkerState::TIMER_OPEN ) {
+				$workflowState = DeciderWorkerState::TIMER_AND_ACTIVITY_OPEN;
+			}
+		} );
 	}
 }

@@ -15,12 +15,11 @@ class ActivityTaskFailedEvent extends AbstractEvent
 	public function __construct()
 	{
 		$this->setEventType( 'ActivityTaskFailed' );
-	}
 
-	public function run( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId )
-	{
-		// @TODO
-		// Need logic
-		// when an activity fails, a real application may want to retry it or report the incident
+		$this->setEventLogic( function( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
+			// @TODO
+			// Need logic
+			// when an activity fails, a real application may want to retry it or report the incident
+		} );
 	}
 }

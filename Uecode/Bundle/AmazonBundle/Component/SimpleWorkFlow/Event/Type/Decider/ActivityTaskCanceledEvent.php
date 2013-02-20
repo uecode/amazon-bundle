@@ -15,11 +15,10 @@ class ActivityTaskCanceledEvent extends AbstractEvent
 	public function __construct()
 	{
 		$this->setEventType( 'ActivityTaskCanceled' );
-	}
 
-	public function run( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId )
-	{
-		// @TODO
-		// Need logic
+		$this->setEventLogic( function( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
+			// @TODO
+			// Need logic
+		} );
 	}
 }
