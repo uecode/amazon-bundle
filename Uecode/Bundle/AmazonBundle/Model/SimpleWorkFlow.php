@@ -13,7 +13,7 @@ use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
 // Amazon Bundle Components
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Workflow;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decider;
 
 // Uecode Bundle Components
 use \Uecode\Bundle\UecodeBundle\Component\Config;
@@ -62,10 +62,10 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 		);
 
 		if( null === $workflowClass ) {
-			return new Workflow( $this ,$workflowOptions );
+			return new Decider( $this ,$workflowOptions );
 		} else {
 			$worker = new $workflowClass( $this, $workflowOptions );
-			if( !( $worker instanceof Workflow ) ) {
+			if( !( $worker instanceof Decider ) ) {
 				throw new InvalidClassException( $workflowClass );
 			}
 
