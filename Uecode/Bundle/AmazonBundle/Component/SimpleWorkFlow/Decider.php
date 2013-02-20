@@ -15,7 +15,7 @@ use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
 use \Uecode\Bundle\AmazonBundle\Exception\SimpleWorkFlow\InvalidEventTypeException;
 
 // Events
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\DeciderEvent;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\AbstractEvent;
 
 // Amazon Classes
 use \AmazonSWF;
@@ -260,7 +260,7 @@ class Decider extends AmazonComponent
 			$eventType = str_replace( '.php', '', $file );
 			$class = "\\Uecode\\Bundle\\AmazonBundle\\Component\\SimpleWorkFlow\\Event\\Type\\" . $eventType;
 			if( class_exists( $class ) ) {
-				$this->events[ $eventType ] = new $class();
+				$this->setEvent( new $class(), true );
 			}
 		}
 
@@ -268,18 +268,24 @@ class Decider extends AmazonComponent
 			$eventType = str_replace( '.php', '', $file );
 			$class = "\\Uecode\\Bundle\\AmazonBundle\\Component\\SimpleWorkFlow\\Event\\Type\\Decider\\" . $eventType;
 			if( class_exists( $class ) ) {
-				$this->events[ $eventType ] = new $class();
+				$this->setEvent( new $class(), true );
 			}
 		}
 	}
 
-	public function setEvent( $type, $event, $ignoreUnknown = false )
+	public function setEvent( AbstractEvent $event, $ignoreUnknown = false )
 	{
-		if( !array_key_exists( $type, $this->events ) && !$ignoreUnknown ) {
+		// If the event isnt a valid AbstractEvent, throw an exception
+		if( !( $event instanceof AbstractEvent ) ) {
 			throw new InvalidEventTypeException();
 		}
 
-		$this->events[ $type ] = $event;
+		// If the event isnt a valid default event, and we arent ignoring unknowns, throw an exception
+		if( !array_key_exists( $event->getEventType(), $this->events ) && !$ignoreUnknown ) {
+			throw new InvalidEventTypeException();
+		}
+
+		$this->events[ $event->getEventType() ] = $event;
 	}
 
 	/**
