@@ -84,6 +84,9 @@ class Decider extends AmazonComponent
 	 *
 	 */
 
+	/**
+	 * Run the workflow!
+	 */
 	final public function run()
 	{
 		while ( true ) {
@@ -132,6 +135,12 @@ class Decider extends AmazonComponent
 		}
 	}
 
+	/**
+	 * Decider logic. Runs through each history event, and decides what to do with the event
+	 *
+	 * @param HistoryEventIterator $history
+	 * @return array
+	 */
 	final private function decide( HistoryEventIterator $history )
 	{
 		$workflowState = DeciderWorkerState::START;
@@ -159,6 +168,16 @@ class Decider extends AmazonComponent
 		return array();
 	}
 
+	/**
+	 * Process the given history event
+	 *
+	 * @param $event
+	 * @param $workflowState
+	 * @param $timerOptions
+	 * @param $activityOptions
+	 * @param $continueAsNew
+	 * @param $maxEventId
+	 */
 	protected function processEvent( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
 		$maxEventId = max( $maxEventId, intval( $event->eventId ) );
 
@@ -169,6 +188,13 @@ class Decider extends AmazonComponent
 		}
 	}
 
+	/**
+	 * Creates options for a decision
+	 *
+	 * @param $type
+	 * @param $options
+	 * @return array
+	 */
 	public static function createDecisionOptions( $type, $options )
 	{
 		$key = strtolower( substr( $type, 0, 1 ) ) . substr( $type, 1 ) . 'DecisionAttributes';
@@ -179,6 +205,12 @@ class Decider extends AmazonComponent
 		);
 	}
 
+	/**
+	 * Create options array for an activity
+	 *
+	 * @param $input
+	 * @return array
+	 */
 	public static function createActivityOptions( $input )
 	{
 		$activityName = $input[ Decider::ACTIVITY_NAME_KEY ];
@@ -209,6 +241,12 @@ class Decider extends AmazonComponent
 		return $activity_opts;
 	}
 
+	/**
+	 * Create options array for a timer
+	 *
+	 * @param $input
+	 * @return array
+	 */
 	public static function createTimerOptions( $input )
 	{
 		$timerDuration = (string)$input[ Decider::TIMER_DURATION_KEY ];
@@ -221,8 +259,14 @@ class Decider extends AmazonComponent
 	}
 
 	/*
+	 */
+	/**
+	 * Creates options for a continue
+	 *
 	 * When you continue a workflow execution as a new workflow execution,
 	 * the start options don't carry over, so you need to specify them again.
+	 * @param $startAttributes
+	 * @return array
 	 */
 	public static function createContinueOptions( $startAttributes )
 	{
@@ -273,6 +317,15 @@ class Decider extends AmazonComponent
 		}
 	}
 
+	/**
+	 * Adds/Replaces the given event to the event array.
+	 *
+	 * If an unknown Event is passed, and ignoreUnknown is false, we will throw an exception
+	 *
+	 * @param Event\AbstractEvent $event
+	 * @param bool $ignoreUnknown
+	 * @throws InvalidEventTypeException
+	 */
 	public function setEvent( AbstractEvent $event, $ignoreUnknown = false )
 	{
 		// If the event isnt a valid AbstractEvent, throw an exception
@@ -280,7 +333,7 @@ class Decider extends AmazonComponent
 			throw new InvalidEventTypeException();
 		}
 
-		// If the event isnt a valid default event, and we arent ignoring unknowns, throw an exception
+		// If the event isnt a valid default event, and we aren't ignoring unknowns, throw an exception
 		if( !array_key_exists( $event->getEventType(), $this->events ) && !$ignoreUnknown ) {
 			throw new InvalidEventTypeException();
 		}
