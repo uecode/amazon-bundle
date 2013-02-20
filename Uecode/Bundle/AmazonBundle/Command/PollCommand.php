@@ -5,11 +5,15 @@
  */
 namespace Uecode\Bundle\AmazonBundle\Command;
 
-use \Uecode\Bundle\DaemonBundle\Command\ExtendCommand;
+// Symfony Classes
+use \Symfony\Component\Console\Input\InputInterface;
+use \Symfony\Component\Console\Output\OutputInterface;
 
+// Uecode Classes
+use \Uecode\Bundle\DaemonBundle\Command\ExtendCommand;
 use \Uecode\Bundle\AmazonBundle\Component\AmazonComponent;
 
-class PollCommand extends ExtendCommand
+abstract class PollCommand extends ExtendCommand
 {
 
 	/**
@@ -32,16 +36,20 @@ class PollCommand extends ExtendCommand
 	 */
 	final protected function daemonLogic()
 	{
+
 		$this->getWorker()->run();
 	}
 
-	/**
-	 * @param \Uecode\Bundle\AmazonBundle\Component\AmazonComponent $worker
-	 */
-	public function setWorker( $worker )
+	final protected function execute( InputInterface $input, OutputInterface $output )
 	{
-		$this->worker = $worker;
+		$this->setWorker();
+		parent::execute( $input, $output );
 	}
+
+
+	/**
+	 */
+	abstract public function setWorker();
 
 	/**
 	 * @return \Uecode\Bundle\AmazonBundle\Component\AmazonComponent
