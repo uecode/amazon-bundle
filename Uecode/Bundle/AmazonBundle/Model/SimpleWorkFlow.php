@@ -73,7 +73,6 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 		}
 	}
 
-
 	/********************* Initializers *********************
 	 *
 	 * Functions to help initialize

@@ -29,6 +29,4 @@ class AmazonComponent
 	{
 		return $this->amazonClass;
 	}
-
-
 }

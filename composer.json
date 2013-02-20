@@ -18,7 +18,8 @@
 		"email": "aaron@undergroundelephant.com"
 	},
 	"require":     {
-		"uecode/uecode-bundle": "dev-master",
+        "uecode/uecode-bundle": "dev-master",
+        "uecode/daemon-bundle": "dev-master",
 		"aws/aws-sdk-php": "2.1.*",
 		"amazonwebservices/aws-sdk-for-php": "1.6.*"
 	},
