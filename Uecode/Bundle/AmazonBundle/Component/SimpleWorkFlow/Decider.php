@@ -59,7 +59,7 @@ class Decider extends AmazonComponent
 	/**
 	 * @var
 	 */
-	private $events = array();
+	public $events = array();
 
 	/**
 	 * Builds the Workflow
