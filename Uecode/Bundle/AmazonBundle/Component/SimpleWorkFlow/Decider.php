@@ -8,11 +8,14 @@ namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
 // Amazon Components
 use \Uecode\Bundle\AmazonBundle\Component\AmazonComponent;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEventIterator;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\States\DeciderWorkerStates;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\State\DeciderWorkerState;
 
 // Amazon Exceptions
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
-use \Uecode\Bundle\AmazonBundle\Exception\InvalidDeciderLogicException;
+use \Uecode\Bundle\AmazonBundle\Exception\SimpleWorkFlow\InvalidEventTypeException;
+
+// Events
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\DeciderEvent;
 
 // Amazon Classes
 use \AmazonSWF;
@@ -54,6 +57,11 @@ class Decider extends AmazonComponent
 	private $workflowOptions = array();
 
 	/**
+	 * @var
+	 */
+	private $events = array();
+
+	/**
 	 * Builds the Workflow
 	 *
 	 * @param \AmazonSWF $swf
@@ -66,6 +74,8 @@ class Decider extends AmazonComponent
 
 		$this->workflowOptions = $workflowType;
 		$this->workflow = $this->setWorkflow( $workflowType );
+
+		$this->setDefaultEvents();
 	}
 
 	/********************* Core Logic *********************
@@ -124,7 +134,7 @@ class Decider extends AmazonComponent
 
 	final private function decide( HistoryEventIterator $history )
 	{
-		$workflowState = DeciderWorkerStates::START;
+		$workflowState = DeciderWorkerState::START;
 		$timerOptions = null;
 		$activityOptions = null;
 		$continueAsNew = null;
@@ -134,13 +144,13 @@ class Decider extends AmazonComponent
 			$this->processEvent( $event, $workflowState, $timerOptions, $activityOptions, $continueAsNew, $maxEventId );
 		}
 
-		$timerDecision = $this->createDecisionOptions( 'StartTimer', $timerOptions );
-		$activityDecision = $this->createDecisionOptions( 'ScheduleActivityTask', $activityOptions );
-		$continueAsNewDecision = $this->createDecisionOptions( 'ContinueAsNewWorkflowExecution', $continueAsNew );
+		$timerDecision = self::createDecisionOptions( 'StartTimer', $timerOptions );
+		$activityDecision = self::createDecisionOptions( 'ScheduleActivityTask', $activityOptions );
+		$continueAsNewDecision = self::createDecisionOptions( 'ContinueAsNewWorkflowExecution', $continueAsNew );
 
-		if ( $workflowState === DeciderWorkerStates::START ) {
+		if ( $workflowState === DeciderWorkerState::START ) {
 			return array( $timerDecision );
-		} elseif ( $workflowState === DeciderWorkerStates::NOTHING_OPEN ) {
+		} elseif ( $workflowState === DeciderWorkerState::NOTHING_OPEN ) {
 			if ( $maxEventId >= Decider::EVENT_THRESHOLD_BEFORE_NEW_GENERATION ) {
 				return array( $continueAsNewDecision );
 			}
@@ -152,62 +162,14 @@ class Decider extends AmazonComponent
 	protected function processEvent( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
 		$maxEventId = max( $maxEventId, intval( $event->eventId ) );
 
-		switch ( (string)$event->eventType ) {
-			case 'TimerStarted':
-				if ( $workflowState === DeciderWorkerStates::NOTHING_OPEN || $workflowState === DeciderWorkerStates::START ) {
-					$workflowState = DeciderWorkerStates::TIMER_OPEN;
-				} else {
-					if ( $workflowState === DeciderWorkerStates::ACTIVITY_OPEN ) {
-						$workflowState = DeciderWorkerStates::TIMER_AND_ACTIVITY_OPEN;
-					}
-				}
-				break;
-			case 'TimerFired':
-				if ( $workflowState === DeciderWorkerStates::TIMER_OPEN ) {
-					$workflowState = DeciderWorkerStates::NOTHING_OPEN;
-				} else if ( $workflowState === DeciderWorkerStates::TIMER_AND_ACTIVITY_OPEN ) {
-					$workflowState = DeciderWorkerStates::ACTIVITY_OPEN;
-				}
-				break;
-			case 'ActivityTaskScheduled':
-				if ( $workflowState === DeciderWorkerStates::NOTHING_OPEN ) {
-					$workflowState = DeciderWorkerStates::ACTIVITY_OPEN;
-				} else if ( $workflowState === DeciderWorkerStates::TIMER_OPEN ) {
-					$workflowState = DeciderWorkerStates::TIMER_AND_ACTIVITY_OPEN;
-				}
-				break;
-			case 'ActivityTaskCanceled':
-				// add cancellation handling here
-			case 'ActivityTaskFailed':
-				// add failure handling here
-				// when an activity fails, a real application may want to retry it or report the incident
-			case 'ActivityTaskTimedOut':
-				// add timeout handling here
-				// when an activity times out, a real application may want to retry it or report the incident
-			case 'ActivityTaskCompleted':
-				if ( $workflowState === DeciderWorkerStates::ACTIVITY_OPEN ) {
-					$workflowState = DeciderWorkerStates::NOTHING_OPEN;
-				} else if ( $workflowState === DeciderWorkerStates::TIMER_AND_ACTIVITY_OPEN ) {
-					$workflowState = DeciderWorkerStates::TIMER_OPEN;
-				}
-				break;
-			// This is the only case which doesn't only transition state;
-			// it also gathers the user's workflow input.
-			case 'WorkflowExecutionStarted':
-				$workflowState = DeciderWorkerStates::START;
+		$eventType = (string)$event->eventType;
 
-				// gather gather gather
-				$eventAttributes = $event->workflowExecutionStartedEventAttributes;
-				$workflowInput = json_decode( $eventAttributes->input, true );
-
-				$activityOptions = $this->createActivityOptions( $workflowInput );
-				$timerOptions = $this->createActivityOptions( $workflowInput );
-				$continueAsNew = $this->createContinueOptions( $eventAttributes );
-				break;
+		if( array_key_exists( $eventType, $this->events ) ) {
+			$this->events[ $eventType ]->run( $event, $workflowState, $timerOptions, $activityOptions, $continueAsNew, $maxEventId );
 		}
 	}
 
-	protected function createDecisionOptions( $type, $options )
+	public static function createDecisionOptions( $type, $options )
 	{
 		$key = strtolower( substr( $type, 0, 1 ) ) . substr( $type, 1 ) . 'DecisionAttributes';
 
@@ -217,7 +179,7 @@ class Decider extends AmazonComponent
 		);
 	}
 
-	protected function createActivityOptions( $input )
+	public static function createActivityOptions( $input )
 	{
 		$activityName = $input[ Decider::ACTIVITY_NAME_KEY ];
 		$activityVersion = $input[ Decider::ACTIVITY_VERSION_KEY ];
@@ -247,7 +209,7 @@ class Decider extends AmazonComponent
 		return $activity_opts;
 	}
 
-	protected static function createTimerOptions( $input )
+	public static function createTimerOptions( $input )
 	{
 		$timerDuration = (string)$input[ Decider::TIMER_DURATION_KEY ];
 		$timerOptions = array(
@@ -262,7 +224,7 @@ class Decider extends AmazonComponent
 	 * When you continue a workflow execution as a new workflow execution,
 	 * the start options don't carry over, so you need to specify them again.
 	 */
-	protected static function createContinueOptions( $startAttributes )
+	public static function createContinueOptions( $startAttributes )
 	{
 		$continueAsNewOptions = array(
 			'childPolicy' => (string)$startAttributes->childPolicy,
@@ -288,6 +250,37 @@ class Decider extends AmazonComponent
 	 * Functions to help initialize
 	 *
 	 */
+
+	/**
+	 * Finds all the Events we have defined in the AmazonBundle, and initializes them
+	 */
+	private function setDefaultEvents()
+	{
+		foreach( glob( __DIR__ . '/Event/Type/*.php' ) as $file ) {
+			$eventType = str_replace( '.php', '', $file );
+			$class = "\\Uecode\\Bundle\\AmazonBundle\\Component\\SimpleWorkFlow\\Event\\Type\\" . $eventType;
+			if( class_exists( $class ) ) {
+				$this->events[ $eventType ] = new $class();
+			}
+		}
+
+		foreach( glob( __DIR__ . '/Event/Type/Decider/*.php' ) as $file ) {
+			$eventType = str_replace( '.php', '', $file );
+			$class = "\\Uecode\\Bundle\\AmazonBundle\\Component\\SimpleWorkFlow\\Event\\Type\\Decider\\" . $eventType;
+			if( class_exists( $class ) ) {
+				$this->events[ $eventType ] = new $class();
+			}
+		}
+	}
+
+	public function setEvent( $type, $event, $ignoreUnknown = false )
+	{
+		if( !array_key_exists( $type, $this->events ) && !$ignoreUnknown ) {
+			throw new InvalidEventTypeException();
+		}
+
+		$this->events[ $type ] = $event;
+	}
 
 	/**
 	 * Returns the amazon swf workflow Object
@@ -316,21 +309,4 @@ class Decider extends AmazonComponent
 
 		return $swf->describe_workflow_type( $workflowType );
 	}
-
-	/**
-	 * @param callable $deciderLogic
-	 */
-	final public function setDeciderLogic( \Closure $deciderLogic )
-	{
-		$this->deciderLogic = $deciderLogic;
-	}
-
-	/**
-	 * @return callable
-	 */
-	final public function getDeciderLogic()
-	{
-		return $this->deciderLogic;
-	}
-
 }

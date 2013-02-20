@@ -3,7 +3,7 @@
  * @author Aaron Scherer
  * @date   2013
  */
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\States;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\State;
 
 /*
  * A decider can be written by modeling the workflow as a state machine.
@@ -16,7 +16,7 @@ namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\States;
  * You can handle them by adding more states.
  * This decider also only supports having a single activity open at a time.
  */
-abstract class DeciderWorkerStates
+abstract class DeciderWorkerState
 {
 	/**
 	 * A new workflow is in this state
