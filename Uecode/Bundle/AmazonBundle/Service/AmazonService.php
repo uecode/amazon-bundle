@@ -17,10 +17,7 @@ class AmazonService
 		if( !empty( $config ) ) {
 			foreach( $config[ 'accounts' ][ 'connections' ] as $name => $key ) {
 				$account[ 'name' ] = $name;
-				$config = new Config( $account );
-				$factory = new AmazonFactory( $config );
-				
-				$container->setParameter( trim( 'uecode.amazon.factory.' . $name ), $factory );
+				$this->addFactory( $name, new AmazonFactory( new Config( $config ) ) );
 			}
 		}
 	}
