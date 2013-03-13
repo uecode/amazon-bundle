@@ -1,4 +1,4 @@
-#services:
-#    uecode.amazon:
-#        class: Uecode\Bundle\AmazonBundle\Service\AmazonService
-#        arguments: [ uecode ]
+services:
+    uecode.amazon:
+        class: Uecode\Bundle\AmazonBundle\Service\AmazonService
+        arguments: [ uecode ]
