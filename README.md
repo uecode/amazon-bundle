@@ -34,10 +34,10 @@ This bundle is the connector for AWS services to be a bit more readable
 	
 ## Usage
 
-In your code, after doing the above, you should be able to get the amazon factory with
+In your code, after doing the above, you should be able to get the amazon factory with:
 
-	```php
-	$amazonFactory = $this->container->get( 'ue.amazon.main_factory' );
-	// Example to get swf object
-	$swf = $amazonFactory->build( 'AmazonSWF', array( 'domain' => 'uePoc' ) );
-	```
+```php
+$amazonFactory = $container->get( 'ue.amazon.main_factory' );
+// Example to get swf object
+$swf = $amazonFactory->build( 'AmazonSWF', array( 'domain' => 'uePoc' ) );
+```
