@@ -1,6 +1,9 @@
 <?php
 namespace Uecode\Bundle\AmazonBundle\Service;
 
+use \Uecode\Bundle\UecodeBundle\Component\Config;
+use \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory;
+
 class AmazonService
 {
 
@@ -12,10 +15,10 @@ class AmazonService
 	public function __construct( array $config )
 	{
 		if( !empty( $config ) ) {
-			foreach( $config[ 'accounts' ][ 'connection' ] as $name => $key ) {
+			foreach( $config[ 'accounts' ][ 'connections' ] as $name => $key ) {
 				$account[ 'name' ] = $name;
 				$config = new Config( $account );
-				$factory = new \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory( $config );
+				$factory = new AmazonFactory( $config );
 				
 				$container->setParameter( trim( 'uecode.amazon.factory.' . $name ), $factory );
 			}
