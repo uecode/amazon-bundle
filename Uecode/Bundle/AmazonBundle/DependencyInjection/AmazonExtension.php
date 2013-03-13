@@ -26,6 +26,12 @@ class AmazonExtension extends Extension
 
 		$this->setParameters( $container, $config );
 
+		foreach( $config[ 'uecode' ][ 'amazon' ][ 'accounts' ]['connections'] as $name => $account ) {
+			$account ['name' ] = $name;
+			$config = new Config( $account );
+			$factory = new \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory( $config );
+			$container->set( trim( 'uecode.amazon.factory.' . $name ), $factory );
+		}
 	}
 
 	public function getConfiguration(array $config, ContainerBuilder $container)
@@ -46,13 +52,6 @@ class AmazonExtension extends Extension
 			{
 				$container->setParameter( ltrim( $prefix . '.' . $key, '.' ), $value );
 			}
-		}
-
-		foreach( $configs[ 'uecode' ][ 'amazon' ][ 'account' ] as $name => $account ) {
-			$account ['name' ] = $name;
-			$config = new Config( $account );
-			$factory = new \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory( $config );
-			$container->setDefinition( trim( $prefix. '.amazon.' . $name . '_factory' ), $factory );
 		}
 	}
 }
