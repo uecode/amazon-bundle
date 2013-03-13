@@ -48,13 +48,11 @@ class AmazonExtension extends Extension
 			}
 		}
 
-        foreach( $configs[ 'uecode' ][ 'amazon' ][ 'account' ] as $name => $account ) {
-
-            $account ['name' ] = $name;
-            $config = new Config( $account );
-            $factory = new \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory( $config );
-
-            $container->setParameter( trim( $prefix. '.amazon.' . $name . '_factory' ), $factory );
-        }
+		foreach( $configs[ 'uecode' ][ 'amazon' ][ 'account' ] as $name => $account ) {
+			$account ['name' ] = $name;
+			$config = new Config( $account );
+			$factory = new \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory( $config );
+			$container->setDefinition( trim( $prefix. '.amazon.' . $name . '_factory' ), $factory );
+		}
 	}
 }
