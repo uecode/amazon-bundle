@@ -30,7 +30,7 @@ class AmazonExtension extends Extension
 			$account ['name' ] = $name;
 			$config = new Config( $account );
 			$factory = new \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory( $config );
-			$container->set( trim( 'uecode.amazon.factory.' . $name ), $factory );
+			$container->setParameter( trim( 'uecode.amazon.factory.' . $name ), $factory );
 		}
 	}
 
