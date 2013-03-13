@@ -11,19 +11,14 @@ class AmazonService
 
 	public function __construct( array $config )
 	{
-		if( isset( $config[ 'amazon' ] ) ) {
-			$this->initializeConfigs( $config[ 'amazon' ] );
-		}
-	}
-	
-	public function initializeConfigs( array $config )
-	{
-		foreach( $config[ 'accounts' ][ 'connection' ] as $name => $key ) {
-			$account[ 'name' ] = $name;
-			$config = new Config( $account );
-			$factory = new \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory( $config );
-			
-			$container->setParameter( trim( 'uecode.amazon.factory.' . $name ), $factory );
+		if( !empty( $config ) ) {
+			foreach( $config[ 'accounts' ][ 'connection' ] as $name => $key ) {
+				$account[ 'name' ] = $name;
+				$config = new Config( $account );
+				$factory = new \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory( $config );
+				
+				$container->setParameter( trim( 'uecode.amazon.factory.' . $name ), $factory );
+			}
 		}
 	}
 
