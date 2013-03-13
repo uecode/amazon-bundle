@@ -10,6 +10,7 @@ use \Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use \Symfony\Component\Config\FileLocator;
 use \Symfony\Component\DependencyInjection\Loader;
 use \Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use \Symfony\Component\DependencyInjection\Definition
 
 use Uecode\Bundle\UecodeBundle\Component\Config;
 
@@ -28,9 +29,10 @@ class AmazonExtension extends Extension
 
 		foreach( $container->getParameter( 'uecode.amazon.accounts.connections' ) as $name => $account ) {
 			$account ['name' ] = $name;
-			$config = new Config( $account );
-			$factory = new \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory( $config );
-			$container->set( trim( 'uecode.amazon.factory.' . $name ), $factory );
+			$def = new Definition();
+			$def->setFactoryClass( '\Uecode\Bundle\AmazonBundle\DependencyInjection\Factory\AmazonFactoryFactory' );
+			$def->setArguments( [ $account ] );			
+			$container->setDefinition( trim( 'uecode.amazon.factory.' . $name ), $def );
 		}	
 	}
 
