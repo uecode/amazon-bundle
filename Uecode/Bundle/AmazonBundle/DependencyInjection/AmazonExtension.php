@@ -25,7 +25,7 @@ class AmazonExtension extends Extension
 		$config = $this->processConfiguration( $configuration, $configs );
 
 		$this->setParameters( $container, $config );
-
+var_dump( $config );
 		foreach( $config[ 'uecode' ][ 'amazon' ][ 'accounts' ]['connections'] as $name => $account ) {
 			$account ['name' ] = $name;
 			$config = new Config( $account );
