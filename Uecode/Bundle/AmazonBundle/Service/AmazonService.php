@@ -15,9 +15,9 @@ class AmazonService
 	public function __construct( array $config )
 	{
 		if( !empty( $config ) ) {
-			foreach( $config[ 'accounts' ][ 'connections' ] as $name => $key ) {
+			foreach( $config[ 'accounts' ][ 'connections' ] as $name => $account ) {
 				$account[ 'name' ] = $name;
-				$this->addFactory( $name, new AmazonFactory( new Config( $config ) ) );
+				$this->addFactory( $name, new AmazonFactory( new Config( $account ) ) );
 			}
 		}
 	}
