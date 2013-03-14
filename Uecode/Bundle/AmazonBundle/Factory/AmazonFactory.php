@@ -117,11 +117,13 @@ class AmazonFactory implements FactoryInterface
 	{
 
 		// Run through the configs
-		foreach ( $this->getModelConfig()->all() as $model ) {
+		foreach ( $this->getModelConfig()->all() as $modelGroup ) {
 
-			// If we have an override for the amazon class, replace it
-			if ( $className === $model[ 'amazon_class' ] ) {
-				$className = $model[ 'uecode_class' ];
+			foreach( $modelGroup as $model ) {
+				// If we have an override for the amazon class, replace it
+				if ( $className === $model[ 'amazon_class' ] ) {
+					$className = $model[ 'uecode_class' ];
+				}
 			}
 		}
 
