@@ -3,7 +3,7 @@
  * @author Aaron Scherer
  * @date   2/20/13
  */
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\Type\Decider;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\Decider;
 
 // Amazon Bundle's SWF Components
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\AbstractEvent;
