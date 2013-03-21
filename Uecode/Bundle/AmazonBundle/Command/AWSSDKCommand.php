@@ -3,6 +3,8 @@
 /**
  * A symfony command to run Amazon SDK Commands
  *
+ * Note that this currently only supports v1 of the PHP SDK.
+ *
  * @author John Pancoast
  * @date 2013-03-20
  */
@@ -26,41 +28,46 @@ class AWSSDKCommand extends Command
         $this
             ->setName('ue:workflow:start')
             ->setDescription('Send a start workflow execution to amazon.')
-            ->addArgument(
-                'aws_key',
-                InputArgument::REQUIRED,
+            ->addOption(
+                'key',
+                null,
+                InputOption::VALUE_REQUIRED,
                 'The amazon AWS key used for authentication'
             )
-            ->addArgument(
-                'aws_secret',
-                InputArgument::REQUIRED,
+            ->addOption(
+                'secret',
+                null,
+                InputOption::VALUE_REQUIRED,
                 'The amazon AWS secret used for authentication'
             )
-            ->addArgument(
+            ->addOption(
                 'sdk_command',
-                InputArgument::REQUIRED,
+                null,
+                InputOption::VALUE_REQUIRED,
                 'The amazon SDK command (v1 of SDK)'
             )
-            ->addArgument(
+            ->addOption(
                 'options',
-                InputArgument::REQUIRED,
+                null,
+                InputOption::VALUE_REQUIRED,
                 'The amazon SWF options (as JSON object)'
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {
-        $key = $input->getArgument('aws_key');
-        $secret = $input->getArgument('aws_secret');
-        $command = $input->getArgument('sdk_command');
-        $options = $input->getArgument('options');
+        $key = $input->getOption('key');
+        $secret = $input->getOption('secret');
+        $command = $input->getOption('sdk_command');
+        $options = $input->getOption('options');
 
         $swf = new AmazonSWF(array('key' => $key, 'secret' => $secret));
 
         if (!method_exists($swf, $command)) {
-            throw new Exception('Amazon SWF/SDK method \'$command\' does not exist');
+            throw new \Exception('Amazon SWF/SDK method "'.$command.'" does not exist');
         }
 
-        $result = $swf->{$command}(json_decode($options, true));
+        $options = json_decode($options, true);
+        $result = $swf->{$command}($options);
         $output->writeln($result->body);
     }
 }
