@@ -20,12 +20,20 @@ abstract class AbstractEvent
 	protected $eventLogic;
 
 	/**
-	 * Constructor
+	 * Event logic
+	 *
+	 * @param $event
+	 * @param $workflowState
+	 * @param $timerOptions
+	 * @param $activityOptions
+	 * @param $continueAsNew
+	 * @param $maxEventId
+	 * @return void
 	 */
-	abstract public function __construct();
+	abstract protected function eventLogic( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId );
 
 	/**
-	 * Logic for the event
+	 * Run logic for the event
 	 *
 	 * @param $event
 	 * @param $workflowState
@@ -37,8 +45,7 @@ abstract class AbstractEvent
 	 */
 	public function run( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId )
 	{
-		$function = $this->eventLogic;
-		return $function( $event, $workflowState, $timerOptions, $activityOptions, $continueAsNew, $maxEventId );
+		$this->eventLogic();
 	}
 
 	/**
@@ -58,22 +65,4 @@ abstract class AbstractEvent
 	{
 		$this->eventType = $eventType;
 	}
-
-	/**
-	 * @param callable $eventLogic
-	 */
-	public function setEventLogic( \Closure $eventLogic )
-	{
-		$this->eventLogic = $eventLogic;
-	}
-
-	/**
-	 * @return callable
-	 */
-	public function getEventLogic( )
-	{
-		return $this->eventLogic;
-	}
-
-
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * @author Aaron Scherer
+ * @author Aaron Scherer, John Pancoast
  * @date   2/20/13
  */
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\Decider;
@@ -11,17 +11,13 @@ use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\State\DeciderWorkerStat
 
 class ActivityTaskScheduledEvent extends AbstractEvent
 {
-
-	public function __construct()
-	{
-		$this->setEventType( 'ActivityTaskScheduled' );
-
-		$this->setEventLogic( function( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
-			if ( $workflowState === DeciderWorkerState::NOTHING_OPEN ) {
-				$workflowState = DeciderWorkerState::ACTIVITY_OPEN;
-			} else if ( $workflowState === DeciderWorkerState::TIMER_OPEN ) {
-				$workflowState = DeciderWorkerState::TIMER_AND_ACTIVITY_OPEN;
-			}
-		} );
+	protected function eventType = 'ActivityTaskScheduled';
+	
+	protected function eventLogic( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
+		if ( $workflowState === DeciderWorkerState::NOTHING_OPEN ) {
+			$workflowState = DeciderWorkerState::ACTIVITY_OPEN;
+		} else if ( $workflowState === DeciderWorkerState::TIMER_OPEN ) {
+			$workflowState = DeciderWorkerState::TIMER_AND_ACTIVITY_OPEN;
+		}
 	}
 }

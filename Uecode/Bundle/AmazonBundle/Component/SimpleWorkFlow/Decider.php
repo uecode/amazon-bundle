@@ -1,6 +1,8 @@
 <?php
 /**
- * User: Aaron Scherer
+ * Base logic for Amazon SWF decider
+ *
+ * @author Aaron Scherer, John Pancoast
  * Date: 2/13/13
  */
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
@@ -95,7 +97,6 @@ class Decider extends AmazonComponent
 				$taskToken = (string)$response->body->taskToken;
 
 				if ( !empty( $taskToken ) ) {
-					$deciderResponse = $this->decide( $response );
 					try {
 						$deciderResponse = $this->decide(
 							new HistoryEventIterator( $this->getAmazonClass(), $this->workflow, $response )
@@ -300,17 +301,9 @@ class Decider extends AmazonComponent
 	 */
 	private function setDefaultEvents()
 	{
-		foreach( glob( __DIR__ . '/Event/Type/*.php' ) as $file ) {
+		foreach( glob( __DIR__ . '/Event/Decider/*.php' ) as $file ) {
 			$eventType = str_replace( '.php', '', $file );
-			$class = "\\Uecode\\Bundle\\AmazonBundle\\Component\\SimpleWorkFlow\\Event\\Type\\" . $eventType;
-			if( class_exists( $class ) ) {
-				$this->setEvent( new $class(), true );
-			}
-		}
-
-		foreach( glob( __DIR__ . '/Event/Type/Decider/*.php' ) as $file ) {
-			$eventType = str_replace( '.php', '', $file );
-			$class = "\\Uecode\\Bundle\\AmazonBundle\\Component\\SimpleWorkFlow\\Event\\Type\\Decider\\" . $eventType;
+			$class = "\\Uecode\\Bundle\\AmazonBundle\\Component\\SimpleWorkFlow\\Event\\Decider\\" . $eventType;
 			if( class_exists( $class ) ) {
 				$this->setEvent( new $class(), true );
 			}

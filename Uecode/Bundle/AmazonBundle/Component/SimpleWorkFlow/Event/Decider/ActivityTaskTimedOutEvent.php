@@ -1,6 +1,6 @@
 <?php
 /**
- * @author Aaron Scherer
+ * @author Aaron Scherer, John Pancoast
  * @date   2/20/13
  */
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\Decider;
@@ -11,14 +11,11 @@ use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\State\DeciderWorkerStat
 
 class ActivityTaskTimedOutEvent extends AbstractEvent
 {
+	protected $eventType = 'ActivityTaskTimedOut';
 
-	public function __construct()
-	{
-		$this->setEventType( 'ActivityTaskTimedOut' );
-		$this->setEventLogic( function( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
-			// @TODO
-			// Need logic
-			// when an activity times out, a real application may want to retry it or report the incident
-		} );
+	protected function eventLogic( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
+		// @TODO
+		// Need logic
+		// when an activity times out, a real application may want to retry it or report the incident
 	}
 }

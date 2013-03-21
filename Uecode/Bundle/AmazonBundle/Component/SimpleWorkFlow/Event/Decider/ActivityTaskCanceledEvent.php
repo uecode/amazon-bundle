@@ -1,6 +1,6 @@
 <?php
 /**
- * @author Aaron Scherer
+ * @author Aaron Scherer, John Pancoast
  * @date   2/20/13
  */
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\Decider;
@@ -11,14 +11,10 @@ use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\State\DeciderWorkerStat
 
 class ActivityTaskCanceledEvent extends AbstractEvent
 {
+	protected $eventType = 'ActivityTaskCancelled';
 
-	public function __construct()
-	{
-		$this->setEventType( 'ActivityTaskCanceled' );
-
-		$this->setEventLogic( function( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
-			// @TODO
-			// Need logic
-		} );
+	protected function eventLogic( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
+		// @TODO
+		// Need logic
 	}
 }
