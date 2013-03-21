@@ -56,9 +56,10 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	public function loadWorkflow( $name, $version = 1.0, $taskList, $workflowClass = null )
 	{
 		$workflowOptions = array(
-			'name'            => $name,
-			'version'         => $version,
-			'defaultTaskList' => $taskList
+			'name' => $name,
+			'version' => (string)$version,
+			'taskList' => array('name' => $taskList),
+			'domain' => $this->config->get( 'domain' )
 		);
 
 		if( null === $workflowClass ) {
@@ -122,22 +123,6 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 			throw new  InvalidConfigurationException( "Domain must be specified in this config." );
 		}
 	}
-
-
-	/********************* Overrides *********************
-	 *
-	 * Overrides to the amazon functions
-	 *
-	 */
-
-
-	public function authenticate( $operation, $payload )
-	{
-		$payload[ 'domain' ] = $this->config->get( 'domain' );
-
-		return parent::authenticate( $operation, $payload );
-	}
-
 
 	/********************* Getters and Setters *********************
 	 *

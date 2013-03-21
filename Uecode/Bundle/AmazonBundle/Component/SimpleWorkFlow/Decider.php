@@ -71,7 +71,6 @@ class Decider extends AmazonComponent
 	 */
 	final public function __construct( AmazonSWF $swf, array $workflowType )
 	{
-
 		$this->setAmazonClass( $swf );
 
 		$this->workflowOptions = $workflowType;
@@ -92,7 +91,7 @@ class Decider extends AmazonComponent
 	final public function run()
 	{
 		while ( true ) {
-			$response = $this->swf->poll_for_decision_task( $this->workflow );
+			$response = $this->amazonClass->poll_for_decision_task( $this->workflowOptions );
 			if ( $response->isOK() ) {
 				$taskToken = (string)$response->body->taskToken;
 
@@ -112,7 +111,7 @@ class Decider extends AmazonComponent
 						'result' => $deciderResponse
 					);
 
-					$complete_response = $this->swf->respond_decision_task_completed( $completeOpt );
+					$complete_response = $this->amazonClass->respond_decision_task_completed( $completeOpt );
 
 					if ( $complete_response->isOK() ) {
 						echo "RespondDecisionTaskCompleted SUCCESS\n";
@@ -128,7 +127,7 @@ class Decider extends AmazonComponent
 					echo "PollForDecisionTask received empty response\n";
 				}
 			} else {
-				echo 'ERROR: ';
+				echo 'DECISION ERROR: ';
 				print_r( $response->body );
 
 				sleep( 2 );
@@ -351,14 +350,17 @@ class Decider extends AmazonComponent
 			throw new InvalidConfigurationException( "Version must be included in the second argument." );
 		}
 
-		if ( !array_key_exists( 'defaultTaskList', $workflowType ) ) {
-			throw new InvalidConfigurationException( "Version must be included in the second argument." );
+		if ( !array_key_exists( 'domain', $workflowType ) ) {
+			throw new InvalidConfigurationException( "Domain must be included in the third argument." );
 		}
 
-		/** @var $swf AmazonSWF */
-		$swf = $this->getAmazonClass();
-		$swf->register_workflow_type( $workflowType );
+		$response = $this->amazonClass->register_workflow_type( $workflowType );
+		if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
+			echo 'REGISTRATION ERROR: ';
+			print_r( $response->body );
+			exit;
+		}
 
-		return $swf->describe_workflow_type( $workflowType );
+		return $this->amazonClass->describe_workflow_type( $workflowType );
 	}
 }
