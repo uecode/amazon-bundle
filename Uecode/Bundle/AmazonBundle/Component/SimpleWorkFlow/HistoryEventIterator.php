@@ -11,6 +11,7 @@ use \Iterator;
 // Amazon Classes
 use \AmazonSWF;
 use \CFRequest;
+use \CFResponse;
 
 // Exceptions
 use \RuntimeException;

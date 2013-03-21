@@ -10,7 +10,7 @@ namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
 // Amazon Components
 use \Uecode\Bundle\AmazonBundle\Component\AmazonComponent;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEventIterator;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\State\DeciderWorkerState;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\State;
 
 // Amazon Exceptions
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
@@ -90,48 +90,53 @@ class Decider extends AmazonComponent
 	 */
 	final public function run()
 	{
-		while ( true ) {
-			$response = $this->amazonClass->poll_for_decision_task( $this->workflowOptions );
-			if ( $response->isOK() ) {
-				$taskToken = (string)$response->body->taskToken;
+		try {
+			while ( true ) {
+				$response = $this->amazonClass->poll_for_decision_task( $this->workflowOptions );
+				if ( $response->isOK() ) {
+					$taskToken = (string)$response->body->taskToken;
 
-				if ( !empty( $taskToken ) ) {
-					try {
-						$deciderResponse = $this->decide(
-							new HistoryEventIterator( $this->getAmazonClass(), $this->workflow, $response )
+					if ( !empty( $taskToken ) ) {
+						try {
+							$deciderResponse = $this->decide(
+								new HistoryEventIterator( $this->getAmazonClass(), $this->workflow, $response )
+							);
+						} catch ( \Exception $e ) {
+							// If failed decisions are recoverable, one could drop the task and allow it to be redriven by the task timeout.
+							echo 'Failing workflow; exception in decider: ', $e->getMessage(), "\n", $e->getTraceAsString(
+							), "\n";
+						}
+
+						$completeOpt = array(
+							'task' => $taskToken,
+							'result' => $deciderResponse
 						);
-					} catch ( \Exception $e ) {
-						// If failed decisions are recoverable, one could drop the task and allow it to be redriven by the task timeout.
-						echo 'Failing workflow; exception in decider: ', $e->getMessage(), "\n", $e->getTraceAsString(
-						), "\n";
-					}
 
-					$completeOpt = array(
-						'task' => $taskToken,
-						'result' => $deciderResponse
-					);
+						$complete_response = $this->amazonClass->respond_decision_task_completed( $completeOpt );
 
-					$complete_response = $this->amazonClass->respond_decision_task_completed( $completeOpt );
-
-					if ( $complete_response->isOK() ) {
-						echo "RespondDecisionTaskCompleted SUCCESS\n";
+						if ( $complete_response->isOK() ) {
+							echo "RespondDecisionTaskCompleted SUCCESS\n";
+						} else {
+							// a real application may want to report this failure and retry
+							echo "RespondDecisionTaskCompleted FAIL\n";
+							echo "Response body: \n";
+							print_r( $complete_response->body );
+							echo "Request JSON: \n";
+							echo json_encode( $completeOpt ) . "\n";
+						}
 					} else {
-						// a real application may want to report this failure and retry
-						echo "RespondDecisionTaskCompleted FAIL\n";
-						echo "Response body: \n";
-						print_r( $complete_response->body );
-						echo "Request JSON: \n";
-						echo json_encode( $completeOpt ) . "\n";
+						echo "PollForDecisionTask received empty response\n";
 					}
 				} else {
-					echo "PollForDecisionTask received empty response\n";
-				}
-			} else {
-				echo 'DECISION ERROR: ';
-				print_r( $response->body );
+					echo 'DECISION ERROR: ';
+					print_r( $response->body );
 
-				sleep( 2 );
+					sleep( 2 );
+				}
 			}
+		} catch (Exception $e) {
+			echo "EXCEPTION: ".$e->getMessage();
+			exit;
 		}
 	}
 
