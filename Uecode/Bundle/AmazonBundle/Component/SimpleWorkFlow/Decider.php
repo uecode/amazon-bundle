@@ -10,7 +10,7 @@ namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
 // Amazon Components
 use \Uecode\Bundle\AmazonBundle\Component\AmazonComponent;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEventIterator;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\State;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\State\DeciderWorkerState;
 
 // Amazon Exceptions
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
