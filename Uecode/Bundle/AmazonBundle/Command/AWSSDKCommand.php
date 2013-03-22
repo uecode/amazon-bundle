@@ -23,7 +23,6 @@ use \CFRuntime;
 
 class AWSSDKCommand extends Command
 {
-    protected $name = "poll:ue:workflow:uePoc";
     protected function configure() {
         $this
             ->setName('ue:workflow:start')
