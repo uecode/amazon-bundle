@@ -25,7 +25,7 @@ class AWSSDKCommand extends Command
 {
     protected function configure() {
         $this
-            ->setName('ue:workflow:start')
+            ->setName('ue:simpleworkflow:sdkcommand')
             ->setDescription('Send a start workflow execution to amazon.')
             ->addOption(
                 'key',
