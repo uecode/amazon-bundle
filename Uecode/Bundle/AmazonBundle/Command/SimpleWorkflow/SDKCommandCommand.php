@@ -9,7 +9,7 @@
  * @date 2013-03-20
  */
 
-namespace Uecode\Bundle\AmazonBundle\Command;
+namespace Uecode\Bundle\AmazonBundle\Command\SimpleWorkflow;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -21,11 +21,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 use \AmazonSWF;
 use \CFRuntime;
 
-class AWSSDKCommand extends Command
+class SDKCommand extends Command
 {
     protected function configure() {
         $this
-            ->setName('ue:simpleworkflow:sdkcommand')
+            ->setName('ue:aws:simpleworkflow:sdkcommand')
             ->setDescription('Send a start workflow execution to amazon.')
             ->addOption(
                 'key',
