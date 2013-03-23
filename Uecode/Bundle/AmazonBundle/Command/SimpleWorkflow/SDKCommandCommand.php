@@ -21,7 +21,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use \AmazonSWF;
 use \CFRuntime;
 
-class SDKCommand extends Command
+class SDKCommandCommand extends Command
 {
     protected function configure() {
         $this
