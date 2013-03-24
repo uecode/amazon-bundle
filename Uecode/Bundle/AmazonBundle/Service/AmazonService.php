@@ -16,8 +16,7 @@ class AmazonService
 	{
 		if( !empty( $config ) ) {
 			foreach( $config[ 'accounts' ][ 'connections' ] as $name => $account ) {
-				$account[ 'name' ] = $name;
-				$this->addFactory( $name, new AmazonFactory( new Config( $account ) ) );
+				$this->addFactory( $name, new AmazonFactory( $name, new Config( $config ) ) );
 			}
 		}
 	}

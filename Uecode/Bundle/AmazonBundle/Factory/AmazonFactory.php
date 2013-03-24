@@ -23,6 +23,11 @@ use Uecode\Bundle\AmazonBundle\Model\AmazonInterface;
 
 class AmazonFactory implements FactoryInterface
 {
+	/**
+	 * @var string This factories name
+	 * @TODO this is only here due to current architecture. May change this up.
+	 */
+	private $name;
 
 	/**
 	 * @var Config Config for models
@@ -30,13 +35,14 @@ class AmazonFactory implements FactoryInterface
 	private $modelConfig;
 
 	/**
-	 * @var Config Config for account
+	 * @var Config Config for amazon related
 	 */
-	private $accountConfig;
+	private $config;
 
-	public function __construct( Config $accountConfig )
+	public function __construct( $name, Config $config )
 	{
-		$this->setAccountConfig( $accountConfig );
+		$this->name = $name;
+		$this->setConfig( $config );
 
 		$file = __DIR__ . '/../Resources/config/models.yml';
 		$this->setModelConfig( new Config( Yaml::parse( $file ) ) );
@@ -58,9 +64,11 @@ class AmazonFactory implements FactoryInterface
 		if ( $class !== false ) {
 
 			/** @var $config array Merge given configs with account configs */
-			$this->accountConfig->setItems( $options );
+			$this->config->setItems( $options );
 
-			$object = new $class( $this->accountConfig->all() );
+			$config = $this->config->all();
+
+			$object = new $class( $config['accounts']['connections'][$this->name] );
 
 			// Check to make sure its a valid Amazon object
 			if ( !( $object instanceof CFRuntime ) ) {
@@ -70,7 +78,7 @@ class AmazonFactory implements FactoryInterface
 			// @TODO Add check for Amazon API v2
 
 			if( $object instanceof AmazonInterface ) {
-				$object->initialize( $this->accountConfig );
+				$object->initialize( $this->config );
 			}
 
 			return $object;
@@ -135,12 +143,12 @@ class AmazonFactory implements FactoryInterface
 	}
 
 	/**
-	 * @param Config $accountConfig
+	 * @param Config $config
 	 * @return AmazonFactory
 	 */
-	public function setAccountConfig( Config $accountConfig )
+	public function setConfig( Config $config )
 	{
-		$this->accountConfig = $accountConfig;
+		$this->config = $config;
 
 		return $this;
 	}
@@ -148,9 +156,9 @@ class AmazonFactory implements FactoryInterface
 	/**
 	 * @return \Uecode\Bundle\UecodeBundle\Component\Config
 	 */
-	public function getAccountConfig()
+	public function getConfig()
 	{
-		return $this->accountConfig;
+		return $this->config;
 	}
 
 	/**

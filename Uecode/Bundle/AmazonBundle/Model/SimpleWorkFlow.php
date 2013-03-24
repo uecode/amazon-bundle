@@ -1,7 +1,7 @@
 <?php
 /**
- * User: Aaron Scherer
- * Date: 2/9/13
+ * @author Aaron Scherer, John Pancoast
+ * @date 2/9/13
  */
 namespace Uecode\Bundle\AmazonBundle\Model;
 
@@ -20,6 +20,9 @@ use \Uecode\Bundle\UecodeBundle\Component\Config;
 
 use \AmazonSWF as SWF;
 
+/**
+ * @todo this class should encapsulate swf, not extend it.
+ */
 class SimpleWorkFlow extends SWF implements AmazonInterface
 {
 
@@ -45,15 +48,35 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 */
 
 	/**
+	 * Returns a workflow defined in a config.
+	 *
+	 * @param string $configKey The config key for the workflow which is relative to uecode.amazon.simpleworkflow.domains.[name].workflows.
+	 * @return Decider
+	 */
+	public function loadWorkflowFromConfig($configKey)
+	{
+		$cfg = $this->config->get('simpleworkflow');
+		foreach ($cfg['domains'] as $dk => $dv) {
+			foreach ($dv['workflows'] as $kk => $kv) {
+				if ($kk == $configKey) {
+					return $this->loadWorkflow($kv['name'], $kv['version'], $kv['default_task_list'], $kv['event_namespace'], $kv['activity_namespace']);
+				}
+			}
+		}
+	}
+
+	/**
 	 * @param string $name
 	 * @param float  $version
 	 * @param string $taskList
+	 * @param string $eventNamespace
+	 * @param string $activityNamespace
 	 * @param string $workflowClass
 	 *
 	 * @throws InvalidClassException
-	 * @return Workflow
+	 * @return Decider
 	 */
-	public function loadWorkflow( $name, $version = 1.0, $taskList, $workflowClass = null )
+	public function loadWorkflow( $name, $version = 1.0, $taskList, $eventNamespace, $activityNamespace, $workflowClass = null )
 	{
 		$workflowOptions = array(
 			'name' => $name,
@@ -63,9 +86,9 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 		);
 
 		if( null === $workflowClass ) {
-			return new Decider( $this ,$workflowOptions );
+			return new Decider( $this ,$workflowOptions, $eventNamespace, $activityNamespace );
 		} else {
-			$worker = new $workflowClass( $this, $workflowOptions );
+			$worker = new $workflowClass( $this, $workflowOptions, $eventNamespace, $activityNamespace );
 			if( !( $worker instanceof Decider ) ) {
 				throw new InvalidClassException( $workflowClass );
 			}

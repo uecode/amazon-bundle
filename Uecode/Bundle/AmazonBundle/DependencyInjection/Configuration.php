@@ -35,34 +35,78 @@ class Configuration implements ConfigurationInterface
 		$rootNode    = $treeBuilder->root( 'amazon' );
 
 		$rootNode->append( $this->addAmazonAccount() );
+		$rootNode->append( $this->addSimpleWorkflow() );
 
 		return $rootNode;
 	}
 
-    private function addAmazonAccount( )
-    {
-        $treeBuilder = new TreeBuilder();
-        $rootNode    = $treeBuilder->root( 'accounts' );
+	private function addAmazonAccount( )
+	{
+		$treeBuilder = new TreeBuilder();
+		$rootNode    = $treeBuilder->root( 'accounts' );
 
 		$rootNode
-            ->children()
-                ->arrayNode( 'connections' )
-                    ->requiresAtLeastOneElement()
-                    ->useAttributeAsKey( 'name' )
-                    ->prototype( 'array' )
-                        ->children()
-                            ->scalarNode( 'key' )
-                                ->isRequired()
-                            ->end()
-                            ->scalarNode( 'secret' )
-                                ->isRequired()
-                            ->end()
-                        ->end()
-                    ->end()
-                ->end()
-            ->end()
-        ->end();
+			->children()
+				->arrayNode( 'connections' )
+					->requiresAtLeastOneElement()
+					->useAttributeAsKey( 'name' )
+					->prototype( 'array' )
+						->children()
+							->scalarNode( 'key' )
+								->isRequired()
+							->end()
+							->scalarNode( 'secret' )
+								->isRequired()
+							->end()
+						->end()
+					->end()
+				->end()
+			->end()
+		->end();
 
-        return $rootNode;
-    }
+		return $rootNode;
+	}
+
+	private function addSimpleWorkflow()
+	{
+		$treeBuilder = new TreeBuilder();
+		$rootNode    = $treeBuilder->root( 'simpleworkflow' );
+
+		$rootNode
+			->children()
+				->arrayNode( 'domains' )
+					->requiresAtLeastOneElement()
+					->useAttributeAsKey( 'domain' )
+					->prototype( 'array' )
+					->children()
+						->arrayNode('workflows')
+							->requiresAtLeastOneElement()
+							->useAttributeAsKey( 'workflow_ueid' )
+							->prototype( 'array' )
+							->children()
+								->scalarNode( 'name' )
+									->isRequired()
+								->end()
+								->scalarNode( 'version' )
+									->isRequired()
+								->end()
+								->scalarNode( 'default_task_list' )
+									->isRequired()
+								->end()
+								->scalarNode( 'event_namespace' )
+									->isRequired()
+								->end()
+								->scalarNode( 'activity_namespace' )
+									->isRequired()
+								->end()
+							->end()
+						->end()
+					->end()
+					->end()
+				->end()
+			->end()
+		->end();
+
+		return $rootNode;
+	}
 }

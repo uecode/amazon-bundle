@@ -58,25 +58,32 @@ class Decider extends AmazonComponent
 	 */
 	private $workflowOptions = array();
 
-	/**
-	 * @var
+	/** 
+	 * @var string event namespace
 	 */
-	public $events = array();
+	private $eventNamespace;
+
+	/**
+	 * @var string activity namespace
+	 */
+	private $activityNamespace;
 
 	/**
 	 * Builds the Workflow
 	 *
 	 * @param \AmazonSWF $swf
 	 * @param array $workflowType
+	 * @param string $eventNamespace
+	 * @param string $activityNamepsace
 	 */
-	final public function __construct( AmazonSWF $swf, array $workflowType )
+	final public function __construct( AmazonSWF $swf, array $workflowType, $eventNamespace, $activityNamespace )
 	{
 		$this->setAmazonClass( $swf );
 
 		$this->workflowOptions = $workflowType;
 		$this->workflow = $this->setWorkflow( $workflowType );
-
-		$this->setDefaultEvents();
+		$this->eventNamespace = $eventNamespace;
+		$this->activityNamespace = $activityNamespace;
 	}
 
 	/********************* Core Logic *********************
