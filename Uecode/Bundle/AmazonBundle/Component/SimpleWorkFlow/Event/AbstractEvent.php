@@ -4,6 +4,7 @@
  * @date   2/20/13
  */
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decider;
 
 abstract class AbstractEvent
 {
@@ -30,7 +31,7 @@ abstract class AbstractEvent
 	 * @param $maxEventId
 	 * @return void
 	 */
-	abstract protected function eventLogic( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId );
+	abstract protected function eventLogic( Decider $decider, $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId );
 
 	/**
 	 * Run logic for the event
@@ -43,9 +44,9 @@ abstract class AbstractEvent
 	 * @param $maxEventId
 	 * @return mixed
 	 */
-	public function run( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId )
+	public function run( Decider $decider, $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId )
 	{
-		$this->eventLogic();
+		$this->eventLogic( $decider, $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId );
 	}
 
 	/**

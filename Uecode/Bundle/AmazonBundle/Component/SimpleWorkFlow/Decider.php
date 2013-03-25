@@ -110,8 +110,7 @@ class Decider extends AmazonComponent
 							);
 						} catch ( \Exception $e ) {
 							// If failed decisions are recoverable, one could drop the task and allow it to be redriven by the task timeout.
-							echo 'Failing workflow; exception in decider: ', $e->getMessage(), "\n", $e->getTraceAsString(
-							), "\n";
+							$this->debug('Failing workflow; exception in decider: '.$e->getMessage()."\n".$e->getTraceAsString()."\n");
 						}
 
 						$completeOpt = array(
@@ -122,27 +121,27 @@ class Decider extends AmazonComponent
 						$complete_response = $this->amazonClass->respond_decision_task_completed( $completeOpt );
 
 						if ( $complete_response->isOK() ) {
-							echo "RespondDecisionTaskCompleted SUCCESS\n";
+							$this->debug("respondDecisionTaskCompleted SUCCESS\n");
 						} else {
 							// a real application may want to report this failure and retry
-							echo "RespondDecisionTaskCompleted FAIL\n";
-							echo "Response body: \n";
-							print_r( $complete_response->body );
-							echo "Request JSON: \n";
-							echo json_encode( $completeOpt ) . "\n";
+							$this->debug("RespondDecisionTaskCompleted FAIL\n");
+							$this->debug("Response body: \n");
+							$this->debug(print_r( $complete_response->body, true ));
+							$this->debug("Request JSON: \n");
+							$this->debug( json_encode( $completeOpt ) . "\n");
 						}
 					} else {
-						echo "PollForDecisionTask received empty response\n";
+						$this->debug("PollForDecisionTask received empty response\n");
 					}
 				} else {
-					echo 'DECISION ERROR: ';
-					print_r( $response->body );
+					$this->debug('DECISION ERROR: ');
+					$this->debug(print_r( $response->body, true ));
 
 					sleep( 2 );
 				}
 			}
 		} catch (Exception $e) {
-			echo "EXCEPTION: ".$e->getMessage();
+			$this->debug("EXCEPTION: ".$e->getMessage());
 			exit;
 		}
 	}
@@ -195,9 +194,27 @@ class Decider extends AmazonComponent
 
 		$eventType = (string)$event->eventType;
 
-		if( array_key_exists( $eventType, $this->events ) ) {
-			$this->events[ $eventType ]->run( $event, $workflowState, $timerOptions, $activityOptions, $continueAsNew, $maxEventId );
+		$this->debug($eventType.' - ');
+
+		$defaultEventNamespace = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event';
+		$defaultActivityNamespace = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\Activity';
+
+		$userClass = $this->eventNamespace.'\\'.$eventType;
+		$defaultClass = $defaultEventNamespace.'\\'.$eventType;
+
+		$this->debug('user class: '.$userClass.', default class: '.$defaultClass.' ');
+
+		if (class_exists($userClass)) {
+			$this->debug("USER CLASS FOUND");
+			$obj = new $userClass;
+			$obj->run($this, $event, $workflowState, $timerOptions, $activityOptions, $continueAsNew, $maxEventId);
+		} elseif (class_exists($defaultClass)) {
+			$this->debug("DEFAULT CLASS FOUND");
+			$obj = new $defaultClass;
+			$obj->run($this, $event, $workflowState, $timerOptions, $activityOptions, $continueAsNew, $maxEventId);
 		}
+
+		$this->debug("\n");
 	}
 
 	/**
@@ -309,7 +326,9 @@ class Decider extends AmazonComponent
 
 	/**
 	 * Finds all the Events we have defined in the AmazonBundle, and initializes them
+	 * @todo remove this when we know it's done.
 	 */
+	/*
 	private function setDefaultEvents()
 	{
 		foreach( glob( __DIR__ . '/Event/Decider/*.php' ) as $file ) {
@@ -320,6 +339,7 @@ class Decider extends AmazonComponent
 			}
 		}
 	}
+	*/
 
 	/**
 	 * Adds/Replaces the given event to the event array.
@@ -374,5 +394,10 @@ class Decider extends AmazonComponent
 		}
 
 		return $this->amazonClass->describe_workflow_type( $workflowType );
+	}
+
+	public function debug($str)
+	{
+		echo $str;
 	}
 }
