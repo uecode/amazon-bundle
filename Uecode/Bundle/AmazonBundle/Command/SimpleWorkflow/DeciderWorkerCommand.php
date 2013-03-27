@@ -78,7 +78,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 
 		$configKey = $input->getOption('config_key');
 
-		// FIXME - This _should_ work by just passing the config key to SimpleWorkflow::loadWorkflowFromConfig()
+		// FIXME - This _should_ work by just passing the config key to SimpleWorkflow::loadDeciderFromConfig()
 		// but due to the current class architeture's requirements, we 
 		// have to pull out the domain to pass as option to AmazonFactory::build().
 		// Fix the class architecture. The core of the problem is that
@@ -95,7 +95,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 			}
 
 			$swf = $amazonFactory->build( 'AmazonSWF', array( 'domain' => $domain ) );
-			$worker = $swf->loadWorkflowFromConfig($configKey);
+			$worker = $swf->loadDeciderFromConfig($configKey);
 		} else {
 			$domain = $input->getOption('domain');
 			$name = $input->getOption('name');
@@ -105,7 +105,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 			$activityNamespace = $input->getOption('activity_namespace');
 
 			$swf = $amazonFactory->build( 'AmazonSWF', array( 'domain' => $domain ) );
-			$worker = $swf->loadWorkflow( $name, $version, $taskList, $eventNamespace, $activityNamespace );
+			$worker = $swf->loadDecider( $name, $version, $taskList, $eventNamespace, $activityNamespace );
 		}
 
 		$worker->run();

@@ -53,13 +53,13 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @param string $configKey The config key for the workflow which is relative to uecode.amazon.simpleworkflow.domains.[name].workflows.
 	 * @return Decider
 	 */
-	public function loadWorkflowFromConfig($configKey)
+	public function loadDeciderFromConfig($configKey)
 	{
 		$cfg = $this->config->get('simpleworkflow');
 		foreach ($cfg['domains'] as $dk => $dv) {
 			foreach ($dv['workflows'] as $kk => $kv) {
 				if ($kk == $configKey) {
-					return $this->loadWorkflow($kv['name'], $kv['version'], $kv['default_task_list'], $kv['event_namespace'], $kv['activity_namespace']);
+					return $this->loadDecider($kv['name'], $kv['version'], $kv['default_task_list'], $kv['event_namespace'], $kv['activity_namespace']);
 				}
 			}
 		}
@@ -76,7 +76,7 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @throws InvalidClassException
 	 * @return Decider
 	 */
-	public function loadWorkflow( $name, $version = 1.0, $taskList, $eventNamespace, $activityNamespace, $workflowClass = null )
+	public function loadDecider( $name, $version = 1.0, $taskList, $eventNamespace, $activityNamespace, $workflowClass = null )
 	{
 		$workflowOptions = array(
 			'name' => $name,
