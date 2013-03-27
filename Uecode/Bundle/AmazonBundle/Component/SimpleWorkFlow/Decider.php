@@ -17,7 +17,7 @@ use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
 use \Uecode\Bundle\AmazonBundle\Exception\SimpleWorkFlow\InvalidEventTypeException;
 
 // Events
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\AbstractEvent;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\AbstractHistoryEvent;
 
 // Amazon Classes
 use \AmazonSWF;
@@ -105,30 +105,27 @@ class Decider extends AmazonComponent
 
 					if ( !empty( $taskToken ) ) {
 						try {
-							$deciderResponse = $this->decide(
+							$decision = $this->decide(
 								new HistoryEventIterator( $this->getAmazonClass(), $this->workflow, $response )
 							);
 						} catch ( \Exception $e ) {
 							// If failed decisions are recoverable, one could drop the task and allow it to be redriven by the task timeout.
-							$this->debug('Failing workflow; exception in decider: '.$e->getMessage()."\n".$e->getTraceAsString()."\n");
+							$this->debug('Failing workflow; exception in decider: '.get_class($e).' - '.$e->getMessage()."\n".$e->getTraceAsString()."\n");
+							exit;
 						}
 
-						$completeOpt = array(
-							'task' => $taskToken,
-							'result' => $deciderResponse
-						);
+						$decisionArray = $this->createSWFDecision($decision);
+						$completeResponse = $this->amazonClass->respond_decision_task_completed($decisionArray);
 
-						$complete_response = $this->amazonClass->respond_decision_task_completed( $completeOpt );
-
-						if ( $complete_response->isOK() ) {
+						if ( $completeResponse->isOK() ) {
 							$this->debug("respondDecisionTaskCompleted SUCCESS\n");
 						} else {
 							// a real application may want to report this failure and retry
 							$this->debug("RespondDecisionTaskCompleted FAIL\n");
 							$this->debug("Response body: \n");
-							$this->debug(print_r( $complete_response->body, true ));
+							$this->debug(print_r($completeResponse->body, true ));
 							$this->debug("Request JSON: \n");
-							$this->debug( json_encode( $completeOpt ) . "\n");
+							$this->debug( json_encode($decisionArray) . "\n");
 						}
 					} else {
 						$this->debug("PollForDecisionTask received empty response\n");
@@ -150,9 +147,9 @@ class Decider extends AmazonComponent
 	 * Decider logic. Runs through each history event, and decides what to do with the event
 	 *
 	 * @param HistoryEventIterator $history
-	 * @return array
+	 * @return Decision
 	 */
-	final private function decide( HistoryEventIterator $history )
+	final private function decide(HistoryEventIterator $history)
 	{
 		$workflowState = DeciderWorkerState::START;
 		$timerOptions = null;
@@ -160,36 +157,27 @@ class Decider extends AmazonComponent
 		$continueAsNew = null;
 		$maxEventId = 0;
 
-		foreach ( $history as $event ) {
-			$this->processEvent( $event, $workflowState, $timerOptions, $activityOptions, $continueAsNew, $maxEventId );
+		// we have a decision object who will be passed to each event in history
+		// if they have a corresponding class. Each event class can change the state
+		// of the decision by adding, removing or editiing decision events.
+		$decision = new Decision;
+
+		foreach ($history as $event) {
+			$this->processEvent($decision, $event, $maxEventId);
 		}
 
-		$timerDecision = self::createDecisionOptions( 'StartTimer', $timerOptions );
-		$activityDecision = self::createDecisionOptions( 'ScheduleActivityTask', $activityOptions );
-		$continueAsNewDecision = self::createDecisionOptions( 'ContinueAsNewWorkflowExecution', $continueAsNew );
-
-		if ( $workflowState === DeciderWorkerState::START ) {
-			return array( $timerDecision );
-		} elseif ( $workflowState === DeciderWorkerState::NOTHING_OPEN ) {
-			if ( $maxEventId >= Decider::EVENT_THRESHOLD_BEFORE_NEW_GENERATION ) {
-				return array( $continueAsNewDecision );
-			}
-			return array( $timerDecision, $activityDecision );
-		}
-		return array();
+		return $decision;
 	}
 
 	/**
 	 * Process the given history event
 	 *
-	 * @param $event
-	 * @param $workflowState
-	 * @param $timerOptions
-	 * @param $activityOptions
-	 * @param $continueAsNew
-	 * @param $maxEventId
+	 * @param array $event
+	 * @param Decision $decision
+	 * @param int $maxEventId
 	 */
-	protected function processEvent( $event, &$workflowState, &$timerOptions, &$activityOptions, &$continueAsNew, &$maxEventId ) {
+	protected function processEvent($decision, $event, &$maxEventId)
+	{
 		$maxEventId = max( $maxEventId, intval( $event->eventId ) );
 
 		$eventType = (string)$event->eventType;
@@ -202,171 +190,49 @@ class Decider extends AmazonComponent
 		$userClass = $this->eventNamespace.'\\'.$eventType;
 		$defaultClass = $defaultEventNamespace.'\\'.$eventType;
 
-		$this->debug('user class: '.$userClass.', default class: '.$defaultClass.' ');
-
 		if (class_exists($userClass)) {
-			$this->debug("USER CLASS FOUND");
+			$this->debug("user class: $userClass ");
 			$obj = new $userClass;
-			$obj->run($this, $event, $workflowState, $timerOptions, $activityOptions, $continueAsNew, $maxEventId);
+			if (!($obj instanceof AbstractHistoryEvent)) {
+				throw new InvalidEventTypeException; 
+			}
+			$obj->run($this, $decision, $event, $maxEventId);
 		} elseif (class_exists($defaultClass)) {
-			$this->debug("DEFAULT CLASS FOUND");
+			$this->debug("default class: $defaultClass ");
 			$obj = new $defaultClass;
-			$obj->run($this, $event, $workflowState, $timerOptions, $activityOptions, $continueAsNew, $maxEventId);
+			if (!($obj instanceof AbstractHistoryEvent)) {
+				throw new InvalidEventTypeException; 
+			}
+			$obj->run($this, $decision, $event, $maxEventId);
+		} else {
+			$this->debug('no class');
 		}
 
 		$this->debug("\n");
 	}
 
 	/**
-	 * Creates options for a decision
+	 * Given a decision object, create an array appropriate for amazon's SDK.
 	 *
-	 * @param $type
-	 * @param $options
+	 * @param Decision $decision
 	 * @return array
 	 */
-	public static function createDecisionOptions( $type, $options )
+	public static function createSWFDecision(Decision $decision)
 	{
-		$key = strtolower( substr( $type, 0, 1 ) ) . substr( $type, 1 ) . 'DecisionAttributes';
-
-		return array(
-			'decisionType' => $type,
-			$key => $options
-		);
-	}
-
-	/**
-	 * Create options array for an activity
-	 *
-	 * @param $input
-	 * @return array
-	 */
-	public static function createActivityOptions( $input )
-	{
-		$activityName = $input[ Decider::ACTIVITY_NAME_KEY ];
-		$activityVersion = $input[ Decider::ACTIVITY_VERSION_KEY ];
-		$activityTaskList = $input[ Decider::ACTIVITY_TASK_LIST_KEY ];
-		$activityInput = $input[ Decider::ACTIVITY_INPUT_KEY ];
-
-		$activity_opts = array(
-			'activityType' => array(
-				'name' => $activityName,
-				'version' => $activityVersion
-			),
-			'activityId' => 'myActivityId-' . time(),
-			'input' => $activityInput,
-			// This is what specifying a task list at scheduling time looks like.
-			// You can also register a type with a default task list and not specify one at scheduling time.
-			// The value provided at scheduling time always takes precedence.
-			'taskList' => array( 'name' => $activityTaskList ),
-			// This is what specifying timeouts at scheduling time looks like.
-			// You can also register types with default timeouts and not specify them at scheduling time.
-			// The value provided at scheduling time always takes precedence.
-			'scheduleToCloseTimeout' => '30',
-			'scheduleToStartTimeout' => '10',
-			'startToCloseTimeout' => '60',
-			'heartbeatTimeout' => 'NONE'
-		);
-
-		return $activity_opts;
-	}
-
-	/**
-	 * Create options array for a timer
-	 *
-	 * @param $input
-	 * @return array
-	 */
-	public static function createTimerOptions( $input )
-	{
-		$timerDuration = (string)$input[ Decider::TIMER_DURATION_KEY ];
-		$timerOptions = array(
-			'startToFireTimeout' => $timerDuration,
-			'timerId' => '0'
-		);
-
-		return $timerOptions;
-	}
-
-	/*
-	 */
-	/**
-	 * Creates options for a continue
-	 *
-	 * When you continue a workflow execution as a new workflow execution,
-	 * the start options don't carry over, so you need to specify them again.
-	 * @param $startAttributes
-	 * @return array
-	 */
-	public static function createContinueOptions( $startAttributes )
-	{
-		$continueAsNewOptions = array(
-			'childPolicy' => (string)$startAttributes->childPolicy,
-			'input' => (string)$startAttributes->input,
-			'workflowTypeVersion' => (string)$startAttributes->workflowType->version,
-			// This is what specifying a task list at scheduling time looks like.
-			// You can also register a type with a default task list and not specify one at scheduling time.
-			// The value provided at scheduling time always takes precedence.
-			'taskList' => array( 'name' => (string)$startAttributes->taskList->name ),
-			// This is what specifying timeouts at scheduling time looks like.
-			// You can also register types with default timeouts and not specify them at scheduling time.
-			// The value provided at scheduling time always takes precedence.
-			'executionStartToCloseTimeout' => (string)$startAttributes->executionStartToCloseTimeout,
-			'taskStartToCloseTimeout' => (string)$startAttributes->taskStartToCloseTimeout
-		);
-
-		return $continueAsNewOptions;
-	}
-
-
-	/********************* Getters and Setters *********************
-	 *
-	 * Functions to help initialize
-	 *
-	 */
-
-	/**
-	 * Finds all the Events we have defined in the AmazonBundle, and initializes them
-	 * @todo remove this when we know it's done.
-	 */
-	/*
-	private function setDefaultEvents()
-	{
-		foreach( glob( __DIR__ . '/Event/Decider/*.php' ) as $file ) {
-			$eventType = str_replace( '.php', '', $file );
-			$class = "\\Uecode\\Bundle\\AmazonBundle\\Component\\SimpleWorkFlow\\Event\\Decider\\" . $eventType;
-			if( class_exists( $class ) ) {
-				$this->setEvent( new $class(), true );
-			}
+		$ret = array();
+		foreach ($decision->getDecisionEvents() as $e)
+		{
+			$title = $e->getTitle();
+			$ret[] = array(
+				'decisionType' => $title,
+				lcfirst($title).'DecisionAttributes' => $e
+			);
 		}
-	}
-	*/
-
-	/**
-	 * Adds/Replaces the given event to the event array.
-	 *
-	 * If an unknown Event is passed, and ignoreUnknown is false, we will throw an exception
-	 *
-	 * @param Event\AbstractEvent $event
-	 * @param bool $ignoreUnknown
-	 * @throws InvalidEventTypeException
-	 */
-	public function setEvent( AbstractEvent $event, $ignoreUnknown = false )
-	{
-		// If the event isnt a valid AbstractEvent, throw an exception
-		if( !( $event instanceof AbstractEvent ) ) {
-			throw new InvalidEventTypeException();
-		}
-
-		// If the event isnt a valid default event, and we aren't ignoring unknowns, throw an exception
-		if( !array_key_exists( $event->getEventType(), $this->events ) && !$ignoreUnknown ) {
-			throw new InvalidEventTypeException();
-		}
-
-		$this->events[ $event->getEventType() ] = $event;
+		return $ret;
 	}
 
 	/**
-	 * Returns the amazon swf workflow Object
+	 * Returns the amazon swf lworkflow Object
 	 *
 	 * @param array $workflowType
 	 * @return mixed
