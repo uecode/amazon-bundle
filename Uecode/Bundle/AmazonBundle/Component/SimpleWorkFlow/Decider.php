@@ -35,12 +35,14 @@ class Decider extends AmazonComponent
 
 	/**
 	 *  Workflow Constants
+	 * @todo review if these are still needed.
 	 */
 	const WORKFLOW_NAME = "defaultWorkflow";
 	const WORKFLOW_VERSION = 1.0;
 
 	/**
 	 * Key to use in the workflow input
+	 * @todo review if these are still needed.
 	 */
 	const ACTIVITY_NAME_KEY = 'activityName';
 	const ACTIVITY_VERSION_KEY = 'activityVersion';
@@ -114,7 +116,11 @@ class Decider extends AmazonComponent
 							exit;
 						}
 
-						$decisionArray = $this->createSWFDecision($decision);
+						$decisionArray = array(
+							'taskToken' => $taskToken,
+							'decisions' => $this->createSWFDecisionArray($decision)
+						);
+
 						$completeResponse = $this->amazonClass->respond_decision_task_completed($decisionArray);
 
 						if ( $completeResponse->isOK() ) {
@@ -123,7 +129,7 @@ class Decider extends AmazonComponent
 							// a real application may want to report this failure and retry
 							$this->debug("RespondDecisionTaskCompleted FAIL\n");
 							$this->debug("Response body: \n");
-							$this->debug(print_r($completeResponse->body, true ));
+							$this->debug(print_r($completeResponse->body, true));
 							$this->debug("Request JSON: \n");
 							$this->debug( json_encode($decisionArray) . "\n");
 						}
@@ -144,17 +150,13 @@ class Decider extends AmazonComponent
 	}
 
 	/**
-	 * Decider logic. Runs through each history event, and decides what to do with the event
+	 * Decider logic. Runs through each history event and returns a decision.
 	 *
 	 * @param HistoryEventIterator $history
 	 * @return Decision
 	 */
 	final private function decide(HistoryEventIterator $history)
 	{
-		$workflowState = DeciderWorkerState::START;
-		$timerOptions = null;
-		$activityOptions = null;
-		$continueAsNew = null;
 		$maxEventId = 0;
 
 		// we have a decision object who will be passed to each event in history
@@ -182,7 +184,7 @@ class Decider extends AmazonComponent
 
 		$eventType = (string)$event->eventType;
 
-		$this->debug($eventType.' - ');
+		$this->debug('- '.$eventType.' - '.json_encode((array)$event)."\n");
 
 		$defaultEventNamespace = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event';
 		$defaultActivityNamespace = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\Activity';
@@ -191,33 +193,33 @@ class Decider extends AmazonComponent
 		$defaultClass = $defaultEventNamespace.'\\'.$eventType;
 
 		if (class_exists($userClass)) {
-			$this->debug("user class: $userClass ");
+			$this->debug("    - user class: $userClass ");
 			$obj = new $userClass;
 			if (!($obj instanceof AbstractHistoryEvent)) {
 				throw new InvalidEventTypeException; 
 			}
 			$obj->run($this, $decision, $event, $maxEventId);
 		} elseif (class_exists($defaultClass)) {
-			$this->debug("default class: $defaultClass ");
+			$this->debug("    - default class: $defaultClass ");
 			$obj = new $defaultClass;
 			if (!($obj instanceof AbstractHistoryEvent)) {
 				throw new InvalidEventTypeException; 
 			}
 			$obj->run($this, $decision, $event, $maxEventId);
 		} else {
-			$this->debug('no class');
+			$this->debug('    - no class');
 		}
 
 		$this->debug("\n");
 	}
 
 	/**
-	 * Given a decision object, create an array appropriate for amazon's SDK.
+	 * Given a decision object, create a decision array appropriate for amazon's SDK.
 	 *
 	 * @param Decision $decision
 	 * @return array
 	 */
-	public static function createSWFDecision(Decision $decision)
+	public static function createSWFDecisionArray(Decision $decision)
 	{
 		$ret = array();
 		foreach ($decision->getDecisionEvents() as $e)
