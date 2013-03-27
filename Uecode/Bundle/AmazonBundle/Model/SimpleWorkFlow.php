@@ -66,6 +66,8 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	}
 
 	/**
+	 * Load a decider
+	 *
 	 * @param string $name
 	 * @param float  $version
 	 * @param string $taskList
