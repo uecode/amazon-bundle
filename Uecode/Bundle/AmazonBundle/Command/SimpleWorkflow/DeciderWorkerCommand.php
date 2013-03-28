@@ -26,12 +26,12 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 	protected function configure() {
 		$this
 			->setName('ue:aws:simpleworkflow:deciderworker')
-			->setDescription('Start a decider worker which will poll amazon for a decision task. You can either pass [domain, name, taskList] for a custom call or you can pass the "config id" which would correlate to a config value at uecode.amazon.simpleworkflow.domains.[name].workflows.<config id>')
+			->setDescription('Start a decider worker which will poll amazon for a decision task. You can either pass [domain, name, taskList] for a custom call or you can pass a "config_key" which correlates to config values at uecode.amazon.simpleworkflow.domains.[name].workflows.[<config_key>]')
 			->addOption(
 				'config_key',
 				null,
 				InputOption::VALUE_REQUIRED,
-				'The config id which correlates to config value at uecode.amazon.simpleworkflow.domains.[name].workflows.<config id>'
+				'The config key which correlates to config values at uecode.amazon.simpleworkflow.domains.[name].workflows.[<config_key>]'
 			)
 			->addOption(
 				'domain',
@@ -58,13 +58,13 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 				'The SWF workflow taskList'
 			)
 			->addOption(
-				'event_namespace',
+				'history_event_namespace',
 				null,
 				InputOption::VALUE_REQUIRED,
 				'Where your event classes are located'
 			)
 			->addOption(
-				'activity_namespace',
+				'history_activity_event_namespace',
 				null,
 				InputOption::VALUE_REQUIRED,
 				'Where your activity classes are located'
@@ -78,11 +78,6 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 
 		$configKey = $input->getOption('config_key');
 
-		// FIXME - This _should_ work by just passing the config key to SimpleWorkflow::loadDeciderFromConfig()
-		// but due to the current class architeture's requirements, we 
-		// have to pull out the domain to pass as option to AmazonFactory::build().
-		// Fix the class architecture. The core of the problem is that
-		// SimpleWorkflow extends SWF when it should encapsulate it.
 		if ($configKey) {
 			$cfg = $amazonFactory->getConfig()->get('simpleworkflow');
 
@@ -90,25 +85,27 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 				foreach ($dv['workflows'] as $kk => $kv) {
 					if ($kk == $configKey) {
 						$domain = $dk;
+						$name = $kv['name'];
+						$version = $kv['version'];
+						$taskList = $kv['default_task_list'];
+						$eventNamespace = $kv['event_namespace'];
+						$activityNamespace = $kv['activity_namespace'];
 					}
 				}
 			}
-
-			$swf = $amazonFactory->build( 'AmazonSWF', array( 'domain' => $domain ) );
-			$worker = $swf->loadDeciderFromConfig($configKey);
 		} else {
 			$domain = $input->getOption('domain');
 			$name = $input->getOption('name');
 			$version = $input->getOption('workflow_version');
 			$taskList = $input->getOption('taskList');
-			$eventNamespace = $input->getOption('event_namespace');
-			$activityNamespace = $input->getOption('activity_namespace');
-
-			$swf = $amazonFactory->build( 'AmazonSWF', array( 'domain' => $domain ) );
-			$worker = $swf->loadDecider( $name, $version, $taskList, $eventNamespace, $activityNamespace );
+			$eventNamespace = $input->getOption('history_event_namespace');
+			$activityNamespace = $input->getOption('history_activity_event_namespace');
 		}
 
+		$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain));
+		$worker = $swf->loadDecider($name, $version, $taskList, $eventNamespace, $activityNamespace);
 		$worker->run();
+
 		$output->writeln('done');
 	}
 }
