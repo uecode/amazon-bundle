@@ -44,11 +44,11 @@ class Activity extends AmazonComponent
 	protected $identity;
 
 	/**
-	 * @var Activity A singleton instance of this class
+	 * @var Activity A list of singleton instances of this class keyed by taskList.
 	 *
 	 * @access private
 	 */
-	private $instance;
+	private $instances;
 
 	/**
 	 * @var array A list of the activity classes that have registered themselves to amazon.
@@ -79,7 +79,7 @@ class Activity extends AmazonComponent
 	}
 
 	/**
-	 * Get a singleton instance of this class
+	 * Get an instance of this class.
 	 *
 	 * @static
 	 * @access public
@@ -89,12 +89,12 @@ class Activity extends AmazonComponent
 	 * @param string $identity
 	 * @return self
 	 */
-	static public function getInstance(AmazonSWF $swf, $taskList, $namespace, $identity = null)
+	static public function factory(AmazonSWF $swf, $taskList, $namespace, $identity = null)
 	{
-		if (!$this->instance) {
-			$this->instance = new self($swf, $taskList, $namespace, $identity);
+		if (!$this->instances) {
+			$this->instances[$taskList] = new self($swf, $taskList, $namespace, $identity);
 		}
-		return $this->instance;
+		return $this->instances;
 	}
 
 	/********************* Core Logic *********************
