@@ -1,7 +1,9 @@
 <?php
 /**
- * User: Aaron Scherer
- * Date: 2/13/13
+ * Activity worker
+ *
+ * @author Aaron Scherer, John Pancoast
+ * @date 2/13/13
  */
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
 
@@ -17,23 +19,82 @@ use \AmazonSWF;
 
 class Activity extends AmazonComponent
 {
+	/**
+	 * @var string The task list this activity worker polls amazon for.
+	 *
+	 * @access protected
+	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForActivityTask.html
+	 */
+	protected $taskList;
 
 	/**
-	 * @var \CFResponse
+	 * @var string The namespace where activity classes for this task list exist.
+	 *
+	 * @access protected
+	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForActivityTask.html
 	 */
-	private $activity;
+	protected $namespace;
 
 	/**
-	 * @var \Closure
+	 * @var string A user-defined identity for this activity worker.
+	 *
+	 * @access protected
+	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForActivityTask.html
 	 */
-	private $logic = null;
+	protected $identity;
 
-	public function __construct( AmazonSWF $swf, array $activityType )
+	/**
+	 * @var Activity A singleton instance of this class
+	 *
+	 * @access private
+	 */
+	private $instance;
+
+	/**
+	 * @var array A list of the activity classes that have registered themselves to amazon.
+	 *
+	 * @access private
+	 */
+	private $registeredActivities = array();
+
+	/**
+	 * constructor
+	 *
+	 * Don't instantiate this class directly. Use the getInstance() method instead.
+	 *
+	 * @access protected
+	 * @param AmazonSWF $swf Simple workflow object
+	 * @param string $taskList
+	 * @param string $namespace
+	 * @param string $identity
+	 */
+	protected function __construct(AmazonSWF $swf, $taskList, $namespace, $identity = null)
 	{
+		$this->setAmazonClass($swf);
+		$this->taskList = $taskList;
+		$this->namespace = $namespace;
+		$this->identity = $identity;
 
-		$this->setAmazonClass( $swf );
+		$this->registerActivities();
+	}
 
-		$this->activity = $this->getActivity( $activityType );
+	/**
+	 * Get a singleton instance of this class
+	 *
+	 * @static
+	 * @access public
+	 * @param AmazonSWF $swf Simple workflow object
+	 * @param string $taskList
+	 * @param string $namespace
+	 * @param string $identity
+	 * @return self
+	 */
+	static public function getInstance(AmazonSWF $swf, $taskList, $namespace, $identity = null)
+	{
+		if (!$this->instance) {
+			$this->instance = new self($swf, $taskList, $namespace, $identity);
+		}
+		return $this->instance;
 	}
 
 	/********************* Core Logic *********************
@@ -44,6 +105,7 @@ class Activity extends AmazonComponent
 
 	public function run( $taskList = null )
 	{
+		echo "RUN TEST";exit;
 		while( true ) {
 			$opts = array(
 				'taskList' => array(
@@ -75,13 +137,13 @@ class Activity extends AmazonComponent
 	 */
 
 	/**
-	 * Returns the amazon swf activity Object
+	 * Registers all of the activities for this activity type.
 	 *
 	 * @param array $activityType
 	 * @return mixed
 	 * @throws InvalidConfigurationException
 	 */
-	public function getActivity( array $activityType )
+	public function registerActivities()
 	{
 		if( !array_key_exists( 'name', $activityType ) ) {
 			throw new InvalidConfigurationException( "Name must be included in the second argument." );
@@ -97,21 +159,4 @@ class Activity extends AmazonComponent
 
 		return $swf->describe_activity_type( $activityType );
 	}
-
-	/**
-	 * @param callable $deciderLogic
-	 */
-	public function setDeciderLogic( \Closure $deciderLogic )
-	{
-		$this->deciderLogic = $deciderLogic;
-	}
-
-	/**
-	 * @return callable
-	 */
-	public function getDeciderLogic()
-	{
-		return $this->deciderLogic;
-	}
-
 }
