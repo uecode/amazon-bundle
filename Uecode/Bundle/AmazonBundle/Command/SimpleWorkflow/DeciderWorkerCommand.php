@@ -103,8 +103,8 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 		}
 
 		$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain));
-		$worker = $swf->loadDecider($name, $version, $taskList, $eventNamespace, $activityNamespace);
-		$worker->run();
+		$decider = $swf->loadDecider($name, $version, $taskList, $eventNamespace, $activityNamespace);
+		$decider->run();
 
 		$output->writeln('done');
 	}
