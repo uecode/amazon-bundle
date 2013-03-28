@@ -102,7 +102,7 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 
 	public function loadActivity($taskList, $namespace, $identity = null)
 	{
-		return ActivityWorker::getInstance($this, $taskList, $namespace, $identity);
+		return new ActivityWorker($this, $taskList, $namespace, $identity);
 	}
 
 	/********************* Initializers *********************

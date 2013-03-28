@@ -44,14 +44,6 @@ class ActivityWorker extends AmazonComponent
 	protected $identity;
 
 	/**
-	 * @var array A list of singleton instances of this class keyed by taskList.
-	 *
-	 * @static
-	 * @access private
-	 */
-	static private $instances = array();
-
-	/**
 	 * @var array A list of the activity classes that have registered themselves to amazon.
 	 *
 	 * @access private
@@ -61,15 +53,13 @@ class ActivityWorker extends AmazonComponent
 	/**
 	 * constructor
 	 *
-	 * Don't instantiate this class directly. Use self::getInstance() instead.
-	 *
 	 * @access protected
 	 * @param AmazonSWF $swf Simple workflow object
 	 * @param string $taskList
 	 * @param string $namespace
 	 * @param string $identity
 	 */
-	protected function __construct(AmazonSWF $swf, $taskList, $namespace, $identity = null)
+	public function __construct(AmazonSWF $swf, $taskList, $namespace, $identity = null)
 	{
 		$this->setAmazonClass($swf);
 		$this->taskList = $taskList;
@@ -77,25 +67,6 @@ class ActivityWorker extends AmazonComponent
 		$this->identity = $identity;
 
 		$this->registerActivities();
-	}
-
-	/**
-	 * Get an instance of this class.
-	 *
-	 * @static
-	 * @access public
-	 * @param AmazonSWF $swf Simple workflow object
-	 * @param string $taskList
-	 * @param string $namespace
-	 * @param string $identity
-	 * @return self
-	 */
-	static public function getInstance(AmazonSWF $swf, $taskList, $namespace, $identity = null)
-	{
-		if (!isset(self::$instances[$taskList])) {
-			self::$instances[$taskList] = new self($swf, $taskList, $namespace, $identity);
-		}
-		return self::$instances[$taskList];
 	}
 
 	public function run( $taskList = null )
