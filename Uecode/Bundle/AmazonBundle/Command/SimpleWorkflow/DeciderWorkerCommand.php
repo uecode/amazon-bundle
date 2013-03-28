@@ -58,13 +58,13 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 				'The SWF workflow taskList'
 			)
 			->addOption(
-				'history_event_namespace',
+				'event_namespace',
 				null,
 				InputOption::VALUE_REQUIRED,
 				'Where your event classes are located'
 			)
 			->addOption(
-				'history_activity_event_namespace',
+				'activity_event_namespace',
 				null,
 				InputOption::VALUE_REQUIRED,
 				'Where your activity classes are located'
@@ -88,8 +88,8 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 						$name = $kv['name'];
 						$version = $kv['version'];
 						$taskList = $kv['default_task_list'];
-						$eventNamespace = $kv['event_namespace'];
-						$activityNamespace = $kv['activity_namespace'];
+						$eventNamespace = $kv['history_event_namespace'];
+						$activityNamespace = $kv['history_activity_event_namespace'];
 					}
 				}
 			}
@@ -98,8 +98,8 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 			$name = $input->getOption('name');
 			$version = $input->getOption('workflow_version');
 			$taskList = $input->getOption('taskList');
-			$eventNamespace = $input->getOption('history_event_namespace');
-			$activityNamespace = $input->getOption('history_activity_event_namespace');
+			$eventNamespace = $input->getOption('event_namespace');
+			$activityNamespace = $input->getOption('activity_event_namespace');
 		}
 
 		$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain));
