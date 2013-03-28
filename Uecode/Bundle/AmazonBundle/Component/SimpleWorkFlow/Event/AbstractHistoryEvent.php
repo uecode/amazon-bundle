@@ -4,7 +4,7 @@
  * @date   2/20/13
  */
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decider;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DeciderWorker;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decision;
 
 abstract class AbstractHistoryEvent
@@ -24,24 +24,24 @@ abstract class AbstractHistoryEvent
 	/**
 	 * Event logic
 	 *
-	 * @param Decider $decider
+	 * @param DeciderWorker $decider
 	 * @param Decision $decision
 	 * @param array $event
 	 * @param int $maxEventId
 	 * @return void
 	 */
-	abstract protected function eventLogic(Decider $decider, Decision &$decision, $event, &$maxEventId);
+	abstract protected function eventLogic(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
 
 	/**
 	 * Run logic for the event. At the moment this serves as an abstraction between client and self::eventLogic().
 	 *
-	 * @param Decider $decider
+	 * @param DeciderWorker $decider
 	 * @param Decision $decision
 	 * @param array $event
 	 * @param int $maxEventId
 	 * @return void
 	 */
-	public function run(Decider $decider, Decision &$decision, $event, &$maxEventId)
+	public function run(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId)
 	{
 		$this->eventLogic($decider, $decision, $event, $maxEventId);
 	}

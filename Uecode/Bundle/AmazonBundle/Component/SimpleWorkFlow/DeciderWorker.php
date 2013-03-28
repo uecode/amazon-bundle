@@ -23,7 +23,7 @@ use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\AbstractHistoryEv
 use \AmazonSWF;
 use \CFRuntime;
 
-class Decider extends AmazonComponent
+class DeciderWorker extends AmazonComponent
 {
 
 	/**

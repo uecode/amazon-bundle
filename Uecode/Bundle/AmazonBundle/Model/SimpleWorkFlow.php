@@ -13,7 +13,7 @@ use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
 // Amazon Bundle Components
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decider;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DeciderWorker;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\ActivityWorker;
 
 // Uecode Bundle Components
@@ -52,7 +52,7 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * Returns a workflow defined in a config.
 	 *
 	 * @param string $configKey The config key for the workflow which is relative to uecode.amazon.simpleworkflow.domains.[name].workflows.
-	 * @return Decider
+	 * @return DeciderWorker
 	 */
 	public function loadDeciderFromConfig($configKey)
 	{
@@ -77,7 +77,7 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @param string $deciderClass
 	 *
 	 * @throws InvalidClassException
-	 * @return Decider
+	 * @return DeciderWorker
 	 */
 	public function loadDecider( $name, $version = 1.0, $taskList, $eventNamespace, $activityNamespace, $deciderClass = null )
 	{
@@ -89,10 +89,10 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 		);
 
 		if( null === $deciderClass ) {
-			return new Decider( $this ,$workflowOptions, $eventNamespace, $activityNamespace );
+			return new DeciderWorker( $this ,$workflowOptions, $eventNamespace, $activityNamespace );
 		} else {
 			$worker = new $deciderClass( $this, $workflowOptions, $eventNamespace, $activityNamespace );
-			if( !( $worker instanceof Decider ) ) {
+			if( !( $worker instanceof DeciderWorker ) ) {
 				throw new InvalidClassException( $deciderClass );
 			}
 
