@@ -77,13 +77,18 @@ class Decider extends AmazonComponent
 	 * @param array $workflowType
 	 * @param string $eventNamespace
 	 * @param string $activityNamepsace
+	 *
+	 * @todo TODO change this to accept the workflowType array as individual values
+	 * that the class will hold as class properties (cleaner).
+	 * 
 	 */
 	final public function __construct( AmazonSWF $swf, array $workflowType, $eventNamespace, $activityNamespace )
 	{
 		$this->setAmazonClass( $swf );
 
+		$this->registerWorkflow( $workflowType );
+
 		$this->workflowOptions = $workflowType;
-		$this->workflow = $this->setWorkflow( $workflowType );
 		$this->eventNamespace = $eventNamespace;
 		$this->activityNamespace = $activityNamespace;
 	}
@@ -108,7 +113,7 @@ class Decider extends AmazonComponent
 					if ( !empty( $taskToken ) ) {
 						try {
 							$decision = $this->decide(
-								new HistoryEventIterator( $this->getAmazonClass(), $this->workflow, $response )
+								new HistoryEventIterator( $this->getAmazonClass(), $this->workflowOptions, $response )
 							);
 						} catch ( \Exception $e ) {
 							// If failed decisions are recoverable, one could drop the task and allow it to be redriven by the task timeout.
@@ -234,13 +239,13 @@ class Decider extends AmazonComponent
 	}
 
 	/**
-	 * Returns the amazon swf lworkflow Object
+	 * Registers the workflow.
 	 *
 	 * @param array $workflowType
 	 * @return mixed
 	 * @throws InvalidConfigurationException
 	 */
-	final public function setWorkflow( array $workflowType )
+	final public function registerWorkflow( array $workflowType )
 	{
 		if ( !array_key_exists( 'name', $workflowType ) ) {
 			throw new InvalidConfigurationException( "Name must be included in the second argument." );
