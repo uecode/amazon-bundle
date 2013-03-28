@@ -48,7 +48,7 @@ class Activity extends AmazonComponent
 	 *
 	 * @access private
 	 */
-	private $instances;
+	private $instances = array();
 
 	/**
 	 * @var array A list of the activity classes that have registered themselves to amazon.
@@ -60,7 +60,7 @@ class Activity extends AmazonComponent
 	/**
 	 * constructor
 	 *
-	 * Don't instantiate this class directly. Use the getInstance() method instead.
+	 * Don't instantiate this class directly. Use self::getInstance() instead.
 	 *
 	 * @access protected
 	 * @param AmazonSWF $swf Simple workflow object
@@ -89,19 +89,13 @@ class Activity extends AmazonComponent
 	 * @param string $identity
 	 * @return self
 	 */
-	static public function factory(AmazonSWF $swf, $taskList, $namespace, $identity = null)
+	static public function getInstance(AmazonSWF $swf, $taskList, $namespace, $identity = null)
 	{
-		if (!$this->instances) {
+		if (!isset($this->instances[$taskList])) {
 			$this->instances[$taskList] = new self($swf, $taskList, $namespace, $identity);
 		}
-		return $this->instances;
+		return $this->instances[$taskList];
 	}
-
-	/********************* Core Logic *********************
-	 *
-	 * Core Logic for our overrode Amazon Class
-	 *
-	 */
 
 	public function run( $taskList = null )
 	{
@@ -130,11 +124,6 @@ class Activity extends AmazonComponent
 			sleep( 2 );
 		}
 	}
-	/********************* Getters and Setters *********************
-	 *
-	 * Functions to help initialize
-	 *
-	 */
 
 	/**
 	 * Registers all of the activities for this activity type.
