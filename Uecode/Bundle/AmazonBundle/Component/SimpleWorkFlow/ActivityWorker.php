@@ -46,9 +46,10 @@ class ActivityWorker extends AmazonComponent
 	/**
 	 * @var array A list of singleton instances of this class keyed by taskList.
 	 *
+	 * @static
 	 * @access private
 	 */
-	private $instances = array();
+	static private $instances = array();
 
 	/**
 	 * @var array A list of the activity classes that have registered themselves to amazon.
@@ -91,10 +92,10 @@ class ActivityWorker extends AmazonComponent
 	 */
 	static public function getInstance(AmazonSWF $swf, $taskList, $namespace, $identity = null)
 	{
-		if (!isset($this->instances[$taskList])) {
-			$this->instances[$taskList] = new self($swf, $taskList, $namespace, $identity);
+		if (!isset(self::$instances[$taskList])) {
+			self::$instances[$taskList] = new self($swf, $taskList, $namespace, $identity);
 		}
-		return $this->instances[$taskList];
+		return self::$instances[$taskList];
 	}
 
 	public function run( $taskList = null )
