@@ -14,6 +14,7 @@ use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
 // Amazon Bundle Components
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decider;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Activity;
 
 // Uecode Bundle Components
 use \Uecode\Bundle\UecodeBundle\Component\Config;
@@ -97,6 +98,11 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 
 			return $worker;
 		}
+	}
+
+	public function loadActivity($taskList, $namespace, $identity = null)
+	{
+		return ActivityWorker::getInstance($this, $taskList, $namespace, $identity);
 	}
 
 	/********************* Initializers *********************
