@@ -73,12 +73,12 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @param string $taskList
 	 * @param string $eventNamespace
 	 * @param string $activityNamespace
-	 * @param string $workflowClass
+	 * @param string $deciderClass
 	 *
 	 * @throws InvalidClassException
 	 * @return Decider
 	 */
-	public function loadDecider( $name, $version = 1.0, $taskList, $eventNamespace, $activityNamespace, $workflowClass = null )
+	public function loadDecider( $name, $version = 1.0, $taskList, $eventNamespace, $activityNamespace, $deciderClass = null )
 	{
 		$workflowOptions = array(
 			'name' => $name,
@@ -87,12 +87,12 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 			'domain' => $this->config->get( 'domain' )
 		);
 
-		if( null === $workflowClass ) {
+		if( null === $deciderClass ) {
 			return new Decider( $this ,$workflowOptions, $eventNamespace, $activityNamespace );
 		} else {
-			$worker = new $workflowClass( $this, $workflowOptions, $eventNamespace, $activityNamespace );
+			$worker = new $deciderClass( $this, $workflowOptions, $eventNamespace, $activityNamespace );
 			if( !( $worker instanceof Decider ) ) {
-				throw new InvalidClassException( $workflowClass );
+				throw new InvalidClassException( $deciderClass );
 			}
 
 			return $worker;
