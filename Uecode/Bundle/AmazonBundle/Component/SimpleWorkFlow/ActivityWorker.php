@@ -17,7 +17,7 @@ use \Uecode\Bundle\AmazonBundle\Exception\InvalidDeciderLogicException;
 // Amazon Classes
 use \AmazonSWF;
 
-class Activity extends AmazonComponent
+class ActivityWorker extends AmazonComponent
 {
 	/**
 	 * @var string The task list this activity worker polls amazon for.
@@ -44,7 +44,7 @@ class Activity extends AmazonComponent
 	protected $identity;
 
 	/**
-	 * @var Activity A list of singleton instances of this class keyed by taskList.
+	 * @var array A list of singleton instances of this class keyed by taskList.
 	 *
 	 * @access private
 	 */

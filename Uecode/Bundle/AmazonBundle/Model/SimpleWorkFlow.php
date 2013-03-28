@@ -14,7 +14,7 @@ use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
 // Amazon Bundle Components
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decider;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Activity;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\ActivityWorker;
 
 // Uecode Bundle Components
 use \Uecode\Bundle\UecodeBundle\Component\Config;
