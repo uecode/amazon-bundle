@@ -42,12 +42,6 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 */
 	protected $workflow;
 
-	/********************* Core Logic *********************
-	 *
-	 * Core Logic for our overrode Amazon Class
-	 *
-	 */
-
 	/**
 	 * Returns a workflow defined in a config.
 	 *
@@ -105,12 +99,6 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 		return new ActivityWorker($this, $taskList, $namespace, $identity);
 	}
 
-	/********************* Initializers *********************
-	 *
-	 * Functions to help initialize
-	 *
-	 */
-
 	/**
 	 * Initializes the current object
 	 *
@@ -154,12 +142,6 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 			throw new  InvalidConfigurationException( "Domain must be specified in this config." );
 		}
 	}
-
-	/********************* Getters and Setters *********************
-	 *
-	 * Functions to help initialize
-	 *
-	 */
 
 	/**
 	 * Should be called at the end of initialize to show that the class has been initialized.
