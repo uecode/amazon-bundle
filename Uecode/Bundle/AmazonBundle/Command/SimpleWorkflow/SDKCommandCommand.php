@@ -67,6 +67,6 @@ class SDKCommandCommand extends Command
 
         $options = json_decode($options, true);
         $result = $swf->{$command}($options);
-        $output->writeln($result->body);
+        $output->writeln(print_r($result->body, true));
     }
 }
