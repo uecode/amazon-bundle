@@ -24,18 +24,12 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 	protected function configure() {
 		$this
 			->setName('ue:aws:simpleworkflow:activityworker')
-			->setDescription('Start an activity worker which will poll amazon for an activity task. You can either pass [domain, tasklist, namespace] for a custom call or you can pass a "config_key" which correlates to the config values at uecode.amazon.simpleworkflow.domains.[name].activity_tasklists.[<config_key>]. \'identity\' is always passed on it\'s own.')
-			->addOption(
-				'config_key',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'The config id which correlates to config value at uecode.amazon.simpleworkflow.domains.[name].activity_tasklists.[<config_key>]'
-			)
+			->setDescription('Start an activity worker which will poll amazon for an activity task.')
 			->addOption(
 				'domain',
 				null,
 				InputOption::VALUE_REQUIRED,
-				'The SWF workflow domain'
+				'The SWF workflow domain config key.'
 			)
 			->addOption(
 				'tasklist',
@@ -48,12 +42,6 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 				null,
 				InputOption::VALUE_REQUIRED,
 				'The SWF activity identity'
-			)
-			->addOption(
-				'namespace',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'The SWF activity namespace. Where activity classes are located.'
 			);
 	}
 
@@ -62,29 +50,17 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 
 		$amazonFactory = $container->get( 'uecode.amazon' )->getFactory( 'ue' );
 
-		$configKey = $input->getOption('config_key');
-
-		if ($configKey) {
-			$cfg = $amazonFactory->getConfig()->get('simpleworkflow');
-
-			foreach ($cfg['domains'] as $dk => $dv) {
-				foreach ($dv['activity_tasklists'] as $tk => $tv) {
-					if ($tk == $configKey) {
-						$domain = $dk;
-						$taskList = $tv['name'];
-						$namespace = $tv['namespace'];
-					}
-				}
-			}
-		} else {
-			$domain = $input->getOption('domain');
-			$taskList = $input->getOption('tasklist');
-			$namespace = $input->getOption('namespace');
-		}
-
-		// identity always set at runtime (not from config). this
-		// is cus 2 of the same activity task list can have diff identities.
+		$domain = $input->getOption('domain');
+		$taskList = $input->getOption('tasklist');
 		$identity = $input->getOption('identity');
+		$namespace = null;
+
+		$cfg = $amazonFactory->getConfig()->get('simpleworkflow');
+		foreach ($cfg['domains'] as $dk => $dv) {
+			if ($dk == $domain) {
+				$namespace = $dv['activity_namespace'];
+			}
+		}
 
 		$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain));
 		$activity = $swf->loadActivity($taskList, $namespace, $identity);
