@@ -86,11 +86,12 @@ class DeciderWorker extends AmazonComponent
 	{
 		$this->setAmazonClass( $swf );
 
-		$this->registerWorkflow( $workflowType );
-
 		$this->workflowOptions = $workflowType;
 		$this->eventNamespace = $eventNamespace;
 		$this->activityNamespace = $activityNamespace;
+
+		$this->registerWorkflow();
+		$this->registerActivities();
 	}
 
 	/********************* Core Logic *********************
@@ -241,32 +242,71 @@ class DeciderWorker extends AmazonComponent
 	/**
 	 * Registers the workflow.
 	 *
-	 * @param array $workflowType
+	 * @access public
+	 * @final
 	 * @return mixed
 	 * @throws InvalidConfigurationException
 	 */
-	final public function registerWorkflow( array $workflowType )
+	final public function registerWorkflow()
 	{
-		if ( !array_key_exists( 'name', $workflowType ) ) {
+		if ( !array_key_exists( 'name', $this->workflowOptions ) ) {
 			throw new InvalidConfigurationException( "Name must be included in the second argument." );
 		}
 
-		if ( !array_key_exists( 'version', $workflowType ) ) {
+		if ( !array_key_exists( 'version', $this->workflowOptions ) ) {
 			throw new InvalidConfigurationException( "Version must be included in the second argument." );
 		}
 
-		if ( !array_key_exists( 'domain', $workflowType ) ) {
+		if ( !array_key_exists( 'domain', $this->workflowOptions ) ) {
 			throw new InvalidConfigurationException( "Domain must be included in the third argument." );
 		}
 
-		$response = $this->amazonClass->register_workflow_type( $workflowType );
+		$response = $this->amazonClass->register_workflow_type( $this->workflowOptions );
 		if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
 			echo 'REGISTRATION ERROR: ';
 			print_r( $response->body );
 			exit;
 		}
 
-		return $this->amazonClass->describe_workflow_type( $workflowType );
+		return $this->amazonClass->describe_workflow_type( $this->workflowOptions );
+	}
+
+	/**
+	 * Registers activities in this workflow
+	 *
+	 * @final
+	 * @access protected
+	 */
+	protected function registerActivities()
+	{
+		$config = $this->amazonClass->getConfig();
+		$wf = $config->get('simpleworkflow');
+		$domain = $config->get('domain');
+		foreach ($wf['domains'] as $dk => $dv)
+		{
+			if ($domain == $dk)
+			{
+				foreach ($dv['activities'] as $av)
+				{
+					foreach (glob($av['directory'].'/*.php') as $file)
+					{
+						$base = substr(basename($file), 0, -4);
+						$class = $av['namespace'].'\\'.$base;
+						$obj = new $class;
+						if ($obj instanceof Activity) {
+							$opts = array(
+								'domain' => $domain,
+								'name' => $base,
+								'version' => $obj->getVersion(),
+							);
+
+							// register type (ignoring "already exists" fault for now)
+							$this->amazonClass->register_activity_type($opts);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	public function debug($str)
