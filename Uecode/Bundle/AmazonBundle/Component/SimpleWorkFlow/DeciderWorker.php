@@ -25,31 +25,6 @@ use \CFRuntime;
 
 class DeciderWorker extends AmazonComponent
 {
-
-	/**
-	 * If you increase this value, you should also
-	 * increase your workflow execution timeout accordingly so that a
-	 * new generation is started before the workflow times out.
-	 */
-	const EVENT_THRESHOLD_BEFORE_NEW_GENERATION = 150;
-
-	/**
-	 *  Workflow Constants
-	 * @todo review if these are still needed.
-	 */
-	const WORKFLOW_NAME = "defaultWorkflow";
-	const WORKFLOW_VERSION = 1.0;
-
-	/**
-	 * Key to use in the workflow input
-	 * @todo review if these are still needed.
-	 */
-	const ACTIVITY_NAME_KEY = 'activityName';
-	const ACTIVITY_VERSION_KEY = 'activityVersion';
-	const ACTIVITY_TASK_LIST_KEY = 'activityTaskList';
-	const ACTIVITY_INPUT_KEY = 'activityInput';
-	const TIMER_DURATION_KEY = 'timerDuration';
-
 	/**
 	 * @var \CFResponse
 	 */
@@ -106,17 +81,17 @@ class DeciderWorker extends AmazonComponent
 	final public function run()
 	{
 		try {
-			while ( true ) {
-				$response = $this->amazonClass->poll_for_decision_task( $this->workflowOptions );
-				if ( $response->isOK() ) {
+			while (true) {
+				$response = $this->amazonClass->poll_for_decision_task($this->workflowOptions);
+				if ($response->isOK()) {
 					$taskToken = (string)$response->body->taskToken;
 
-					if ( !empty( $taskToken ) ) {
+					if (!empty($taskToken)) {
 						try {
 							$decision = $this->decide(
-								new HistoryEventIterator( $this->getAmazonClass(), $this->workflowOptions, $response )
+								new HistoryEventIterator($this->getAmazonClass(), $this->workflowOptions, $response)
 							);
-						} catch ( \Exception $e ) {
+						} catch (\Exception $e) {
 							// If failed decisions are recoverable, one could drop the task and allow it to be redriven by the task timeout.
 							$this->debug('Failing workflow; exception in decider: '.get_class($e).' - '.$e->getMessage()."\n".$e->getTraceAsString()."\n");
 							exit;
@@ -129,8 +104,8 @@ class DeciderWorker extends AmazonComponent
 
 						$completeResponse = $this->amazonClass->respond_decision_task_completed($decisionArray);
 
-						if ( $completeResponse->isOK() ) {
-							$this->debug("respondDecisionTaskCompleted SUCCESS\n");
+						if ($completeResponse->isOK()) {
+							$this->debug("respondDecisionTaskCompleted - ".print_r($completeResponse->body, true)."\n");
 						} else {
 							// a real application may want to report this failure and retry
 							$this->debug("RespondDecisionTaskCompleted FAIL\n");
@@ -145,8 +120,6 @@ class DeciderWorker extends AmazonComponent
 				} else {
 					$this->debug('DECISION ERROR: ');
 					$this->debug(print_r( $response->body, true ));
-
-					sleep( 2 );
 				}
 			}
 		} catch (Exception $e) {
@@ -186,7 +159,7 @@ class DeciderWorker extends AmazonComponent
 	 */
 	protected function processEvent($decision, $event, &$maxEventId)
 	{
-		$maxEventId = max( $maxEventId, intval( $event->eventId ) );
+		$maxEventId = max($maxEventId, intval($event->eventId));
 
 		$eventType = (string)$event->eventType;
 
@@ -199,18 +172,25 @@ class DeciderWorker extends AmazonComponent
 		$defaultClass = $defaultEventNamespace.'\\'.$eventType;
 
 		if (class_exists($userClass)) {
+
 			$this->debug("    - user class: $userClass ");
+
 			$obj = new $userClass;
+
 			if (!($obj instanceof AbstractHistoryEvent)) {
 				throw new InvalidEventTypeException; 
 			}
+
 			$obj->run($this, $decision, $event, $maxEventId);
 		} elseif (class_exists($defaultClass)) {
 			$this->debug("    - default class: $defaultClass ");
+
 			$obj = new $defaultClass;
+
 			if (!($obj instanceof AbstractHistoryEvent)) {
 				throw new InvalidEventTypeException; 
 			}
+
 			$obj->run($this, $decision, $event, $maxEventId);
 		} else {
 			$this->debug('    - no class');
@@ -263,8 +243,8 @@ class DeciderWorker extends AmazonComponent
 
 		$response = $this->amazonClass->register_workflow_type( $this->workflowOptions );
 		if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
-			echo 'REGISTRATION ERROR: ';
-			print_r( $response->body );
+			$this->debug('REGISTRATION ERROR: ');
+			$this->debug(''.print_r($response->body, true));
 			exit;
 		}
 
@@ -276,41 +256,33 @@ class DeciderWorker extends AmazonComponent
 	 *
 	 * @final
 	 * @access protected
+	 * @todo TODO check for existing activities and don't make the call unless that activity/version/domain combo is not yet registered.
 	 */
 	protected function registerActivities()
 	{
-		$config = $this->amazonClass->getConfig();
-		$wf = $config->get('simpleworkflow');
-		$domain = $config->get('domain');
-		foreach ($wf['domains'] as $dk => $dv)
+		$av = $this->amazonClass->getActivityArray();
+		$domain = $this->amazonClass->getConfig()->get('domain');
+		foreach (glob($av['directory'].'/*.php') as $file)
 		{
-			if ($domain == $dk)
-			{
-				foreach ($dv['activities'] as $av)
-				{
-					foreach (glob($av['directory'].'/*.php') as $file)
-					{
-						$base = substr(basename($file), 0, -4);
-						$class = $av['namespace'].'\\'.$base;
-						$obj = new $class;
-						if ($obj instanceof Activity) {
-							$opts = array(
-								'domain' => $domain,
-								'name' => $base,
-								'version' => $obj->getVersion(),
-							);
+			$base = substr(basename($file), 0, -4);
+			$class = $av['namespace'].'\\'.$base;
+			$obj = new $class;
+			if ($obj instanceof AbstractActivity) {
+				$opts = array(
+					'domain' => $domain,
+					'name' => $base,
+					'version' => $obj->getVersion(),
+					'defaultTaskList' => array('name' => $av['default_task_list'])
+				);
 
-							// register type (ignoring "already exists" fault for now)
-							$this->amazonClass->register_activity_type($opts);
-						}
-					}
-				}
+				// register type (ignoring "already exists" fault for now)
+				$this->amazonClass->register_activity_type($opts);
 			}
 		}
 	}
 
 	public function debug($str)
 	{
-		echo $str;
+		return $this->amazonClass->debug($str);
 	}
 }

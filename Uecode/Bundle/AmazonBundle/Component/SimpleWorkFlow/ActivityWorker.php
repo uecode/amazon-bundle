@@ -16,6 +16,7 @@ use \Uecode\Bundle\AmazonBundle\Exception\InvalidDeciderLogicException;
 
 // Amazon Classes
 use \AmazonSWF;
+use \CFResponse as CFResponse;
 
 class ActivityWorker extends AmazonComponent
 {
@@ -28,27 +29,12 @@ class ActivityWorker extends AmazonComponent
 	protected $taskList;
 
 	/**
-	 * @var string The namespace where activity classes for this task list exist.
-	 *
-	 * @access protected
-	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForActivityTask.html
-	 */
-	protected $namespace;
-
-	/**
 	 * @var string A user-defined identity for this activity worker.
 	 *
 	 * @access protected
 	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForActivityTask.html
 	 */
 	protected $identity;
-
-	/**
-	 * @var array A list of the activity classes that have registered themselves to amazon.
-	 *
-	 * @access private
-	 */
-	private $registeredActivities = array();
 
 	/**
 	 * constructor
@@ -59,65 +45,66 @@ class ActivityWorker extends AmazonComponent
 	 * @param string $namespace
 	 * @param string $identity
 	 */
-	public function __construct(AmazonSWF $swf, $taskList, $namespace, $identity = null)
+	public function __construct(AmazonSWF $swf, $taskList, $identity = null)
 	{
 		$this->setAmazonClass($swf);
 		$this->taskList = $taskList;
-		$this->namespace = $namespace;
 		$this->identity = $identity;
-
-		$this->registerActivities();
 	}
 
-	public function run( $taskList = null )
+	public function run()
 	{
-		echo "RUN TEST";exit;
-		while( true ) {
+		while (true) {
 			$opts = array(
 				'taskList' => array(
-					'name' => !is_null( $taskList ) ? $taskList : $this->workflow[ 'defaultTaskList' ]
-				)
+					'name' => $this->taskList,
+				),
+				'domain' => $this->amazonClass->getConfig()->get('domain'),
+				'identity' => $this->identity
 			);
 
-			$response = $this->swf->poll_for_decision_task($opts);
-			if ( $response->isOK( ) ) {
-				$taskToken = (string) $response->body->taskToken;
+			$response = $this->amazonClass->poll_for_activity_task($opts);
+			if ($response->isOK()) {
+				$taskToken = (string)$response->body->taskToken;
 
-				if ( !empty( $taskToken ) ) {
-					$deciderResponse = $this->decide( $response );
-
-					$return = array(
-						'task'   => $taskToken,
-						'result' => $deciderResponse
-					);
-					echo json_encode( $return );
+				if (!empty($taskToken)) {
+					$res = $this->runActivity($response);
 				}
 			}
-			sleep( 2 );
 		}
 	}
 
 	/**
-	 * Registers all of the activities for this activity type.
+	 * Given an activity worker response, run the activity
 	 *
-	 * @param array $activityType
-	 * @return mixed
-	 * @throws InvalidConfigurationException
+	 * @access protected
+	 * @retur CFResponse
 	 */
-	public function registerActivities()
+	public function runActivity(CFResponse $response)
 	{
-		if( !array_key_exists( 'name', $activityType ) ) {
-			throw new InvalidConfigurationException( "Name must be included in the second argument." );
+		$name = $response->body->activityType->name;
+		$token = (string)$response->body->taskToken;
+		$activityArr = $this->amazonClass->getActivityArray();
+		$class = $activityArr['namespace'].'\\'.$name;
+		if (class_exists($class))
+		{
+			$obj = new $class;
+			$res = $obj->run($this, $response);
+			if ($res !== false) {
+				$opts = array(
+					'taskToken' => $token
+				);
+				if (!empty($res)) {
+					$opts['response'] = $res;
+				}
+
+				return $this->amazonClass->respond_activity_task_completed($opts)->body;
+			}
 		}
+	}
 
-		if( !array_key_exists( 'version', $activityType ) ) {
-			throw new InvalidConfigurationException( "Version must be included in the second argument." );
-		}
-
-		/** @var $swf AmazonSWF */
-		$swf = $this->getAmazonClass();
-		$swf->register_activity_type( $activityType );
-
-		return $swf->describe_activity_type( $activityType );
+	public function debug($str)
+	{
+		return $this->amazonClass->debug($str);
 	}
 }

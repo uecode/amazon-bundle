@@ -22,7 +22,10 @@ abstract class AbstractHistoryEvent
 	protected $eventLogic;
 
 	/**
-	 * Event logic
+	 * Logic that gets run when this event occurs in history.
+	 * 
+	 * The goal of your event's implementation is to modify the Decision object.
+	 * Each event gradually changes the state of the decision.
 	 *
 	 * @param DeciderWorker $decider
 	 * @param Decision $decision

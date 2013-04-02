@@ -53,17 +53,9 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 		$domain = $input->getOption('domain');
 		$taskList = $input->getOption('tasklist');
 		$identity = $input->getOption('identity');
-		$namespace = null;
-
-		$cfg = $amazonFactory->getConfig()->get('simpleworkflow');
-		foreach ($cfg['domains'] as $dk => $dv) {
-			if ($dk == $domain) {
-				$namespace = $dv['activity_namespace'];
-			}
-		}
 
 		$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain));
-		$activity = $swf->loadActivity($taskList, $namespace, $identity);
+		$activity = $swf->loadActivity($taskList, $identity);
 		$activity->run();
 
 		$output->writeln('done');

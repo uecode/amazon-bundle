@@ -94,9 +94,40 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 		}
 	}
 
-	public function loadActivity($taskList, $namespace, $identity = null)
+	public function loadActivity($taskList, $identity = null)
 	{
-		return new ActivityWorker($this, $taskList, $namespace, $identity);
+		return new ActivityWorker($this, $taskList, $identity);
+	}
+
+	public function getActivityArray()
+	{
+		$config = $this->getConfig();
+		$wf = $config->get('simpleworkflow');
+		$domain = $config->get('domain');
+		foreach ($wf['domains'] as $dk => $dv)
+		{
+			if ($domain == $dk)
+			{
+				return $dv['activities'];
+			}
+		}
+	}
+
+	public function getActivityDirectory()
+	{
+		$ar = $this->getActivityArray();
+		return $ar['directory'];
+	}
+
+	public function getActivityNamespace()
+	{
+		$ar = $this->getActivityArray();
+		return $ar['namespace'];
+	}
+
+	public function debug($str)
+	{
+		echo $str;
 	}
 
 	/**
@@ -180,6 +211,4 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	{
 		return $this->config;
 	}
-
-
 }
