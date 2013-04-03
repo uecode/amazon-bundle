@@ -1,9 +1,11 @@
 <?php
+
 /**
  * Activity event interface for activities that occur in history events.
  *
+ * @package amazon-bundle
+ * @copyright (c) 2013 Underground Elephant
  * @author John Pancoast
- * @date 2013-04-02
  * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_HistoryEvent.html
  */
 

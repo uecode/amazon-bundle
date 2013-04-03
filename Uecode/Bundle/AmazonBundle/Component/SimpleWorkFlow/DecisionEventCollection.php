@@ -1,10 +1,13 @@
 <?php
+
 /**
  * A collection of decision events.
  *
+ * @package amazon-bundle
+ * @copyright (c) 2013 Underground Elephant
  * @author John Pancoast
- * @date 2013-03-25
  */
+
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
 
 use Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decision;

@@ -3,10 +3,9 @@
 /**
  * Abstraction to handle history events.
  *
- * @package underground-elephant
- * @author John Pancoast
- * @date   2/20/13
+ * @package amazon-bundle
  * @copyright Underground Elephant
+ * @author John Pancoast
  */
 
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event;

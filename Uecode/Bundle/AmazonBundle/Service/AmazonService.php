@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * @package amazon-bundle
+ * @author Aaron Scherer
+ * @copyright (c) 2013 Undeground Elephant
+ */
+
 namespace Uecode\Bundle\AmazonBundle\Service;
 
 use \Uecode\Bundle\UecodeBundle\Component\Config;

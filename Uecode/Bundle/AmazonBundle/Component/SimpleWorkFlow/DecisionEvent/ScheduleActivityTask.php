@@ -2,8 +2,9 @@
 /**
  * ScheduleActivityTask decision event
  *
+ * @package amazon-bundle
+ * @copyright (c) 2013 Underground Elephant
  * @author John Pancoast
- * @date 2013-03-26
  * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_Decision.html
  * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_ScheduleActivityTaskDecisionAttributes.html
  */

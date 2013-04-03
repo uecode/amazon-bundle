@@ -1,8 +1,11 @@
 <?php
+
 /**
+ * @package amazon-bundle
+ * @copyright (c) 2013 Underground Elephant
  * @author Aaron Scherer
- * @date 10/8/12
  */
+
 namespace Uecode\Bundle\AmazonBundle\DependencyInjection;
 
 use \Symfony\Component\DependencyInjection\ContainerBuilder;

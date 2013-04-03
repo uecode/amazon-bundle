@@ -5,8 +5,10 @@
  *
  * Note that this currently only supports v1 of the PHP SDK.
  *
+ * @package amazon-bundle
  * @author John Pancoast
  * @date 2013-03-20
+ * @copyright (c) 2013 Underground Elephant
  */
 
 namespace Uecode\Bundle\AmazonBundle\Command\SimpleWorkflow;

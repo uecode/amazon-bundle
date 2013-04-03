@@ -1,9 +1,12 @@
 <?php
+
 /**
  * Start an activity worker.
  *
+ * @package amazon-bundle
  * @author John Pancoast
  * @date 2013-03-28
+ * @copyright (c) 2013 Underground Elephant
  */
 
 namespace Uecode\Bundle\AmazonBundle\Command\SimpleWorkflow;

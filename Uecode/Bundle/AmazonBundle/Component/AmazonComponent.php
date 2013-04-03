@@ -1,8 +1,11 @@
 <?php
+
 /**
- * User: Aaron Scherer
- * Date: 2/13/13
+ * @package amazon-bundle
+ * @copyright (c) 2013 Underground Elephant
+ * @author Aaron Scherer
  */
+
 namespace Uecode\Bundle\AmazonBundle\Component;
 
 use \CFRuntime;

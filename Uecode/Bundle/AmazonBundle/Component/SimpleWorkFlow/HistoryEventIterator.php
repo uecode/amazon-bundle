@@ -1,8 +1,11 @@
 <?php
+
 /**
+ * @package amazon-bundle
+ * @copyright (c) 2013 Underground Elephant
  * @author Aaron Scherer
- * @date 2013
  */
+
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
 
 

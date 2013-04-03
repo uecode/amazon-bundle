@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Base logic for Amazon SWF decider
  *
+ * @package amazon-bundle
+ * @copyright (c) 2013 Underground Elephant
  * @author Aaron Scherer, John Pancoast
- * Date: 2/13/13
  */
+
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
 
 // Amazon Components

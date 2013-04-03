@@ -1,8 +1,12 @@
 <?php
+
 /**
+ * @package amazon-bundle
+ * @copyright (c) 2013 Underground Elephant
  * @author Aaron Scherer
- * @date   2013
+ * @todo remove this. it's defunct.
  */
+
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\State;
 
 /*

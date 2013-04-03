@@ -1,12 +1,13 @@
 <?php
 
 /**
- * For handling an activity task event that's occured in history.
+ * For handling any of the ActivityTask* events
+ *
+ * All of the ActivityTask* classes should extend this one.
  *
  * @package amazon-bundle
- * @author John Pancoast
- * @date 2/13/13
  * @copyright Underground Elephant
+ * @author John Pancoast
  */
 
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Event;
@@ -17,12 +18,13 @@ use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decision;
 use Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DecisionEvent\ScheduleActivityTask;
 
 /**
- * For handling an activity task event that's occured in history.
+ * For handling any of the ActivityTask* events
+ *
+ * All of the ActivityTask* classes should extend this one.
  *
  * @package amazon-bundle
- * @author John Pancoast
- * @date 2/13/13
  * @copyright Underground Elephant
+ * @author John Pancoast
  */
 class ActivityTask extends AbstractHistoryEvent
 {

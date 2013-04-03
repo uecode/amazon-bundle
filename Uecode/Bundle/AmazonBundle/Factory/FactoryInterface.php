@@ -1,8 +1,11 @@
 <?php
+
 /**
- * User: Aaron Scherer
- * Date: 2/8/13
+ * @package amazon-bundle
+ * @author Aaron Scherer
+ * @copyright (c) 2013 Undeground Elephant
  */
+
 namespace Uecode\Bundle\AmazonBundle\Factory;
 
 interface FactoryInterface

@@ -2,8 +2,9 @@
 /**
  * Activity worker
  *
+ * @package amazon-bundle
+ * @copyright (c) 2013 Underground Elephant
  * @author Aaron Scherer, John Pancoast
- * @date 2/13/13
  */
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
 

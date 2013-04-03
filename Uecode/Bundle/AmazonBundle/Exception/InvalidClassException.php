@@ -1,8 +1,11 @@
 <?php
+
 /**
- * User: Aaron Scherer
- * Date: 2/9/13
+ * @package amazon-bundle
+ * @author Aaron Scherer
+ * @copyright (2) 2013 Undeground Elephant
  */
+
 namespace Uecode\Bundle\AmazonBundle\Exception;
 
 use \Exception;

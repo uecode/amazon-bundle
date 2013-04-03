@@ -1,9 +1,11 @@
 <?php
+
 /**
  * Abstract activity type
  *
+ * @package amazon-bundle
+ * @copyright (c) 2013 Underground Elephant
  * @author John Pancoast
- * @date 2013-03-31
  */
 
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;

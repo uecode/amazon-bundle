@@ -1,8 +1,11 @@
 <?php
+
 /**
- * @author Aaron Scherer, John Pancoast
- * @date 2/9/13
+ * @package amazon-bundle
+ * @author Aaron Scherer
+ * @copyright (c) 2013 Undeground Elephant
  */
+
 namespace Uecode\Bundle\AmazonBundle\Model;
 
 // Models

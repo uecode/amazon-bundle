@@ -2,8 +2,9 @@
 /**
  * A decision for amazon SWF
  *
+ * @package amazon-bundle
+ * @copyright (c) 2013 Underground Elephant
  * @author John Pancoast
- * @date 2013-03-25
  */
 
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
