@@ -1,12 +1,24 @@
 <?php
+
 /**
- * @author Aaron Scherer, John Pancoast
+ * Abstraction to handle history events.
+ *
+ * @package underground-elephant
+ * @author John Pancoast
  * @date   2/20/13
+ * @copyright Underground Elephant
  */
+
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DeciderWorker;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decision;
 
+/**
+ * Abstraction to handle history events.
+ *
+ * @author John Pancoast
+ * @date   3/26/13
+ */
 abstract class AbstractHistoryEvent
 {
 	/**
@@ -38,13 +50,14 @@ abstract class AbstractHistoryEvent
 	/**
 	 * Run logic for the event. At the moment this serves as an abstraction between client and self::eventLogic().
 	 *
+	 * @final
 	 * @param DeciderWorker $decider
 	 * @param Decision $decision
 	 * @param array $event
 	 * @param int $maxEventId
 	 * @return void
 	 */
-	public function run(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId)
+	final public function run(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId)
 	{
 		$this->eventLogic($decider, $decision, $event, $maxEventId);
 	}

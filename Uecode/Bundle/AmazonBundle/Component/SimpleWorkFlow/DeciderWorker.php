@@ -46,6 +46,13 @@ class DeciderWorker extends AmazonComponent
 	private $activityNamespace;
 
 	/**
+	 * @var array Holds events in history (can be used for task lookup)
+	 *
+	 * @access protected
+	 */
+	protected $events = array();
+
+	/**
 	 * Builds the Workflow
 	 *
 	 * @param \AmazonSWF $swf
@@ -162,6 +169,13 @@ class DeciderWorker extends AmazonComponent
 		$maxEventId = max($maxEventId, intval($event->eventId));
 
 		$eventType = (string)$event->eventType;
+		$eventId = (int)$event->eventId;
+
+		// save the events for later lookups
+		$this->events[$eventId] = array(
+			'event_type' => $eventType,
+			'activity_type' => ($eventType == 'ActivityTaskScheduled' ? (string)$event->activityTaskScheduledEventAttributes->activityType->name : null)
+		);
 
 		$this->debug('- '.$eventType.' - '.json_encode((array)$event)."\n");
 
@@ -279,6 +293,16 @@ class DeciderWorker extends AmazonComponent
 				$this->amazonClass->register_activity_type($opts);
 			}
 		}
+	}
+
+	public function getActivityNamespace()
+	{
+		return $this->activityNamespace;
+	}
+
+	public function getEvents()
+	{
+		return $this->events;
 	}
 
 	public function debug($str)
