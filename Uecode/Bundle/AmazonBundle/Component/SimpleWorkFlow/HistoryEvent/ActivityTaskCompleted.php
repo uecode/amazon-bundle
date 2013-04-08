@@ -12,7 +12,7 @@
 
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\HistoryEvent;
 
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\ActivityTask;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEvent\ActivityTask;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DeciderWorker;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decision;
 
