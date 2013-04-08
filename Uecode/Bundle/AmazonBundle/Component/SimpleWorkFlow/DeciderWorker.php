@@ -244,8 +244,7 @@ class DeciderWorker extends Worker
 			'activity_type' => ($eventType == 'ActivityTaskScheduled' ? (string)$event->activityTaskScheduledEventAttributes->activityType->name : null)
 		);
 
-		$defaultEventNamespace = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event';
-		$defaultActivityNamespace = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\Activity';
+		$defaultEventNamespace = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEvent';
 
 		$userClass = $this->eventNamespace.'\\'.$eventType;
 		$defaultClass = $defaultEventNamespace.'\\'.$eventType;
