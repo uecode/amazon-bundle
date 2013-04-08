@@ -8,7 +8,8 @@
  * @author John Pancoast
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEvent;
+
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DeciderWorker;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decision;
 

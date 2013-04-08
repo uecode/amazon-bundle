@@ -10,7 +10,7 @@
  * @author John Pancoast
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Event;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\HistoryEvent;
 
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Event\AbstractHistoryEvent;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DeciderWorker;
