@@ -33,7 +33,7 @@ abstract class AbstractActivity
 	 * @access protected
 	 * @param AbstractActivity $activity
 	 * @param CFResponse $response The response received from polling amazon for an activity
-	 * @return mixed
+	 * @return mixed A bool of false implies a failure, otherwise a string is the response.
 	 */
 	abstract protected function activityLogic(ActivityWorker $activity, CFResponse $response);
 
@@ -43,7 +43,7 @@ abstract class AbstractActivity
 	 * @access public
 	 * @param AbstractActivity $activity
 	 * @param CFResponse $response The response received from polling amazon for an activity
-	 * @return mixed
+	 * @return mixed A bool of false implies a failure, otherwise a string is the response.
 	 */
 	public function run(ActivityWorker $activity, CFResponse $response)
 	{

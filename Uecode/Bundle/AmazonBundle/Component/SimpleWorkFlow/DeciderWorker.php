@@ -108,6 +108,17 @@ class DeciderWorker extends Worker
 					$taskToken = (string)$response->body->taskToken;
 
 					if (!empty($taskToken)) {
+						$this->logger->log(
+							'info',
+							'PollForDecisionTask response received',
+							SimpleWorkflow::logContext(
+								'decider',
+								$this->executionId,
+								$this->amazonRunId,
+								$this->amazonWorkflowId
+							)
+						);
+
 						// set relevant amazon ids
 						$this->amazonRunId = (string)$response->body->workflowExecution->runId;
 						$this->amazonWorkflowId = (string)$response->body->workflowExecution->workflowId;
@@ -126,7 +137,7 @@ class DeciderWorker extends Worker
 						if ($completeResponse->isOK()) {
 							$this->logger->log(
 								'info',
-								'Decision made',
+								'Decision made (RespondDecisionTaskCompleted successful)',
 								SimpleWorkflow::logContext(
 									'decider',
 									$this->executionId,
@@ -138,7 +149,7 @@ class DeciderWorker extends Worker
 						} else {
 							$this->logger->log(
 								'error',
-								'Decision failed',
+								'Decision failed (RespondDecisionTaskCompleted failed)',
 								SimpleWorkflow::logContext(
 									'decider',
 									$this->executionId,
@@ -176,7 +187,7 @@ class DeciderWorker extends Worker
 					);
 				}
 			}
-		} catch (Exception $e) {
+		} catch (\Exception $e) {
 			$this->logger->log(
 				'critical',
 				'Exception when attempting to make decision: '.get_class($e).' - '.$e->getMessage(),

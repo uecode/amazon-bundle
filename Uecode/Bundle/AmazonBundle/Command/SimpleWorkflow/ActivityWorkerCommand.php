@@ -4,9 +4,8 @@
  * Start an activity worker.
  *
  * @package amazon-bundle
- * @author John Pancoast
- * @date 2013-03-28
  * @copyright (c) 2013 Underground Elephant
+ * @author John Pancoast
  */
 
 namespace Uecode\Bundle\AmazonBundle\Command\SimpleWorkflow;
@@ -51,16 +50,53 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 	protected function execute(InputInterface $input, OutputInterface $output) {
 		$container = $this->getApplication()->getKernel()->getContainer();
 
-		$amazonFactory = $container->get( 'uecode.amazon' )->getFactory( 'ue' );
+		$logger = $container->get('logger');
 
-		$domain = $input->getOption('domain');
-		$taskList = $input->getOption('tasklist');
-		$identity = $input->getOption('identity');
+		try {
+			$logger->log(
+				'info',
+				'About to start activity worker'
+			);
 
-		$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain));
-		$activity = $swf->loadActivity($taskList, $identity);
-		$activity->run();
+			$amazonFactory = $container->get( 'uecode.amazon' )->getFactory( 'ue' );
 
-		$output->writeln('done');
+			$domain = $input->getOption('domain');
+			$taskList = $input->getOption('tasklist');
+			$identity = $input->getOption('identity');
+
+			$logger->log(
+				'info',
+				'Starting activity worker',
+				array(
+					'domain' => $domain,
+					'taskList' => $taskList,
+					'identity' => $identity,
+				)
+			);
+
+			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain));
+			$activity = $swf->loadActivity($taskList, $identity);
+
+			// note that run() will sit in a loop while(true).
+			$activity->run();
+
+			$output->writeln('done');
+
+			$logger->log(
+				'info',
+				'Activity worker ended'
+			);
+		} catch (\Exception $e) {
+			// if this fails... then... damn...
+			try {
+				$logger->log(
+					'error',
+					'Caught exception: '.$e->getMessage(),
+					$e->getTrace()
+				);
+			} catch (Exception $e) {
+				echo 'EXCEPTION: '.$e->getMessage()."\n";
+			}
+		}
 	}
 }

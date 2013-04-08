@@ -4,9 +4,8 @@
  * Start a decider worker.
  *
  * @package amazon-bundle
- * @author John Pancoast
- * @date 2013-03-20
  * @copyright (c) 2013 Underground Elephant
+ * @author John Pancoast
  */
 
 namespace Uecode\Bundle\AmazonBundle\Command\SimpleWorkflow;
@@ -116,6 +115,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 				'info',
 				'Starting decider worker',
 				array(
+					'domain' => $domain,
 					'name' => $name,
 					'version' => $version,
 					'taskList' => $taskList,
