@@ -12,6 +12,10 @@
 
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\HistoryEvent;
 
+// Amazon Exceptions
+use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
+
+// Amazon component
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\AbstractHistoryEvent;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DeciderWorker;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decision;
@@ -53,6 +57,11 @@ class ActivityTask extends AbstractHistoryEvent
 			$method = str_replace('ActivityTask', 'activityEvent', $eventType).'Logic';
 
 			$obj = new $class;
+
+			if (!($obj instanceof HistoryActivityEventInterface)) {
+				throw new InvalidClassException('Activity history event must implement "HistoryActivityEventInterface"');
+			}
+
 			$obj->{$method}($decider, $decision, $event, $maxEventId);
 		}
 	}
