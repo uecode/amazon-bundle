@@ -1,4 +1,5 @@
 <?php
+
 /**
  * A decision for amazon SWF
  *

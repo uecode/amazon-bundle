@@ -76,38 +76,76 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 	protected function execute(InputInterface $input, OutputInterface $output) {
 		$container = $this->getApplication()->getKernel()->getContainer();
 
-		$amazonFactory = $container->get( 'uecode.amazon' )->getFactory( 'ue' );
+		$logger = $container->get('logger');
 
-		$configKey = $input->getOption('config_key');
+		try {
+			$logger->log(
+				'info',
+				'About to start decider worker'
+			);
 
-		if ($configKey) {
-			$cfg = $amazonFactory->getConfig()->get('simpleworkflow');
+			$amazonFactory = $container->get( 'uecode.amazon' )->getFactory( 'ue' );
 
-			foreach ($cfg['domains'] as $dk => $dv) {
-				foreach ($dv['workflows'] as $kk => $kv) {
-					if ($kk == $configKey) {
-						$domain = $dk;
-						$name = $kv['name'];
-						$version = $kv['version'];
-						$taskList = $kv['default_task_list'];
-						$eventNamespace = $kv['history_event_namespace'];
-						$activityNamespace = $kv['history_activity_event_namespace'];
+			$configKey = $input->getOption('config_key');
+
+			if ($configKey) {
+				$cfg = $amazonFactory->getConfig()->get('simpleworkflow');
+
+				foreach ($cfg['domains'] as $dk => $dv) {
+					foreach ($dv['workflows'] as $kk => $kv) {
+						if ($kk == $configKey) {
+							$domain = $dk;
+							$name = $kv['name'];
+							$version = $kv['version'];
+							$taskList = $kv['default_task_list'];
+							$eventNamespace = $kv['history_event_namespace'];
+							$activityNamespace = $kv['history_activity_event_namespace'];
+						}
 					}
 				}
+			} else {
+				$domain = $input->getOption('domain');
+				$name = $input->getOption('name');
+				$version = $input->getOption('workflow_version');
+				$taskList = $input->getOption('taskList');
+				$eventNamespace = $input->getOption('event_namespace');
+				$activityNamespace = $input->getOption('activity_event_namespace');
 			}
-		} else {
-			$domain = $input->getOption('domain');
-			$name = $input->getOption('name');
-			$version = $input->getOption('workflow_version');
-			$taskList = $input->getOption('taskList');
-			$eventNamespace = $input->getOption('event_namespace');
-			$activityNamespace = $input->getOption('activity_event_namespace');
+
+			$logger->log(
+				'info',
+				'Starting decider worker',
+				array(
+					'name' => $name,
+					'version' => $version,
+					'taskList' => $taskList,
+					'eventNamespace' => $eventNamespace,
+					'activityNamespace' => $activityNamespace
+				)
+			);
+
+			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain));
+			$decider = $swf->loadDecider($name, $version, $taskList, $eventNamespace, $activityNamespace);
+
+			// note that run() will sit in a loop while(true).
+			$decider->run();
+
+			$output->writeln('done');
+			$logger->log(
+				'info',
+				'Decider worker ended'
+			);
+		} catch (\Exception $e) {
+			// if this fails... then... damn...
+			try {
+				$logger->log(
+					'error',
+					'Caught exception: '.$e->getMessage(),
+					$e->getTrace()
+				);
+			} catch (Exception $e) {
+				echo 'EXCEPTION: '.$e->getMessage()."\n";
+			}
 		}
-
-		$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain));
-		$decider = $swf->loadDecider($name, $version, $taskList, $eventNamespace, $activityNamespace);
-		$decider->run();
-
-		$output->writeln('done');
 	}
 }

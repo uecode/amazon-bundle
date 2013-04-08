@@ -9,7 +9,7 @@
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
 
 // Amazon Components
-use \Uecode\Bundle\AmazonBundle\Component\AmazonComponent;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Worker;
 
 // Amazon Exceptions
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
@@ -19,7 +19,7 @@ use \Uecode\Bundle\AmazonBundle\Exception\InvalidDeciderLogicException;
 use \AmazonSWF;
 use \CFResponse as CFResponse;
 
-class ActivityWorker extends AmazonComponent
+class ActivityWorker extends Worker
 {
 	/**
 	 * @var string The task list this activity worker polls amazon for.
@@ -48,7 +48,8 @@ class ActivityWorker extends AmazonComponent
 	 */
 	public function __construct(AmazonSWF $swf, $taskList, $identity = null)
 	{
-		$this->setAmazonClass($swf);
+		parent::__construct($swf);
+
 		$this->taskList = $taskList;
 		$this->identity = $identity;
 	}

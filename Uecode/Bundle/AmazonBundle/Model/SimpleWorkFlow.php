@@ -8,6 +8,9 @@
 
 namespace Uecode\Bundle\AmazonBundle\Model;
 
+// Symfony
+use Monolog\Logger;
+
 // Models
 use \Uecode\Bundle\AmazonBundle\Model\AmazonInterface;
 
@@ -44,6 +47,12 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @var
 	 */
 	protected $workflow;
+
+	/**
+	 * @var Logger Logger instance
+	 * @access  protected
+	 */
+	protected $logger;
 
 	/**
 	 * Returns a workflow defined in a config.
@@ -213,5 +222,47 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	public function getConfig()
 	{
 		return $this->config;
+	}
+
+	/**
+	 * Set the logger
+	 *
+	 * @param Logger $logger
+	 */
+	public function setLogger(Logger $logger)
+	{
+		$this->logger = $logger;
+	}
+
+	/**
+	 * Get the logger
+	 *
+	 * @return Logger
+	 */
+	public function getLogger()
+	{
+		return $this->logger;
+	}
+
+	/**
+	 * A simple static method to add monolog log context for decider/activity workers.
+	 *
+	 * @param string $type Either 'decider' or 'activity'
+	 * @param string $executionId Our execution id
+	 * @param string $amazonRunId Amazon's run id
+	 * @param string $amazonWorkflowId Amazon's workflow id
+	 * @param mixed $data Additional data.
+	 * @return array
+	 */
+	public static function logContext($type, $executionId, $amazonRunId = null, $amazonWorkflowId = null, $data = null)
+	{
+		return array(
+			'type' => ($type == 'decider' || $type == 'activity') ? $type : 'unknown',
+			'executionId' => $executionId,
+			'runId' => $amazonRunId,
+			'workflowId' => $amazonWorkflowId,
+			'data' => $data,
+			'date' => date('c')
+		);
 	}
 }

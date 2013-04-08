@@ -8,6 +8,10 @@
 
 namespace Uecode\Bundle\AmazonBundle\Service;
 
+// Symfony
+use Monolog\Logger;
+
+// Uecode
 use \Uecode\Bundle\UecodeBundle\Component\Config;
 use \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory;
 
@@ -19,40 +23,48 @@ class AmazonService
 	 */
 	private $factories = array();
 
-	public function __construct( array $config )
+	/**
+	 * Constructor
+	 *
+	 * @param array  $config
+	 * @param Logger $logger
+	 */
+	public function __construct(array $config, Logger $logger = null)
 	{
-		if( !empty( $config ) ) {
-			foreach( $config[ 'accounts' ][ 'connections' ] as $name => $account ) {
-				$this->addFactory( $name, new AmazonFactory( $name, new Config( $config ) ) );
+		if(!empty($config)) {
+			foreach($config['accounts']['connections'] as $name => $account) {
+				$factory = new AmazonFactory($name, new Config($config));
+				$factory->setLogger($logger);
+				$this->addFactory($name, $factory);
 			}
 		}
 	}
 
-	public function addFactory( $name, $factory )
+	public function addFactory($name, $factory)
 	{
-		if( array_key_exists( $name, $this->factories ) ) {
-			throw new \Exception( sprintf( "The `%s` factory has already been added.", $name ) );
+		if( array_key_exists($name, $this->factories)) {
+			throw new \Exception(sprintf("The `%s` factory has already been added.", $name));
 		}
 		
-		return $this->factories[ $name ] = $factory;
+		return $this->factories[$name] = $factory;
 	}
 
-	public function getFactory( $name )
+	public function getFactory($name)
 	{
-		if( !array_key_exists( $name, $this->factories ) ) {
-			throw new \Exception( sprintf( "The `%s` factory does not exist.", $name ) );
+		if( !array_key_exists($name, $this->factories)) {
+			throw new \Exception(sprintf("The `%s` factory does not exist.", $name));
 		}
 		
-		return $this->factories[ $name ];
+		return $this->factories[$name];
 	}
 
-	public function get( $name )
+	public function get($name)
 	{
-		return $this->getFactory( $name );
+		return $this->getFactory($name);
 	}
 
-	public function __get( $name )
+	public function __get($name)
 	{
-		return $this->getFactory( $name );
+		return $this->getFactory($name);
 	}
 }
