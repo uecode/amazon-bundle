@@ -17,6 +17,7 @@ use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
 // Amazon component
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\AbstractHistoryEvent;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryActivityEventInterface;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DeciderWorker;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decision;
 use Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DecisionEvent\ScheduleActivityTask;
@@ -59,7 +60,7 @@ class ActivityTask extends AbstractHistoryEvent
 			$obj = new $class;
 
 			if (!($obj instanceof HistoryActivityEventInterface)) {
-				throw new InvalidClassException('Activity history event must implement "HistoryActivityEventInterface"');
+				throw new InvalidClassException($class.' must implement "HistoryActivityEventInterface"');
 			}
 
 			$obj->{$method}($decider, $decision, $event, $maxEventId);
