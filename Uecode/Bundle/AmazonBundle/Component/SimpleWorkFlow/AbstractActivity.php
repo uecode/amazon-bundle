@@ -10,7 +10,11 @@
 
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
 
+// amazon bundle
+use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 use Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\ActivityWorker;
+
+// amazon
 use \CFResponse;
 
 abstract class AbstractActivity
@@ -31,23 +35,31 @@ abstract class AbstractActivity
 	 *
 	 * @abstract
 	 * @access protected
+	 * @param string $taskToken The unique token id that amazon provided us for this job.
 	 * @param AbstractActivity $activity
 	 * @param CFResponse $response The response received from polling amazon for an activity
-	 * @return mixed A bool of false implies a failure, otherwise a string is the response.
+	 * @return ActivityTaskResponse
 	 */
-	abstract protected function activityLogic(ActivityWorker $activity, CFResponse $response);
+	abstract protected function activityLogic($taskToken, ActivityWorker $activity, CFResponse $response);
 
 	/**
 	 * Run activity logic
 	 *
 	 * @access public
+	 * @param string $taskToken The unique token id that amazon provided us for this job.
 	 * @param AbstractActivity $activity
 	 * @param CFResponse $response The response received from polling amazon for an activity
-	 * @return mixed A bool of false implies a failure, otherwise a string is the response.
+	 * @return ActivityTaskResponse
 	 */
-	public function run(ActivityWorker $activity, CFResponse $response)
+	public function run($taskToken, ActivityWorker $activity, CFResponse $response)
 	{
-		return $this->activityLogic($activity, $response);
+		$resp = $this->activityLogic($taskToken, $activity, $response);
+
+		if (!($resp instanceof ActivityTaskResponse)) {
+			throw new InvalidClassException('Activity::activityLogic() must return ActivityTaskResponse ['.get_class($this).']');
+		}
+
+		return $resp;
 	}
 
 	/**

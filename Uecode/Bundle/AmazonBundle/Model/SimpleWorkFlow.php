@@ -258,6 +258,7 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	{
 		return array(
 			'type' => ($type == 'decider' || $type == 'activity') ? $type : 'unknown',
+			'processId' => getmypid(),
 			'executionId' => $executionId,
 			'runId' => $amazonRunId,
 			'workflowId' => $amazonWorkflowId,

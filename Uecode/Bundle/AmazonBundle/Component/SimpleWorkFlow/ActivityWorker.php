@@ -58,7 +58,7 @@ class ActivityWorker extends Worker
 	{
 		$this->logger->log(
 			'info',
-			'Starting activity loop',
+			'Starting activity worker poll',
 			SimpleWorkflow::logContext(
 				'activity',
 				$this->executionId
@@ -110,7 +110,7 @@ class ActivityWorker extends Worker
 				}
 			} else {
 				$this->logger->log(
-					'error',
+					'critical',
 					'PollForActivityTask failed',
 					SimpleWorkflow::logContext(
 						'activity',
@@ -153,44 +153,42 @@ class ActivityWorker extends Worker
 				$obj = new $class;
 
 				if (!($obj instanceof AbstractActivity)) {
-					throw new InvalidClassException('Activity class must extend AbstractActivity.');
+					throw new InvalidClassException('Activity class "'.$class.'" must extend AbstractActivity.');
 				}
 
-				$res = $obj->run($this, $response);
+				$taskResponse = $obj->run($token, $this, $response);
+				$taskResponse->taskToken = $taskResponse->taskToken ?: $token;
 
-				if ($res !== false) {
-					$opts = array(
-						'taskToken' => $token
+				$method = 'respond_activity_task_'.str_replace('ActivityTask', '', $taskResponse->getTitle());
+				$completeResponse = $this->amazonClass->{$method}((array)$taskResponse);
+
+				if ($completeResponse->isOK()) {
+					$this->logger->log(
+						'info',
+						'Activity completed (RespondActivityTaskCompleted successful)',
+						SimpleWorkflow::logContext(
+							'activity',
+							$this->executionId,
+							$this->amazonRunId,
+							$this->amazonWorkflowId,
+							(array)$taskResponse
+						)
 					);
-					if (!empty($res)) {
-						$opts['response'] = $res;
-					}
-
-					$completeResponse = $this->amazonClass->respond_activity_task_completed($opts);
-
-					if ($completeResponse->isOK()) {
-						$this->logger->log(
-							'info',
-							'Activity completed (RespondActivityTaskCompleted successful)',
-							SimpleWorkflow::logContext(
-								'activity',
-								$this->executionId,
-								$this->amazonRunId,
-								$this->amazonWorkflowId
+				} else {
+					$this->logger->log(
+						'error',
+						'Activity failed (RespondActivityTaskCompleted failed)',
+						SimpleWorkflow::logContext(
+							'activity',
+							$this->executionId,
+							$this->amazonRunId,
+							$this->amazonWorkflowId,
+							array(
+								'request' => $taskResponse,
+								'response' => $completeResponse
 							)
-						);
-					} else {
-						$this->logger->log(
-							'error',
-							'Activity failed (RespondActivityTaskCompleted failed)',
-							SimpleWorkflow::logContext(
-								'activity',
-								$this->executionId,
-								$this->amazonRunId,
-								$this->amazonWorkflowId
-							)
-						);
-					}
+						)
+					);
 				}
 			} else {
 				$this->logger->log(
@@ -207,7 +205,7 @@ class ActivityWorker extends Worker
 			}
 		} catch (\Exception $e) {
 			$this->logger->log(
-				'critical',
+				'alert',
 				'Exception when attempting to run activity: '.get_class($e).' - '.$e->getMessage(),
 				SimpleWorkflow::logContext(
 					'activity',

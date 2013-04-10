@@ -88,7 +88,7 @@ class DeciderWorker extends Worker
 	{
 		$this->logger->log(
 			'info',
-			'Starting decider loop',
+			'Starting decider worker poll',
 			SimpleWorkflow::logContext(
 				'decider',
 				$this->executionId
