@@ -3,6 +3,16 @@ Amazon Bundle
 
 This bundle is the connector for AWS services to be a bit more readable
 
+## Copyright
+
+Copyright (c) 2013 Underground Elephant
+
+## License
+
+Licensed under Apache License version 2.0.
+
+See LICENSE-2.0.txt.
+
 ## Installation
 
 1. Add to composer.json under `require`
