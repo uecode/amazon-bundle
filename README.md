@@ -9,7 +9,7 @@ Copyright (c) 2013 Underground Elephant
 
 ## License
 
-Licensed under Apache License version 2.0.
+Licensed under the Apache License, Version 2.0.
 
 See LICENSE-2.0.txt.
 
