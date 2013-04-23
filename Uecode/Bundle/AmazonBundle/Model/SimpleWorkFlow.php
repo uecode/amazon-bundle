@@ -22,8 +22,9 @@
 
 namespace Uecode\Bundle\AmazonBundle\Model;
 
-// Symfony
+// Symfony (and related)
 use Monolog\Logger;
+use Doctrine\DBAL\Connection;
 
 // Models
 use \Uecode\Bundle\AmazonBundle\Model\AmazonInterface;
@@ -67,6 +68,11 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @access  protected
 	 */
 	protected $logger;
+
+	/**
+	 * @var array DB instances
+	 */
+	private $dbs = array();
 
 	/**
 	 * Returns a workflow defined in a config.
@@ -279,5 +285,27 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 			'data' => $data,
 			'date' => date('c')
 		);
+	}
+
+	/**
+	 * Add a DB connection
+	 *
+	 * @access public
+	 * @param string $key The key string of the DB connection
+	 * @param string $db The db connection
+	 */
+	public function addDb($key, Connection $db) {
+		$this->dbs[$key] = $db;
+	}
+
+	/**
+	 * Get a DB connection
+	 *
+	 * @access public
+	 * @param $key The key string of the DB connection to get
+	 * @return Doctrine\DBAL\Connection
+	 */
+	public function getDb($key) {
+		return isset($this->dbs[$key]) ? $this->dbs[$key] : null;
 	}
 }

@@ -233,4 +233,15 @@ class ActivityWorker extends Worker
 			);
 		}
 	}
+
+	/**
+	 * Get our db connection
+	 *
+	 * @access public
+	 * @param string $key The key of the DB connection
+	 * @return Doctrine\DBAL\Connection
+	 */
+	public function getDb($key) {
+		return $this->amazonClass->getDb($key);
+	}
 }

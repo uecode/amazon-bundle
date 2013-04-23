@@ -89,6 +89,7 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 			);
 
 			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain));
+			$swf->addDb('database_connection', $container->get('database_connection'));
 			$activity = $swf->loadActivity($taskList, $identity);
 
 			// note that run() will sit in a loop while(true).
