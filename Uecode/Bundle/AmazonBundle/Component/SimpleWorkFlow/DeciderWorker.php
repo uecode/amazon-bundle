@@ -452,39 +452,93 @@ class DeciderWorker extends Worker
 	{
 		$av = $this->amazonClass->getActivityArray();
 		$domain = $this->amazonClass->getConfig()->get('domain');
+
+		$this->logger->log(
+			'debug',
+			'Registering activities in '.$av['directory'],
+			SimpleWorkflow::logContext(
+				'activity',
+				$this->executionId,
+				$this->amazonRunId,
+				$this->amazonWorkflowId,
+				$av
+			)
+		);
+
 		foreach (glob($av['directory'].'/*.php') as $file)
 		{
 			$base = substr(basename($file), 0, -4);
 			$class = $av['namespace'].'\\'.$base;
+
+			$this->logger->log(
+				'debug',
+				'Attempting to register activity \''.$base.'\'',
+				SimpleWorkflow::logContext(
+					'activity',
+					$this->executionId,
+					$this->amazonRunId,
+					$this->amazonWorkflowId
+				)
+			);
+
+			if (!class_exists($class)) {
+				// don't error here. user may have legitimate file int his
+				// dir that just isn't an activity class.
+				$this->logger->log(
+					'info',
+					'Found activity file '.$file.' but it does not have the expected class '.$class.' in it. Skipping.',
+					SimpleWorkflow::logContext(
+						'activity',
+						$this->executionId,
+						$this->amazonRunId,
+						$this->amazonWorkflowId
+					)
+				);
+			}
+
 			$obj = new $class;
-			if ($obj instanceof AbstractActivity) {
-				$opts = array(
-					'domain' => $domain,
-					'name' => $base,
-					'version' => $obj->getVersion(),
-					'defaultTaskList' => array('name' => $av['default_task_list'])
+
+			if (!($obj instanceof AbstractActivity)) {
+				// don't error here. user may have legitimate file int his
+				// dir that just isn't an activity class.
+				$this->logger->log(
+					'info',
+					'Found activity file '.$file.' but it is not an instance of AbstractActivity. Skipping.',
+					SimpleWorkflow::logContext(
+						'activity',
+						$this->executionId,
+						$this->amazonRunId,
+						$this->amazonWorkflowId
+					)
+				);
+			}
+
+			$opts = array(
+				'domain' => $domain,
+				'name' => $base,
+				'version' => $obj->getVersion(),
+				'defaultTaskList' => array('name' => $av['default_task_list'])
+			);
+
+			// register type (ignoring "already exists" fault for now)
+			$response = $this->amazonClass->register_activity_type($opts);
+			if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
+				$this->logger->log(
+					'alert',
+					'Could not register activity',
+					SimpleWorkflow::logContext(
+						'decider',
+						$this->executionId,
+						$this->amazonRunId,
+						$this->amazonWorkflowId,
+						array(
+							'response' => $response,
+							'trace' => debug_backtrace()
+						)
+					)
 				);
 
-				// register type (ignoring "already exists" fault for now)
-				$response = $this->amazonClass->register_activity_type($opts);
-				if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
-					$this->logger->log(
-						'alert',
-						'Could not register activity',
-						SimpleWorkflow::logContext(
-							'decider',
-							$this->executionId,
-							$this->amazonRunId,
-							$this->amazonWorkflowId,
-							array(
-								'response' => $response,
-								'trace' => debug_backtrace()
-							)
-						)
-					);
-
-					exit;
-				}
+				exit;
 			}
 		}
 	}
