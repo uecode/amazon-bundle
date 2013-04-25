@@ -49,9 +49,9 @@ class DecisionEventCollection extends \ArrayObject
 	 * @todo This should take into account events that have been set to persist.
 	 * It will need to put persisted events into the collection.
 	 */
-	public function setdecisionevents(decisioneventcollection $eventcollection)
+	public function setDecisionEvents(DecisionEventCollection $eventCollection)
 	{
-		$this->exchangearray($eventCollection);
+		$this->exchangeArray($eventCollection);
 	}
 
 	/**
@@ -60,9 +60,9 @@ class DecisionEventCollection extends \ArrayObject
 	 * @access public
 	 * @todo This should take into account events that have been set to persist
 	 */
-	public function cleardecisionevents()
+	public function clearDecisionEvents()
 	{
-		$this->exchangearray(array());
+		$this->exchangeArray(array());
 	}
 
 	/**
@@ -71,7 +71,7 @@ class DecisionEventCollection extends \ArrayObject
 	 * @access public
 	 * @return DecisionEventCollection
 	 */
-	public function getdecisionevents()
+	public function getDecisionEvents()
 	{
 		return $this;
 	}
