@@ -138,7 +138,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 				)
 			);
 
-			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain));
+			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain), $container);
 			$decider = $swf->loadDecider($name, $version, $taskList, $eventNamespace, $activityNamespace);
 
 			// note that run() will sit in a loop while(true).
@@ -150,6 +150,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 				'Decider worker ended'
 			);
 		} catch (\Exception $e) {
+			echo "ERROR: {$e->getMessage()}\n";
 			// if this fails... then... damn...
 			try {
 				$logger->log(

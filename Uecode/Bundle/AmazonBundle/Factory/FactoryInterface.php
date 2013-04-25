@@ -22,7 +22,9 @@
 
 namespace Uecode\Bundle\AmazonBundle\Factory;
 
+use Symfony\Component\DependencyInjection\Container;
+
 interface FactoryInterface
 {
-	public function build( $className, array $options = array() );
+	public function build( $className, array $options = array(), Container $container );
 }

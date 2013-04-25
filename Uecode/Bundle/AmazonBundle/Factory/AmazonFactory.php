@@ -28,6 +28,7 @@ use CFRuntime;
 // Symfony classes
 use Symfony\Component\Yaml\Yaml;
 use Monolog\Logger;
+use Symfony\Component\DependencyInjection\Container;
 
 // AmazonBundle Exceptions
 use \Uecode\Bundle\AmazonBundle\Exception\ClassNotFoundException;
@@ -78,10 +79,11 @@ class AmazonFactory implements FactoryInterface
 	 *
 	 * @param string $className Amazon Class name
 	 * @param array $options Arguments for the Amazon Class
+	 * @param Container $container The service container
 	 * @return CFRuntime|bool Returns the amazon class
 	 * @throws ClassNotFoundException|InvalidClassException
 	 */
-	public function build($className, array $options = array())
+	public function build($className, array $options = array(), Container $container)
 	{
 		$class = $this->checkAmazonClass($className);
 		if ($class !== false) {
@@ -105,6 +107,7 @@ class AmazonFactory implements FactoryInterface
 			}
 
 			$object->setLogger($this->getLogger());
+			$object->setContainer($container);
 
 			return $object;
 		}

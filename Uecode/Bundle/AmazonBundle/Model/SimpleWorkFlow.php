@@ -24,7 +24,7 @@ namespace Uecode\Bundle\AmazonBundle\Model;
 
 // Symfony (and related)
 use Monolog\Logger;
-use Doctrine\DBAL\Connection;
+use Symfony\Component\DependencyInjection\Container;
 
 // Models
 use \Uecode\Bundle\AmazonBundle\Model\AmazonInterface;
@@ -70,9 +70,9 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	protected $logger;
 
 	/**
-	 * @var array DB instances
+	 * @var Symfony container
 	 */
-	private $dbs = array();
+	private $container;
 
 	/**
 	 * Returns a workflow defined in a config.
@@ -288,24 +288,22 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	}
 
 	/**
-	 * Add a DB connection
+	 * Set container
 	 *
 	 * @access public
-	 * @param string $key The key string of the DB connection
-	 * @param string $db The db connection
+	 * @param Container $container Service container
 	 */
-	public function addDb($key, Connection $db) {
-		$this->dbs[$key] = $db;
+	public function setContainer(Container $container) {
+		$this->container = $container;
 	}
 
 	/**
-	 * Get a DB connection
+	 * Get container
 	 *
 	 * @access public
-	 * @param $key The key string of the DB connection to get
-	 * @return Doctrine\DBAL\Connection
+	 * return Container
 	 */
-	public function getDb($key) {
-		return isset($this->dbs[$key]) ? $this->dbs[$key] : null;
+	public function getContainer() {
+		return $this->container;
 	}
 }
