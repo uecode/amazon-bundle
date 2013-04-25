@@ -49,13 +49,13 @@ class Decision
 	 * Add a decision event to the collection
 	 *
 	 * @param DecisionEvent $decision The decision event object
-	 * @param bool $persist Does this value persist event when we clear events
+	 * @param bool $clearEvents Do we clear events before adding this event.
 	 * @param string $title The unique title for this decision event.
 	 * @access public
 	 */
-	public function addDecisionEvent(DecisionEvent $decision, $persist = false, $title = null)
+	public function addDecisionEvent(DecisionEvent $decision, $clearEvents = false, $title = null)
 	{
-		$this->eventCollection->addDecisionEvent($decision, $persist, $title);
+		$this->eventCollection->addDecisionEvent($decision, $clearEvents, $title);
 	}
 
 	/**
