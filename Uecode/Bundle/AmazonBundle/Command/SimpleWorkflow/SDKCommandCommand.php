@@ -42,7 +42,7 @@ class SDKCommandCommand extends Command
     protected function configure() {
         $this
             ->setName('ue:aws:simpleworkflow:sdkcommand')
-            ->setDescription('Send a start workflow execution to amazon.')
+            ->setDescription('Call an SDK command.')
             ->addOption(
                 'key',
                 null,
