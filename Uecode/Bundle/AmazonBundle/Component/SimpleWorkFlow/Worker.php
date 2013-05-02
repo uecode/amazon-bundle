@@ -94,74 +94,6 @@ class Worker extends AmazonComponent
 	}
 
 	/**
-	 * Get the current execution id
-	 *
-	 * @access  public
-	 * @return string
-	 */
-	public function getExecutionId()
-	{
-		return $this->executionId;
-	}
-
-	/**
-	 * Get our process id
-	 *
-	 * @access public
-	 * @return int
-	 */
-	public function getProcessId() {
-		if (!$this->processId) {
-			$this->processId = (int)getmypid();
-		}
-		return $this->processId;
-	}
-
-	/**
-	 * Get the amazon run id
-	 *
-	 * @access public
-	 * @return string
-	 */
-	public function getAmazonRunId()
-	{
-		return $this->amazonRunId;
-	}
-
-	/**
-	 * Get the amazon workflow id
-	 *
-	 * @access public
-	 * @return string
-	 */
-	public function getAmazonWorkflowId()
-	{
-		return $this->amazonWorkflowId;
-	}
-
-	/**
-	 * Set the logger
-	 *
-	 * @access protected
-	 * @param Logger $logger
-	 */
-	protected function setLogger(Logger $logger)
-	{
-		$this->logger = $logger;
-	}
-
-	/**
-	 * Get the logger
-	 *
-	 * @access protected
-	 * @return Logger
-	 */
-	protected function getLogger()
-	{
-		return $this->logger;
-	}
-
-	/**
 	 * Log a worker related event
 	 *
 	 * @access public
@@ -225,5 +157,95 @@ class Worker extends AmazonComponent
 			'workflowId' => $amazonWorkflowId,
 			'data' => $data
 		);
+	}
+
+	/**
+	 * Get the current execution id
+	 *
+	 * @access  public
+	 * @return string
+	 */
+	public function getExecutionId()
+	{
+		return $this->executionId;
+	}
+
+	/**
+	 * Get our process id
+	 *
+	 * @access public
+	 * @return int
+	 */
+	public function getProcessId() {
+		if (!$this->processId) {
+			$this->processId = (int)getmypid();
+		}
+		return $this->processId;
+	}
+
+	/**
+	 * Set the amazon run id
+	 *
+	 * @param int $id
+	 * @access protected
+	 */
+	protected function setAmazonRunId($id)
+	{
+		$this->amazonRunId = (int)$id;
+	}
+
+	/**
+	 * Get the amazon run id
+	 *
+	 * @access public
+	 * @return string
+	 */
+	public function getAmazonRunId()
+	{
+		return $this->amazonRunId;
+	}
+
+	/**
+	 * Set the amazon workflow id
+	 *
+	 * @param int $id
+	 * @access protected
+	 */
+	protected function setAmazonWorkflowId($id)
+	{
+		$this->amazonWorkflowId = (int)$id;
+	}
+
+	/**
+	 * Get the amazon workflow id
+	 *
+	 * @access public
+	 * @return string
+	 */
+	public function getAmazonWorkflowId()
+	{
+		return $this->amazonWorkflowId;
+	}
+
+	/**
+	 * Set the logger
+	 *
+	 * @access protected
+	 * @param Logger $logger
+	 */
+	protected function setLogger(Logger $logger)
+	{
+		$this->logger = $logger;
+	}
+
+	/**
+	 * Get the logger
+	 *
+	 * @access protected
+	 * @return Logger
+	 */
+	protected function getLogger()
+	{
+		return $this->logger;
 	}
 }

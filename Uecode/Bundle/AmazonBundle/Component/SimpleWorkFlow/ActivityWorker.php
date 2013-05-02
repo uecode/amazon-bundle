@@ -5,7 +5,7 @@
  *
  * @package amazon-bundle
  * @copyright (c) 2013 Underground Elephant
- * @author Aaron Scherer, John Pancoast
+ * @author John Pancoast
  *
  * Copyright 2013 Underground Elephant
  *
@@ -70,6 +70,16 @@ class ActivityWorker extends Worker
 		$this->identity = $identity;
 	}
 
+	/**
+	 * Run the activity worker.
+	 *
+	 * This will make a request to amazon (a long poll) waiting for an activity task
+	 * to perform. If amazon doesn't respond within a minute, they'll send an empty
+	 * response and we'll start another loop. If they respond with an activity task to 
+	 * we'll further process that {@see self::runActivity()}.
+	 *
+	 * @access public
+	 */
 	public function run()
 	{
 		$this->log(
@@ -79,8 +89,8 @@ class ActivityWorker extends Worker
 
 		while (true) {
 			// these values can only be set from amazon response
-			$this->amazonRunId = null;
-			$this->amazonWorkflowId = null;
+			$this->setAmazonRunId(null);
+			$this->setAmazonWorkflowId(null);
 
 			$opts = array(
 				'taskList' => array(
@@ -103,7 +113,11 @@ class ActivityWorker extends Worker
 						)
 					);
 
-					$res = $this->runActivity($response);
+					// set relevant amazon ids
+					$this->setAmazonRunId((string)$response->body->workflowExecution->runId);
+					$this->setAmazonWorkflowId((string)$response->body->workflowExecution->workflowId);
+
+					$this->runActivity($response);
 				} else {
 					$this->log(
 						'info',
@@ -120,10 +134,13 @@ class ActivityWorker extends Worker
 	}
 
 	/**
-	 * Given an activity worker response, run the activity
+	 * Given an activity worker response, run the activity.
+	 *
+	 * This will search for an activity class that matches the name in the response.
+	 * It will search in the directory you specify in the uecode.amazon.simpleworkflow.domains.[domain].activities.directory
+	 * config value. Activity classes must extend AbstractActivity.
 	 *
 	 * @access protected
-	 * @retur CFResponse
 	 */
 	public function runActivity(CFResponse $response)
 	{
@@ -151,7 +168,7 @@ class ActivityWorker extends Worker
 				$taskResponse = $obj->run($token, $this, $response);
 				$taskResponse->taskToken = $taskResponse->taskToken ?: $token;
 
-				$method = 'respond_activity_task_'.str_replace('ActivityTask', '', $taskResponse->getTitle());
+				$method = 'respond_activity_task_'.str_replace('ActivityTask', '', basename(str_replace('\\', '/', get_class($taskResponse))));
 				$completeResponse = $this->amazonClass->{$method}((array)$taskResponse);
 
 				if ($completeResponse->isOK()) {

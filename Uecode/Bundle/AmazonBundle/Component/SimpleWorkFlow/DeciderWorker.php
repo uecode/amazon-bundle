@@ -108,8 +108,8 @@ class DeciderWorker extends Worker
 		try {
 			while (true) {
 				// these values can only be set from amazon response
-				$this->amazonRunId = null;
-				$this->amazonWorkflowId = null;
+				$this->setAmazonRunId(null);
+				$this->setAmazonWorkflowId(null);
 
 				// poll amazon for decision task and handle if successful
 				$response = $this->amazonClass->poll_for_decision_task($this->workflowOptions);
@@ -122,13 +122,13 @@ class DeciderWorker extends Worker
 							'info',
 							'PollForDecisionTask response received',
 							array(
-								'response' => (array)$response->body
+								'response' => json_decode(json_encode($response->body), true)
 							)
 						);
 
 						// set relevant amazon ids
-						$this->amazonRunId = (string)$response->body->workflowExecution->runId;
-						$this->amazonWorkflowId = (string)$response->body->workflowExecution->workflowId;
+						$this->setAmazonRunId((string)$response->body->workflowExecution->runId);
+						$this->setAmazonWorkflowId((string)$response->body->workflowExecution->workflowId);
 
 						try {
 							$decision = $this->decide(
