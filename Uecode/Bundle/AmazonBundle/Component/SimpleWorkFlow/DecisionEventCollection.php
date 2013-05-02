@@ -34,6 +34,7 @@ class DecisionEventCollection extends \ArrayObject
 	 * @param bool $clearEvents Do we clear events before adding this event.
 	 * @param string $title The unique title for this decision event.
 	 * @access public
+	 *
 	 */
 	public function addDecisionEvent(DecisionEvent $decision, $clearEvents = false, $title = null)
 	{

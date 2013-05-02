@@ -265,29 +265,6 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	}
 
 	/**
-	 * A simple static method to add monolog log context for decider/activity workers.
-	 *
-	 * @param string $type Either 'decider' or 'activity'
-	 * @param string $executionId Our execution id
-	 * @param string $amazonRunId Amazon's run id
-	 * @param string $amazonWorkflowId Amazon's workflow id
-	 * @param mixed $data Additional data.
-	 * @return array
-	 */
-	public static function logContext($type, $executionId, $amazonRunId = null, $amazonWorkflowId = null, $data = null)
-	{
-		return array(
-			'type' => ($type == 'decider' || $type == 'activity') ? $type : 'unknown',
-			'processId' => getmypid(),
-			'executionId' => $executionId,
-			'runId' => $amazonRunId,
-			'workflowId' => $amazonWorkflowId,
-			'data' => $data,
-			'date' => date('c')
-		);
-	}
-
-	/**
 	 * Set container
 	 *
 	 * @access public

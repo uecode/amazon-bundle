@@ -72,13 +72,9 @@ class ActivityWorker extends Worker
 
 	public function run()
 	{
-		$this->logger->log(
+		$this->log(
 			'info',
-			'Starting activity worker poll',
-			SimpleWorkflow::logContext(
-				'activity',
-				$this->executionId
-			)
+			'Starting activity worker poll'
 		);
 
 		while (true) {
@@ -99,41 +95,25 @@ class ActivityWorker extends Worker
 				$taskToken = (string)$response->body->taskToken;
 
 				if (!empty($taskToken)) {
-					$this->logger->log(
+					$this->log(
 						'info',
 						'PollForActivityTask response received',
-						SimpleWorkflow::logContext(
-							'activity',
-							$this->executionId,
-							$this->amazonRunId,
-							$this->amazonWorkflowId,
-							$taskToken
+						array(
+							'taskToken' => $taskToken
 						)
 					);
 
 					$res = $this->runActivity($response);
 				} else {
-					$this->logger->log(
+					$this->log(
 						'info',
-						'PollForActivityTask received empty response',
-						SimpleWorkflow::logContext(
-							'activity',
-							$this->executionId,
-							$this->amazonRunId,
-							$this->amazonWorkflowId
-						)
+						'PollForActivityTask received empty response'
 					);
 				}
 			} else {
-				$this->logger->log(
+				$this->log(
 					'critical',
-					'PollForActivityTask failed',
-					SimpleWorkflow::logContext(
-						'activity',
-						$this->executionId,
-						$this->amazonRunId,
-						$this->amazonWorkflowId
-					)
+					'PollForActivityTask failed'
 				);
 			}
 		}
@@ -154,15 +134,11 @@ class ActivityWorker extends Worker
 			$class = $activityArr['namespace'].'\\'.$name;
 			if (class_exists($class))
 			{
-				$this->logger->log(
+				$this->log(
 					'info',
 					'Activity task class found',
-					SimpleWorkflow::logContext(
-						'activity',
-						$this->executionId,
-						$this->amazonRunId,
-						$this->amazonWorkflowId,
-						$class
+					array(
+						'class' => $class
 					)
 				);
 
@@ -179,56 +155,38 @@ class ActivityWorker extends Worker
 				$completeResponse = $this->amazonClass->{$method}((array)$taskResponse);
 
 				if ($completeResponse->isOK()) {
-					$this->logger->log(
+					$this->log(
 						'info',
 						'Activity completed (RespondActivityTaskCompleted successful)',
-						SimpleWorkflow::logContext(
-							'activity',
-							$this->executionId,
-							$this->amazonRunId,
-							$this->amazonWorkflowId,
-							(array)$taskResponse
+						array(
+							'response' => (array)$taskResponse
 						)
 					);
 				} else {
-					$this->logger->log(
+					$this->log(
 						'error',
 						'Activity failed (RespondActivityTaskCompleted failed)',
-						SimpleWorkflow::logContext(
-							'activity',
-							$this->executionId,
-							$this->amazonRunId,
-							$this->amazonWorkflowId,
-							array(
-								'request' => $taskResponse,
-								'response' => $completeResponse
-							)
+						array(
+							'request' => $taskResponse,
+							'response' => $completeResponse
 						)
 					);
 				}
 			} else {
-				$this->logger->log(
+				$this->log(
 					'error',
 					'Activity task class not found',
-					SimpleWorkflow::logContext(
-						'activity',
-						$this->executionId,
-						$this->amazonRunId,
-						$this->amazonWorkflowId,
-						$class
+					array(
+						'class' => $class
 					)
 				);
 			}
 		} catch (\Exception $e) {
-			$this->logger->log(
+			$this->log(
 				'alert',
 				'Exception when attempting to run activity: '.get_class($e).' - '.$e->getMessage(),
-				SimpleWorkflow::logContext(
-					'activity',
-					$this->executionId,
-					$this->amazonRunId,
-					$this->amazonWorkflowId,
-					$e->getTrace()
+				array(
+					'trace' => $e->getTrace()
 				)
 			);
 		}

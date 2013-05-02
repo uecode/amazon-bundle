@@ -100,13 +100,9 @@ class DeciderWorker extends Worker
 	 */
 	final public function run()
 	{
-		$this->logger->log(
+		$this->log(
 			'info',
-			'Starting decider worker poll',
-			SimpleWorkflow::logContext(
-				'decider',
-				$this->executionId
-			)
+			'Starting decider worker poll'
 		);
 
 		try {
@@ -122,15 +118,11 @@ class DeciderWorker extends Worker
 					$taskToken = (string)$response->body->taskToken;
 
 					if (!empty($taskToken)) {
-						$this->logger->log(
+						$this->log(
 							'info',
 							'PollForDecisionTask response received',
-							SimpleWorkflow::logContext(
-								'decider',
-								$this->executionId,
-								$this->amazonRunId,
-								$this->amazonWorkflowId,
-								$response->body
+							array(
+								'response' => (array)$response->body
 							)
 						);
 
@@ -143,18 +135,12 @@ class DeciderWorker extends Worker
 								new HistoryEventIterator($this->getAmazonClass(), $this->workflowOptions, $response)
 							);
 						} catch (\Exception $e) {
-							$this->logger->log(
+							$this->log(
 								'critical',
 								'Exception while making decision: '.get_class($e).' - '.$e->getMessage(),
-								SimpleWorkflow::logContext(
-									'decider',
-									$this->executionId,
-									$this->amazonRunId,
-									$this->amazonWorkflowId,
-									array(
-										'decision' => $this->createSWFDecisionArray($decision),
-										'trace' => $e->getTrace()
-									)
+								array(
+									'decision' => $this->createSWFDecisionArray($decision),
+									'trace' => $e->getTrace()
 								)
 							);
 
@@ -170,56 +156,36 @@ class DeciderWorker extends Worker
 						$completeResponse = $this->amazonClass->respond_decision_task_completed($decisionArray);
 
 						if ($completeResponse->isOK()) {
-							$this->logger->log(
+							$this->log(
 								'info',
 								'Decision made (RespondDecisionTaskCompleted successful)',
-								SimpleWorkflow::logContext(
-									'decider',
-									$this->executionId,
-									$this->amazonRunId,
-									$this->amazonWorkflowId,
-									$decisionArray
+								array(
+									'decisionArray' => $decisionArray
 								)
 							);
 						} else {
-							$this->logger->log(
+							$this->log(
 								'critical',
 								'Decision failed (RespondDecisionTaskCompleted failed)',
-								SimpleWorkflow::logContext(
-									'decider',
-									$this->executionId,
-									$this->amazonRunId,
-									$this->amazonWorkflowId,
-									array(
-										'decisionArray' => $decisionArray,
-										'response' => $completeResponse
-									)
+								array(
+									'decisionArray' => $decisionArray,
+									'response' => $completeResponse
 								)
 							);
 						}
 					// received empty response
 					} else {
-						$this->logger->log(
+						$this->log(
 							'info',
-							'PollForDecisionTask received empty response',
-							SimpleWorkflow::logContext(
-								'decider',
-								$this->executionId,
-								$this->amazonRunId,
-								$this->amazonWorkflowId
-							)
+							'PollForDecisionTask received empty response'
 						);
 					}
 				} else {
-					$this->logger->log(
+					$this->log(
 						'critical',
 						'PollForDecisionTask failed',
-						SimpleWorkflow::logContext(
-							'decider',
-							$this->executionId,
-							$this->amazonRunId,
-							$this->amazonWorkflowId,
-							$response->body
+						array(
+							'response' => $response->body
 						)
 					);
 				}
@@ -227,15 +193,11 @@ class DeciderWorker extends Worker
 		} catch (\Exception $e) {
 			// make this a high level log alert due to the fact
 			// that it shouldn't really happen.
-			$this->logger->log(
+			$this->log(
 				'alert',
 				'Uncaught exception when attempting to make decision: '.get_class($e).' - '.$e->getMessage(),
-				SimpleWorkflow::logContext(
-					'decider',
-					$this->executionId,
-					$this->amazonRunId,
-					$this->amazonWorkflowId,
-					$e->getTrace()
+				array(
+					'trace' => $e->getTrace()
 				)
 			);
 		}
@@ -261,18 +223,12 @@ class DeciderWorker extends Worker
 				$this->processEvent($decision, $event, $maxEventId);
 			} catch (\Exception $e) {
 				// log the actual event that failed
-				$this->logger->log(
+				$this->log(
 					'critical',
 					'Exception while processing event: '.get_class($e).' - '.$e->getMessage(),
-					SimpleWorkflow::logContext(
-						'decider',
-						$this->executionId,
-						$this->amazonRunId,
-						$this->amazonWorkflowId,
-						array(
-							'event' => $event,
-							'trace' => $e->getTrace()
-						)
+					array(
+						'event' => $event,
+						'trace' => $e->getTrace()
 					)
 				);
 
@@ -310,19 +266,13 @@ class DeciderWorker extends Worker
 		$defaultClass = $defaultEventNamespace.'\\'.$eventType;
 
 		if (class_exists($userClass)) {
-			$this->logger->log(
+			$this->log(
 				'debug',
 				"Processing decision event [$eventId - $eventType] - user class found",
-				SimpleWorkflow::logContext(
-					'decider',
-					$this->executionId,
-					$this->amazonRunId,
-					$this->amazonWorkflowId,
-					array(
-						'user class' => $userClass,
-						'default class' => $defaultClass,
-						'event' => json_encode($event)
-					)
+				array(
+					'user class' => $userClass,
+					'default class' => $defaultClass,
+					'event' => json_encode($event)
 				)
 			);
 
@@ -334,19 +284,13 @@ class DeciderWorker extends Worker
 
 			$obj->run($this, $decision, $event, $maxEventId);
 		} elseif (class_exists($defaultClass)) {
-			$this->logger->log(
+			$this->log(
 				'debug',
 				"Processing decision event [$eventId - $eventType] - default class found",
-				SimpleWorkflow::logContext(
-					'decider',
-					$this->executionId,
-					$this->amazonRunId,
-					$this->amazonWorkflowId,
-					array(
-						'user class' => $userClass,
-						'default class' => $defaultClass,
-						'event' => json_encode($event)
-					)
+				array(
+					'user class' => $userClass,
+					'default class' => $defaultClass,
+					'event' => json_encode($event)
 				)
 			);
 
@@ -358,19 +302,13 @@ class DeciderWorker extends Worker
 
 			$obj->run($this, $decision, $event, $maxEventId);
 		} else {
-			$this->logger->log(
+			$this->log(
 				'debug',
 				"Processing decision event [$eventId - $eventType] - no class",
-				SimpleWorkflow::logContext(
-					'decider',
-					$this->executionId,
-					$this->amazonRunId,
-					$this->amazonWorkflowId,
-					array(
-						'user class' => $userClass,
-						'default class' => $defaultClass,
-						'event' => json_encode($event)
-					)
+				array(
+					'user class' => $userClass,
+					'default class' => $defaultClass,
+					'event' => json_encode($event)
 				)
 			);
 		}
@@ -390,7 +328,7 @@ class DeciderWorker extends Worker
 			$title = $e->getTitle();
 			$ret[] = array(
 				'decisionType' => $title,
-				lcfirst($title).'DecisionAttributes' => $e
+				lcfirst($title).'DecisionAttributes' => json_decode(json_encode($e), true)
 			);
 		}
 		return $ret;
@@ -420,18 +358,12 @@ class DeciderWorker extends Worker
 
 		$response = $this->amazonClass->register_workflow_type( $this->workflowOptions );
 		if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
-			$this->logger->log(
+			$this->log(
 				'alert',
 				'Could not register decider worker',
-				SimpleWorkflow::logContext(
-					'decider',
-					$this->executionId,
-					$this->amazonRunId,
-					$this->amazonWorkflowId,
-					array(
-						'response' => $response,
-						'trace' => debug_backtrace()
-					)
+				array(
+					'response' => $response,
+					'trace' => debug_backtrace()
 				)
 			);
 
@@ -453,15 +385,11 @@ class DeciderWorker extends Worker
 		$av = $this->amazonClass->getActivityArray();
 		$domain = $this->amazonClass->getConfig()->get('domain');
 
-		$this->logger->log(
+		$this->log(
 			'debug',
 			'Registering activities in '.$av['directory'],
-			SimpleWorkflow::logContext(
-				'activity',
-				$this->executionId,
-				$this->amazonRunId,
-				$this->amazonWorkflowId,
-				$av
+			array(
+				'activities' => $av
 			)
 		);
 
@@ -470,29 +398,17 @@ class DeciderWorker extends Worker
 			$base = substr(basename($file), 0, -4);
 			$class = $av['namespace'].'\\'.$base;
 
-			$this->logger->log(
+			$this->log(
 				'debug',
-				'Attempting to register activity \''.$base.'\'',
-				SimpleWorkflow::logContext(
-					'activity',
-					$this->executionId,
-					$this->amazonRunId,
-					$this->amazonWorkflowId
-				)
+				'Attempting to register activity \''.$base.'\''
 			);
 
 			if (!class_exists($class)) {
 				// don't error here. user may have legitimate file int his
 				// dir that just isn't an activity class.
-				$this->logger->log(
+				$this->log(
 					'info',
-					'Found activity file '.$file.' but it does not have the expected class '.$class.' in it. Skipping.',
-					SimpleWorkflow::logContext(
-						'activity',
-						$this->executionId,
-						$this->amazonRunId,
-						$this->amazonWorkflowId
-					)
+					'Found activity file '.$file.' but it does not have the expected class '.$class.' in it. Skipping.'
 				);
 			}
 
@@ -501,15 +417,9 @@ class DeciderWorker extends Worker
 			if (!($obj instanceof AbstractActivity)) {
 				// don't error here. user may have legitimate file int his
 				// dir that just isn't an activity class.
-				$this->logger->log(
+				$this->log(
 					'info',
-					'Found activity file '.$file.' but it is not an instance of AbstractActivity. Skipping.',
-					SimpleWorkflow::logContext(
-						'activity',
-						$this->executionId,
-						$this->amazonRunId,
-						$this->amazonWorkflowId
-					)
+					'Found activity file '.$file.' but it is not an instance of AbstractActivity. Skipping.'
 				);
 			}
 
@@ -523,18 +433,12 @@ class DeciderWorker extends Worker
 			// register type (ignoring "already exists" fault for now)
 			$response = $this->amazonClass->register_activity_type($opts);
 			if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
-				$this->logger->log(
+				$this->log(
 					'alert',
 					'Could not register activity',
-					SimpleWorkflow::logContext(
-						'decider',
-						$this->executionId,
-						$this->amazonRunId,
-						$this->amazonWorkflowId,
-						array(
-							'response' => $response,
-							'trace' => debug_backtrace()
-						)
+					array(
+						'response' => $response,
+						'trace' => debug_backtrace()
 					)
 				);
 

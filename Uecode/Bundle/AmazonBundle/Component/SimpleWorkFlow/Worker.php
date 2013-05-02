@@ -26,6 +26,7 @@ namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
 
 // Amazon components
 use \Uecode\Bundle\AmazonBundle\Component\AmazonComponent;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Util;
 
 // Amazon Classes
 use \AmazonSWF;
@@ -37,16 +38,23 @@ use Monolog\Logger;
 class Worker extends AmazonComponent
 {
 	/**
-	 * An id representing this execution
+	 * @var int This workers process id.
+	 *
+	 * @access private
+	 */
+	private $processId;
+
+	/**
+	 * @var int An id representing this execution
 	 *
 	 * This id is created locally and remains the same through the entire execution of this file.
 	 *
-	 * @access  protected
+	 * @access  private
 	 */
-	protected $executionId;
+	private $executionId;
 
 	/**
-	 * Amazon created run id.
+	 * @var int Amazon created run id.
 	 *
 	 * This id is created by amazon when a workflow is started and is passed in the
 	 * response from PollForDecisionTask.
@@ -56,7 +64,7 @@ class Worker extends AmazonComponent
 	protected $amazonRunId;
 
 	/**
-	 * User created workflow id.
+	 * @var int User created workflow id.
 	 *
 	 * This id is createde by the client that started the workflow and is passed in the
 	 * response from PollForDecisionTask.
@@ -80,7 +88,7 @@ class Worker extends AmazonComponent
 	 */
 	protected function __construct(AmazonSWF $swf)
 	{
-		$this->executionId = self::generateExecutionId();
+		$this->executionId = Util::generateUUID();
 		$this->setAmazonClass($swf);
 		$this->setLogger($swf->getLogger());
 	}
@@ -94,6 +102,19 @@ class Worker extends AmazonComponent
 	public function getExecutionId()
 	{
 		return $this->executionId;
+	}
+
+	/**
+	 * Get our process id
+	 *
+	 * @access public
+	 * @return int
+	 */
+	public function getProcessId() {
+		if (!$this->processId) {
+			$this->processId = (int)getmypid();
+		}
+		return $this->processId;
 	}
 
 	/**
@@ -121,9 +142,10 @@ class Worker extends AmazonComponent
 	/**
 	 * Set the logger
 	 *
+	 * @access protected
 	 * @param Logger $logger
 	 */
-	public function setLogger(Logger $logger)
+	protected function setLogger(Logger $logger)
 	{
 		$this->logger = $logger;
 	}
@@ -131,22 +153,77 @@ class Worker extends AmazonComponent
 	/**
 	 * Get the logger
 	 *
+	 * @access protected
 	 * @return Logger
 	 */
-	public function getLogger()
+	protected function getLogger()
 	{
 		return $this->logger;
 	}
 
 	/**
-	 * Generate an execution id
+	 * Log a worker related event
 	 *
-	 * @static
 	 * @access public
-	 * @return string
+	 * @param string $level Log level {@see Monolog\Logger::log()}.
+	 * @param string $message Your message
+	 * @param mixed $context Additional log info
 	 */
-	public static function generateExecutionId()
+	public function log($level, $message, $context = null) {
+		$this->getLogger()->log($level, $message, $this->getLogContext($context));
+	}
+
+	/**
+	 * Get an array suitable for using as monolog
+	 * context for decider and activity workers.
+	 *
+	 * @access protected
+	 * @param mixed $data Additional data.
+	 * @return array
+	 * @uses getLogContextStatic
+	 */
+	protected function getLogContext($data = null) {
+		$class = basename(str_replace('\\', '/', get_class($this)));
+		if ($class == 'ActivityWorker') {
+			$workerType = 'a';
+		} elseif ($class == 'DeciderWorker') {
+			$workerType = 'd';
+		} else {
+			$workerType = 'u';
+		}
+
+		return self::getLogContextStatic(
+			$workerType,
+			getmypid(),
+			$this->getExecutionId(),
+			$this->getAmazonRunId(),
+			$this->getAmazonWorkflowId(),
+			$data
+		);
+	}
+
+	/**
+	 * Get an array suitable for using as monolog
+	 * context for decider and activity workers.
+	 *
+	 * @param string $workerType Either 'd' for decider or a for'activity'
+	 * @param string $processId Process ID of process that's logging.
+	 * @param string $executionId Our execution id
+	 * @param string $amazonRunId Amazon's run id
+	 * @param string $amazonWorkflowId Amazon's workflow id
+	 * @param mixed $data Additional data.
+	 * @return array
+	 */
+	public static function getLogContextStatic($workerType, $processId, $executionId, $amazonRunId = null, $amazonWorkflowId = null, $data = null)
 	{
-		return uniqid(getmypid().'-', true);
+		return array(
+			'worker' => true,
+			'worker_type' => ($workerType == 'd' || $workerType == 'a') ? $workerType : 'unknown',
+			'processId' => $processId,
+			'executionId' => $executionId,
+			'runId' => $amazonRunId,
+			'workflowId' => $amazonWorkflowId,
+			'data' => $data
+		);
 	}
 }

@@ -106,7 +106,9 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 				$logger->log(
 					'error',
 					'Caught exception: '.$e->getMessage(),
-					$e->getTrace()
+					array(
+						'trace' => $e->getTrace()
+					)
 				);
 			} catch (Exception $e) {
 				echo 'EXCEPTION: '.$e->getMessage()."\n";
