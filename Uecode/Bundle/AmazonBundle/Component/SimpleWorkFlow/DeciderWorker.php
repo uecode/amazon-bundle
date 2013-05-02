@@ -96,7 +96,16 @@ class DeciderWorker extends Worker
 	}
 
 	/**
-	 * Run the workflow!
+	 * Run the decider worker.
+	 *
+	 * This will make a request to amazon (a long poll) waiting for a decider task
+	 * to perform. If amazon doesn't respond within a minute, they'll send an empty
+	 * response and we'll start another loop. If they respond with a decision task
+	 * we'll further process that {@see self::decide()}.
+	 *
+	 * @access public
+	 * @final
+	 * @uses self::decide()
 	 */
 	final public function run()
 	{
@@ -195,7 +204,7 @@ class DeciderWorker extends Worker
 			// that it shouldn't really happen.
 			$this->log(
 				'alert',
-				'Uncaught exception when attempting to make decision: '.get_class($e).' - '.$e->getMessage(),
+				'Exception when attempting to make decision: '.get_class($e).' - '.$e->getMessage(),
 				array(
 					'trace' => $e->getTrace()
 				)
@@ -204,10 +213,17 @@ class DeciderWorker extends Worker
 	}
 
 	/**
-	 * Decider logic. Runs through each history event and returns a decision.
+	 * Decider logic.
 	 *
+	 * Creates a decision object that is passed to each event in history (via self::processEvent()).
+	 * Each event class has the opportunity to modify the Decision object by adding
+	 * decision events to it.
+	 *
+	 * @access private
+	 * @final
 	 * @param HistoryEventIterator $history
 	 * @return Decision
+	 * @uses processEvent
 	 */
 	final private function decide(HistoryEventIterator $history)
 	{
@@ -241,13 +257,20 @@ class DeciderWorker extends Worker
 	}
 
 	/**
-	 * Process the given history event
+	 * Process a given history event.
 	 *
+	 * This will look for a class having a name matching that of the passed $event.
+	 * If it finds one (and the class extends AbstractHistoryEvent), the class will
+	 * be passed our Decision object. That event class has the opportunity to change
+	 * the Decision object.
+	 *
+	 * @access private
+	 * @final
 	 * @param array $event
 	 * @param Decision $decision
 	 * @param int $maxEventId
 	 */
-	protected function processEvent($decision, $event, &$maxEventId)
+	final private function processEvent(Decision $decision, $event, &$maxEventId)
 	{
 		$maxEventId = max($maxEventId, intval($event->eventId));
 
@@ -317,6 +340,7 @@ class DeciderWorker extends Worker
 	/**
 	 * Given a decision object, create a decision array appropriate for amazon's SDK.
 	 *
+	 * @access public
 	 * @param Decision $decision
 	 * @return array
 	 */
@@ -376,7 +400,6 @@ class DeciderWorker extends Worker
 	/**
 	 * Registers activities in this workflow
 	 *
-	 * @final
 	 * @access protected
 	 * @todo TODO check for existing activities and don't make the call unless that activity/version/domain combo is not yet registered.
 	 */
@@ -449,7 +472,9 @@ class DeciderWorker extends Worker
 
 	/**
 	 * Get the namespace where activities are located
-	 * @return [type]
+	 *
+	 * @access public
+	 * @return string
 	 */
 	public function getActivityNamespace()
 	{
@@ -459,6 +484,7 @@ class DeciderWorker extends Worker
 	/**
 	 * Get our event record
 	 *
+	 * @access public
 	 * @return array self::$events
 	 */
 	public function getEvents()

@@ -75,12 +75,14 @@ class ActivityWorker extends Worker
 	 *
 	 * This will make a request to amazon (a long poll) waiting for an activity task
 	 * to perform. If amazon doesn't respond within a minute, they'll send an empty
-	 * response and we'll start another loop. If they respond with an activity task to 
+	 * response and we'll start another loop. If they respond with an activity task
 	 * we'll further process that {@see self::runActivity()}.
 	 *
 	 * @access public
+	 * @final
+	 * @uses self::runActivity()
 	 */
-	public function run()
+	final public function run()
 	{
 		$this->log(
 			'info',
@@ -207,16 +209,5 @@ class ActivityWorker extends Worker
 				)
 			);
 		}
-	}
-
-	/**
-	 * Get our db connection
-	 *
-	 * @access public
-	 * @param string $key The key of the DB connection
-	 * @return Doctrine\DBAL\Connection
-	 */
-	public function getDb($key) {
-		return $this->amazonClass->getDb($key);
 	}
 }
