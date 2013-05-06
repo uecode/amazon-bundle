@@ -186,12 +186,12 @@ class Worker extends AmazonComponent
 	/**
 	 * Set the amazon run id
 	 *
-	 * @param int $id
+	 * @param string $id
 	 * @access protected
 	 */
 	protected function setAmazonRunId($id)
 	{
-		$this->amazonRunId = (int)$id;
+		$this->amazonRunId = $id;
 	}
 
 	/**
@@ -208,12 +208,12 @@ class Worker extends AmazonComponent
 	/**
 	 * Set the amazon workflow id
 	 *
-	 * @param int $id
+	 * @param string $id
 	 * @access protected
 	 */
 	protected function setAmazonWorkflowId($id)
 	{
-		$this->amazonWorkflowId = (int)$id;
+		$this->amazonWorkflowId = $id;
 	}
 
 	/**
