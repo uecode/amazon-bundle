@@ -89,7 +89,8 @@ class ActivityWorker extends Worker
 			'Starting activity worker poll'
 		);
 
-		while (true) {
+		// run until we receive a signal to stop
+		while ($this->doRun()) {
 			// these values can only be set from amazon response
 			$this->setAmazonRunId(null);
 			$this->setAmazonWorkflowId(null);

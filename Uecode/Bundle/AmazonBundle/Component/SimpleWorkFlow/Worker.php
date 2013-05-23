@@ -81,6 +81,11 @@ class Worker extends AmazonComponent
 	protected $logger;
 
 	/**
+	 * @var bool Do we run another loop of work.
+	 */
+	private $doRun = true;
+
+	/**
 	 * Constructor
 	 *
 	 * @param AmazonSWF $swf An instance of the main amazon class
@@ -89,8 +94,20 @@ class Worker extends AmazonComponent
 	protected function __construct(AmazonSWF $swf)
 	{
 		$this->executionId = Util::generateUUID();
+		$this->registerSignalHandlers();
 		$this->setAmazonClass($swf);
 		$this->setLogger($swf->getLogger());
+	}
+
+	/**
+	 * Register our system signal handlers
+	 *
+	 * @access private
+	 */
+	private function registerSignalHandlers() {
+		pcntl_signal(SIGTERM, array($this, 'signalHandler'));
+		pcntl_signal(SIGHUP, array($this, 'signalHandler'));
+		pcntl_signal(SIGINT, array($this, 'signalHandler'));
 	}
 
 	/**
@@ -151,12 +168,49 @@ class Worker extends AmazonComponent
 		return array(
 			'worker' => true,
 			'worker_type' => ($workerType == 'd' || $workerType == 'a') ? $workerType : 'unknown',
+			'host' => gethostname(),
 			'processId' => $processId,
 			'executionId' => $executionId,
 			'runId' => $amazonRunId,
 			'workflowId' => $amazonWorkflowId,
 			'data' => $data
 		);
+	}
+
+	/**
+	 * Do we run another loop of work
+	 *
+	 * @access protected
+	 * @return bool
+	 */
+	protected function doRun() {
+		// if a system signal was caught this function
+		// call will call our signal handler.
+		pcntl_signal_dispatch();
+
+		return (bool)$this->doRun;
+	}
+
+	/**
+	 * System signal handler
+	 *
+	 * You normally won't call this dilrectly.
+	 *
+	 * @access public
+	 * @param int $signal One of the system related constants at {@see http://www.php.net/manual/en/pcntl.constants.php}
+	 */
+	public function signalHandler($signal) {
+		switch ($signal) {
+			case SIGTERM:
+			case SIGHUP:
+			case SIGINT:
+				$this->log(
+					'info',
+					'Worker received stop signal'
+				);
+				$this->doRun = false;
+				break;
+		}
 	}
 
 	/**
