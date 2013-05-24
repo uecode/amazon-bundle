@@ -201,6 +201,7 @@ class Worker extends AmazonComponent
 	 */
 	public function signalHandler($signal) {
 		switch ($signal) {
+			// stop related signals
 			case SIGTERM:
 			case SIGHUP:
 			case SIGINT:
