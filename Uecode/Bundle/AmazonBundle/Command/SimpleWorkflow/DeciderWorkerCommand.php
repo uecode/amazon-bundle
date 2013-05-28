@@ -108,7 +108,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 					foreach ($dv['workflows'] as $kk => $kv) {
 						if ($kk == $configKey) {
 							$domain = $dk;
-							$name = $kv['name'];
+							$name = $kk;
 							$version = $kv['version'];
 							$taskList = $kv['default_task_list'];
 							$eventNamespace = $kv['history_event_namespace'];
