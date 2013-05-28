@@ -434,17 +434,21 @@ class DeciderWorker extends Worker
 					'info',
 					'Found activity file '.$file.' but it does not have the expected class '.$class.' in it. Skipping.'
 				);
+
+				continue;
 			}
 
 			$obj = new $class;
 
 			if (!($obj instanceof AbstractActivity)) {
-				// don't error here. user may have legitimate file int his
+				// don't error here. user may have legitimate file in his
 				// dir that just isn't an activity class.
 				$this->log(
 					'info',
 					'Found activity file '.$file.' but it is not an instance of AbstractActivity. Skipping.'
 				);
+
+				continue;
 			}
 
 			$opts = array(
