@@ -41,16 +41,14 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 		$this
 			->setName('ue:aws:simpleworkflow:activityworker')
 			->setDescription('Start an activity worker which will poll amazon for an activity task.')
-			->addOption(
+			->addArgument(
 				'domain',
-				null,
-				InputOption::VALUE_REQUIRED,
+				InputArgument::REQUIRED,
 				'The SWF workflow domain config key.'
 			)
-			->addOption(
+			->addArgument(
 				'tasklist',
-				null,
-				InputOption::VALUE_REQUIRED,
+				InputArgument::REQUIRED,
 				'The SWF activity tasklist'
 			)
 			->addOption(
@@ -74,8 +72,8 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 
 			$amazonFactory = $container->get( 'uecode.amazon' )->getFactory( 'ue' );
 
-			$domain = $input->getOption('domain');
-			$taskList = $input->getOption('tasklist');
+			$domain = $input->getArgument('domain');
+			$taskList = $input->getArgument('tasklist');
 			$identity = $input->getOption('identity');
 
 			$logger->log(

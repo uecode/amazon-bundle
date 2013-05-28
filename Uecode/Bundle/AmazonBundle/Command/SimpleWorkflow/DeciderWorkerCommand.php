@@ -41,36 +41,28 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 	protected function configure() {
 		$this
 			->setName('ue:aws:simpleworkflow:deciderworker')
-			->setDescription('Start a decider worker which will poll amazon for a decision task. You can either pass [domain, name, taskList] for a custom call or you can pass a "config_key" which correlates to config values at uecode.amazon.simpleworkflow.domains.[name].workflows.[<config_key>]')
-			->addOption(
-				'config_key',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'The config key which correlates to config values at uecode.amazon.simpleworkflow.domains.[name].workflows.[<config_key>]'
-			)
-			->addOption(
+			->setDescription('Start a decider worker which will poll amazon for a decision task. The "domain" and "name" arguments are required and they both specify config params at uecode.amazon.simpleworkflow.domains.[<domain>].workflows.[<name>]. The rest of the config values can be overridden w/ their respective options to this command.')
+			->addArgument(
 				'domain',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'The SWF workflow domain'
+				InputArgument::REQUIRED,
+				'The SWF workflow domain.'
 			)
-			->addOption(
+			->addArgument(
 				'name',
-				null,
-				InputOption::VALUE_REQUIRED,
+				InputArgument::REQUIRED,
 				'The SWF workflow name.'
 			)
 			->addOption(
 				'workflow_version',
 				null,
 				InputOption::VALUE_REQUIRED,
-				'The SWF workflow name.'
+				'The SWF workflow version.'
 			)
 			->addOption(
 				'taskList',
 				null,
 				InputOption::VALUE_REQUIRED,
-				'The SWF workflow taskList'
+				'The SWF workflow defaultTaskList'
 			)
 			->addOption(
 				'event_namespace',
@@ -97,18 +89,17 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 				'About to start decider worker'
 			);
 
-			$amazonFactory = $container->get( 'uecode.amazon' )->getFactory( 'ue' );
+			$amazonFactory = $container->get('uecode.amazon')->getFactory('ue');
 
-			$configKey = $input->getOption('config_key');
+			$domain = $input->getArgument('domain');
+			$name = $input->getArgument('name');
 
-			if ($configKey) {
-				$cfg = $amazonFactory->getConfig()->get('simpleworkflow');
+			$cfg = $amazonFactory->getConfig()->get('simpleworkflow');
 
-				foreach ($cfg['domains'] as $dk => $dv) {
+			foreach ($cfg['domains'] as $dk => $dv) {
+				if ($dk == $domain) {
 					foreach ($dv['workflows'] as $kk => $kv) {
-						if ($kk == $configKey) {
-							$domain = $dk;
-							$name = $kk;
+						if ($kk == $name) {
 							$version = $kv['version'];
 							$taskList = $kv['default_task_list'];
 							$eventNamespace = $kv['history_event_namespace'];
@@ -116,14 +107,13 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 						}
 					}
 				}
-			} else {
-				$domain = $input->getOption('domain');
-				$name = $input->getOption('name');
-				$version = $input->getOption('workflow_version');
-				$taskList = $input->getOption('taskList');
-				$eventNamespace = $input->getOption('event_namespace');
-				$activityNamespace = $input->getOption('activity_event_namespace');
 			}
+
+			// allow config to be overridden by passed values.
+			$version = $input->getOption('workflow_version') ?: $version;
+			$taskList = $input->getOption('taskList') ?: $taskList;
+			$eventNamespace = $input->getOption('event_namespace') ?: $eventNamespace;
+			$activityNamespace = $input->getOption('activity_event_namespace') ?: $activityNamespace;
 
 			$logger->log(
 				'info',
