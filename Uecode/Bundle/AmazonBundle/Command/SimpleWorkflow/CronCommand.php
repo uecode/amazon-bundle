@@ -111,7 +111,7 @@ class CronCommand extends ContainerAwareCommand
 							$killed[] = $pid;
 						}
 
-						$output->writeln("Sent a SIGTERM signal to the following PIDs. They will finish their current job before existing:\n".implode(', ', $killed));
+						$output->writeln("Sent a SIGTERM signal to the following PIDs. They will finish their current job before exiting:\n".implode(', ', $killed));
 
 					// start processes
 					} elseif ($cnt < $value['count']) {
@@ -160,7 +160,7 @@ class CronCommand extends ContainerAwareCommand
 							$killed[] = $pid;
 						}
 
-						$output->writeln("Sent a SIGTERM signal to the following PIDs. They will finish their current job before existing:\n".implode(', ', $killed));
+						$output->writeln("Sent a SIGTERM signal to the following PIDs. They will finish their current job before exiting:\n".implode(', ', $killed));
 					// start processes
 					} elseif ($cnt < $value['count']) {
 						$output->writeln('Starting '.($value['count']-$cnt).' activity workers.');
