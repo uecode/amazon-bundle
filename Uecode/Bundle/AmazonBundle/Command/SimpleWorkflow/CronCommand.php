@@ -76,6 +76,11 @@ class CronCommand extends ContainerAwareCommand
 		foreach ($cfg['domains'] as $domain => $v) {
 			if (isset($cfg['domains'][$domain]['cron']['deciders'])) {
 				foreach ($cfg['domains'][$domain]['cron']['deciders'] as $name => $value) {
+					// must have count for any of this to be relevant
+					if (!isset($value['count']) || !is_numeric($value['count']) || $value['count'] < 0) {
+						continue;
+					}
+
 					$procStr = "console ue:aws:simpleworkflow:deciderworker $domain $name";
 
 					$pids = array();
@@ -99,7 +104,7 @@ class CronCommand extends ContainerAwareCommand
 					if ($cnt > $value['count']) {
 						$output->writeln('Killing '.($cnt-$value['count']).' decider workers');
 						$killed = array();
-						for ($i = 0, $cnt; $cnt > $value['count']; --$cnt, ++$i) {
+						for ($i = 0, $cnt; $cnt > $value['count'], $cnt > 0; --$cnt, ++$i) {
 							$pid = $pids[$i];
 							$process = new Process("kill $pid");
 							$process->setTimeout(5);
@@ -125,6 +130,11 @@ class CronCommand extends ContainerAwareCommand
 
 			if (isset($cfg['domains'][$domain]['cron']['activities'])) {
 				foreach ($cfg['domains'][$domain]['cron']['activities'] as $tasklist => $value) {
+					// must have count for any of this to be relevant
+					if (!isset($value['count']) || !is_numeric($value['count']) || $value['count'] < 0) {
+						continue;
+					}
+
 					$procStr = "console ue:aws:simpleworkflow:activityworker $domain $tasklist";
 
 					$pids = array();
@@ -148,7 +158,7 @@ class CronCommand extends ContainerAwareCommand
 						$output->writeln('Killing '.($cnt-$value['count']).' activity workers');
 
 						$killed = array();
-						for ($i = 0, $cnt; $cnt > $value['count']; --$cnt, ++$i) {
+						for ($i = 0, $cnt; $cnt > $value['count'], $cnt > 0; --$cnt, ++$i) {
 							$pid = $pids[$i];
 							$process = new Process("kill $pid");
 							$process->setTimeout(5);
