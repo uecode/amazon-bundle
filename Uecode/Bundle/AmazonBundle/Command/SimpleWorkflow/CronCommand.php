@@ -79,7 +79,7 @@ class CronCommand extends ContainerAwareCommand
 		$container = $kernel->getContainer();
 
 		$rootDir = $kernel->getRootDir();
-		//$logger = $container->get('logger');
+		$logger = $container->get('logger');
 
 		$cfg = $container->get('uecode.amazon')
 		  ->getFactory('ue')
