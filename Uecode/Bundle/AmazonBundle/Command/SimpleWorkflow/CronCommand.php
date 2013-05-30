@@ -38,6 +38,20 @@ use Symfony\Component\Process\Process;
 use \AmazonSWF;
 use \CFRuntime;
 
+/**
+ * Start and stop decider and activity workers based on counts that are
+ * specified in your config. You specify the counts for your deciders and
+ * activity task lists. The values are respectively
+ * "uecode.amazon.simpleworkflow.domains.[domain].cron.deciders.[name].count" and
+ * "uecode.amazon.simpleworkflow.domains.[domain].cron.activities.[task_list].count".
+ *
+ * It's suggested that you run this script from cron every 2 minutes.
+ *
+ * NOTE THAT THIS COMMAND IS TEMPORARY AND WE HAVE FUTURE PLANS FOR PROC MGMT.
+ * ADDITIONALLY, THERE EXISTS A RACE CONDITION IF YOU RUN THIS SCRIPT OFTEN,
+ * HOWEVER, IT IS RELATIVELY HARMLESS AND IRRELEVANT IF YOU LET CRON RUN THIS
+ * SCRIPT.
+ */
 class CronCommand extends ContainerAwareCommand
 {
 	protected function configure() {
@@ -61,8 +75,7 @@ class CronCommand extends ContainerAwareCommand
 			return;
 		}
 
-		$application = $this->getApplication();
-		$kernel = $application->getKernel();
+		$kernel = $this->getApplication()->getKernel();
 		$container = $kernel->getContainer();
 
 		$rootDir = $kernel->getRootDir();
@@ -122,6 +135,8 @@ class CronCommand extends ContainerAwareCommand
 					} elseif ($cnt < $value['count']) {
 						$output->writeln('Starting '.($value['count']-$cnt).' decider workers.');
 						for (; $cnt < $value['count']; ++$cnt) {
+							// use exec() becuase from what I can tell, Process class can't
+							// do a background job.
 							exec(escapeshellcmd("$rootDir/$procStr").' > /dev/null &');
 						}
 					}
@@ -175,6 +190,8 @@ class CronCommand extends ContainerAwareCommand
 					} elseif ($cnt < $value['count']) {
 						$output->writeln('Starting '.($value['count']-$cnt).' activity workers.');
 						for (; $cnt < $value['count']; ++$cnt) {
+							// use exec() becuase from what I can tell, Process class can't
+							// do a background job.
 							exec(escapeshellcmd("$rootDir/$procStr").' > /dev/null &');
 						}
 					}
