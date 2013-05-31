@@ -62,7 +62,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 				'taskList',
 				null,
 				InputOption::VALUE_REQUIRED,
-				'The SWF workflow defaultTaskList'
+				'The SWF workflow taskList'
 			)
 			->addOption(
 				'event_namespace',
@@ -101,7 +101,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 					foreach ($dv['workflows'] as $kk => $kv) {
 						if ($kk == $name) {
 							$version = $kv['version'];
-							$taskList = $kv['default_task_list'];
+							$taskList = $kv['task_list'];
 							$eventNamespace = $kv['history_event_namespace'];
 							$activityNamespace = $kv['history_activity_event_namespace'];
 						}
