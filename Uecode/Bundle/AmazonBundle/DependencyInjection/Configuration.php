@@ -89,17 +89,18 @@ class Configuration implements ConfigurationInterface
 		$treeBuilder = new TreeBuilder();
 		$rootNode    = $treeBuilder->root( 'simpleworkflow' );
 
-		$rootNode
+		$blah = $rootNode
 			->children()
 				->arrayNode( 'domains' )
+					->isRequired()
 					->requiresAtLeastOneElement()
 					->useAttributeAsKey( 'domain' )
 					->prototype( 'array' )
 						->children()
 							->arrayNode('workflows')
 								->requiresAtLeastOneElement()
-								->useAttributeAsKey( 'name' )
-								->prototype( 'array' )
+								->useAttributeAsKey('name')
+								->prototype('array')
 									->children()
 										->scalarNode( 'version' )
 											->isRequired()
@@ -117,6 +118,7 @@ class Configuration implements ConfigurationInterface
 								->end()
 							->end()
 							->arrayNode('activities')
+								->isRequired()
 								->children()
 									->scalarNode( 'namespace' )
 										->isRequired()
@@ -132,11 +134,10 @@ class Configuration implements ConfigurationInterface
 							->arrayNode('cron')
 								->children()
 									->arrayNode('deciders')
-										->requiresAtLeastOneElement()
 										->useAttributeAsKey('name')
-											->prototype( 'array' )
+										->prototype('array')
 											->children()
-												->integerNode('count')
+												->scalarNode('count')
 													->isRequired()
 												->end()
 											->end()
@@ -144,9 +145,9 @@ class Configuration implements ConfigurationInterface
 									->end()
 									->arrayNode('activities')
 										->useAttributeAsKey('name')
-											->prototype( 'array' )
+										->prototype('array')
 											->children()
-												->integerNode('count')
+												->scalarNode('count')
 													->isRequired()
 												->end()
 											->end()
@@ -157,8 +158,7 @@ class Configuration implements ConfigurationInterface
 						->end()
 					->end()
 				->end()
-			->end()
-		->end();
+			->end();
 
 		return $rootNode;
 	}
