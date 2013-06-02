@@ -84,6 +84,12 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 		$logger = $container->get('logger');
 
 		try {
+			// default values
+			$version = null;
+			$taskList = null;
+			$eventNamespace = null;
+			$activityNamespace = null;
+
 			$logger->log(
 				'info',
 				'About to start decider worker'
