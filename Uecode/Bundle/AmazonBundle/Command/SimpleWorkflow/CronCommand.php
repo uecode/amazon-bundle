@@ -147,7 +147,7 @@ class CronCommand extends ContainerAwareCommand
 					continue;
 				}
 
-				$procStr = "console ue:aws:simpleworkflow:activityworker $domain $taskListName";
+				$procStr = "console ue:aws:simpleworkflow:activityworker $domainName $taskListName";
 
 				$pids = array();
 				$process = new Process('ps -ef | grep "'.$procStr.'" | grep -v grep | awk \'{print $2}\'');
