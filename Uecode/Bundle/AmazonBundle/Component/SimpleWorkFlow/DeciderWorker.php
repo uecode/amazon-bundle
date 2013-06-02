@@ -409,68 +409,69 @@ class DeciderWorker extends Worker
 		$av = $this->amazonClass->getActivityArray();
 		$domain = $this->amazonClass->getConfig()->get('domain');
 
-		$this->log(
-			'debug',
-			'Registering activities in '.$av['directory'],
-			array(
-				'activities' => $av
-			)
-		);
-
-		foreach (glob($av['directory'].'/*.php') as $file)
-		{
-			$base = substr(basename($file), 0, -4);
-			$class = $av['namespace'].'\\'.$base;
-
+		foreach ($av as $taskList => $arr) {
 			$this->log(
 				'debug',
-				'Attempting to register activity \''.$base.'\''
+				'Registering activities in '.$arr['directory'],
+				array(
+					'activities' => $arr
+				)
 			);
 
-			if (!class_exists($class)) {
-				// don't error here. user may have legitimate file int his
-				// dir that just isn't an activity class.
+			foreach (glob($arr['directory'].'/*.php') as $file) {
+				$base = substr(basename($file), 0, -4);
+				$class = $arr['namespace'].'\\'.$base;
+
 				$this->log(
-					'info',
-					'Found activity file '.$file.' but it does not have the expected class '.$class.' in it. Skipping.'
+					'debug',
+					'Attempting to register activity \''.$base.'\''
 				);
 
-				continue;
-			}
+				if (!class_exists($class)) {
+					// don't error here. user may have legitimate file int his
+					// dir that just isn't an activity class.
+					$this->log(
+						'info',
+						'Found activity file '.$file.' but it does not have the expected class '.$class.' in it. Skipping.'
+					);
 
-			$obj = new $class;
+					continue;
+				}
 
-			if (!($obj instanceof AbstractActivity)) {
-				// don't error here. user may have legitimate file in his
-				// dir that just isn't an activity class.
-				$this->log(
-					'info',
-					'Found activity file '.$file.' but it is not an instance of AbstractActivity. Skipping.'
+				$obj = new $class;
+
+				if (!($obj instanceof AbstractActivity)) {
+					// don't error here. user may have legitimate file in his
+					// dir that just isn't an activity class.
+					$this->log(
+						'info',
+						'Found activity file '.$file.' but it is not an instance of AbstractActivity. Skipping.'
+					);
+
+					continue;
+				}
+
+				$opts = array(
+					'domain' => $domain,
+					'name' => $base,
+					'version' => $obj->getVersion(),
+					'defaultTaskList' => array('name' => $arr['default_task_list'])
 				);
 
-				continue;
-			}
+				// register type (ignoring "already exists" fault for now)
+				$response = $this->amazonClass->register_activity_type($opts);
+				if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
+					$this->log(
+						'alert',
+						'Could not register activity',
+						array(
+							'response' => $response,
+							'trace' => debug_backtrace()
+						)
+					);
 
-			$opts = array(
-				'domain' => $domain,
-				'name' => $base,
-				'version' => $obj->getVersion(),
-				'defaultTaskList' => array('name' => $av['default_task_list'])
-			);
-
-			// register type (ignoring "already exists" fault for now)
-			$response = $this->amazonClass->register_activity_type($opts);
-			if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
-				$this->log(
-					'alert',
-					'Could not register activity',
-					array(
-						'response' => $response,
-						'trace' => debug_backtrace()
-					)
-				);
-
-				exit;
+					exit;
+				}
 			}
 		}
 	}
