@@ -89,61 +89,73 @@ class CronCommand extends ContainerAwareCommand
 		foreach ($cfg['domains'] as $domainName => $domain) {
 			foreach ($domain['workflows'] as $workflowName => $workflow) {
 				// must have count for any of this to be relevant
-				if (!isset($workflow['run_count']) || !is_numeric($workflow['run_count']) || $workflow['run_count'] < 0) {
+				if (!isset($workflow['run_counts'])) {
 					continue;
 				}
 
-				$procStr = "console ue:aws:simpleworkflow:deciderworker $domainName {$workflow['task_list']}";
-
-				$pids = array();
-				$process = new Process('ps -ef | grep "'.$procStr.'" | grep -v grep | awk \'{print $2}\'');
-				$process->setTimeout(5);
-				$process->run();
-
-				if (!$process->isSuccessful()) {
-					throw new \Exception($process->getErrorOutput());
-				}
-
-				foreach (explode("\n", $process->getOutput()) as $line) {
-					if (is_numeric($line)) {
-						$pids[] = $line;
+				foreach ($workflow['run_counts'] as $taskListName => $arr) {
+					$targetCount = $arr['count'];
+					if (!is_numeric($targetCount)) {
+						continue;
 					}
-				}
 
-				$cnt = count($pids);
+					$procStr = "console ue:aws:simpleworkflow:deciderworker $domainName $taskListName";
 
-				// kill processes
-				if ($cnt > $workflow['run_count']) {
-					$output->writeln('Killing '.($cnt-$workflow['run_count']).' decider workers');
-					$killed = array();
-					for ($i = 0, $cnt; $cnt > $workflow['run_count'], $cnt > 0; --$cnt, ++$i) {
-						$pid = $pids[$i];
-						$process = new Process("kill $pid");
-						$process->setTimeout(5);
-						$process->run();
-						if (!$process->isSuccessful()) {
-							throw new \Exception($process->getErrorOutput());
+					$pids = array();
+					$process = new Process('ps -ef | grep "'.$procStr.'" | grep -v grep | awk \'{print $2}\'');
+					$process->setTimeout(5);
+					$process->run();
+
+					if (!$process->isSuccessful()) {
+						throw new \Exception($process->getErrorOutput());
+					}
+
+					foreach (explode("\n", $process->getOutput()) as $line) {
+						if (is_numeric($line)) {
+							$pids[] = $line;
+						}
+					}
+
+					$currentCount = count($pids);
+
+					// kill processes
+					if ($currentCount > $targetCount) {
+						$output->writeln('Killing '.($currentCount-$targetCount).' decider workers');
+						$killed = array();
+						for ($i = 0, $currentCount; $currentCount > $targetCount, $currentCount > 0; --$currentCount, ++$i) {
+							$pid = $pids[$i];
+							$process = new Process("kill $pid");
+							$process->setTimeout(5);
+							$process->run();
+							if (!$process->isSuccessful()) {
+								throw new \Exception($process->getErrorOutput());
+							}
+
+							$killed[] = $pid;
 						}
 
-						$killed[] = $pid;
-					}
-
-					$output->writeln("Sent a SIGTERM signal to the following PIDs. They will finish their current job before exiting:\n".implode(', ', $killed));
-
-				// start processes
-				} elseif ($cnt < $workflow['run_count']) {
-					$output->writeln('Starting '.($workflow['run_count']-$cnt).' decider workers.');
-					for (; $cnt < $workflow['run_count']; ++$cnt) {
-						// use exec() becuase from what I can tell, Process class can't
-						// do a background job.
-						exec(escapeshellcmd("$rootDir/$procStr").' > /dev/null &');
+						$output->writeln("Sent a SIGTERM signal to the following PIDs. They will each finish their current job before exiting:\n".implode(', ', $killed));
+					// start processes
+					} elseif ($currentCount < $targetCount) {
+						$output->writeln('Starting '.($targetCount-$currentCount).' decider workers.');
+						for (; $currentCount < $targetCount; ++$currentCount) {
+							// use exec() becuase from what I can tell, Process class can't
+							// do a background job.
+							echo "$rootDir/$procStr > /dev/null &\n";
+							//exec(escapeshellcmd("$rootDir/$procStr").' > /dev/null &');
+						}
 					}
 				}
 			}
 
-			foreach ($domain['activities'] as $taskListName => $taskList) {
-				// must have count for any of this to be relevant
-				if (!isset($taskList['run_count']) || !is_numeric($taskList['run_count']) || $taskList['run_count'] < 0) {
+			// need counts for any of this to be relevant
+			if (!isset($domain['activities']['run_counts'])) {
+				continue;
+			}
+
+			foreach ($domain['activities']['run_counts'] as $taskListName => $arr) {
+				$targetCount = $arr['count'];
+				if (!is_numeric($targetCount)) {
 					continue;
 				}
 
@@ -163,14 +175,14 @@ class CronCommand extends ContainerAwareCommand
 					}
 				}
 
-				$cnt = count($pids);
+				$currentCount = count($pids);
 
 				// kill processes
-				if ($cnt > $taskList['run_count']) {
-					$output->writeln('Killing '.($cnt-$taskList['run_count']).' activity workers');
+				if ($currentCount > $targetCount) {
+					$output->writeln('Killing '.($currentCount-$targetCount).' activity workers');
 
 					$killed = array();
-					for ($i = 0, $cnt; $cnt > $taskList['run_count'], $cnt > 0; --$cnt, ++$i) {
+					for ($i = 0, $currentCount; $currentCount > $targetCount, $currentCount > 0; --$currentCount, ++$i) {
 						$pid = $pids[$i];
 						$process = new Process("kill $pid");
 						$process->setTimeout(5);
@@ -182,14 +194,15 @@ class CronCommand extends ContainerAwareCommand
 						$killed[] = $pid;
 					}
 
-					$output->writeln("Sent a SIGTERM signal to the following PIDs. They will finish their current job before exiting:\n".implode(', ', $killed));
+					$output->writeln("Sent a SIGTERM signal to the following PIDs. They will each finish their current job before exiting:\n".implode(', ', $killed));
 				// start processes
-				} elseif ($cnt < $taskList['run_count']) {
-					$output->writeln('Starting '.($taskList['run_count']-$cnt).' activity workers.');
-					for (; $cnt < $taskList['run_count']; ++$cnt) {
+				} elseif ($currentCount < $targetCount) {
+					$output->writeln('Starting '.($targetCount-$currentCount).' activity workers.');
+					for (; $currentCount < $targetCount; ++$currentCount) {
 						// use exec() becuase from what I can tell, Process class can't
 						// do a background job.
-						exec(escapeshellcmd("$rootDir/$procStr").' > /dev/null &');
+						echo "$rootDir/$procStr > /dev/null &\n";
+						//exec(escapeshellcmd("$rootDir/$procStr").' > /dev/null &');
 					}
 				}
 			}
