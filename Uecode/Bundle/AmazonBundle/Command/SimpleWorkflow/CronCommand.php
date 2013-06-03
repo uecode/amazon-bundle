@@ -128,7 +128,7 @@ class CronCommand extends ContainerAwareCommand
 					if ($currentCount > $targetCount) {
 						$output->writeln('  Killing '.($currentCount-$targetCount).' decider workers');
 						$killed = array();
-						for ($i = 0, $currentCount; $currentCount > $targetCount, $currentCount > 0; --$currentCount, ++$i) {
+						for ($i = 0, $currentCount; $currentCount > $targetCount; --$currentCount, ++$i) {
 							$pid = $pids[$i];
 							$process = new Process("kill $pid");
 							$process->setTimeout(5);
@@ -193,7 +193,7 @@ class CronCommand extends ContainerAwareCommand
 					$output->writeln('  Killing '.($currentCount-$targetCount).' activity workers');
 
 					$killed = array();
-					for ($i = 0, $currentCount; $currentCount > $targetCount, $currentCount > 0; --$currentCount, ++$i) {
+					for ($i = 0, $currentCount; $currentCount > $targetCount; --$currentCount, ++$i) {
 						$pid = $pids[$i];
 						$process = new Process("kill $pid");
 						$process->setTimeout(5);
