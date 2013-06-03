@@ -52,17 +52,17 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 				InputArgument::REQUIRED,
 				'The SWF workflow name.'
 			)
+			->addArgument(
+				'task_list',
+				null,
+				InputArgument::REQUIRED,
+				'The SWF taskList to poll on.'
+			)
 			->addOption(
 				'workflow_version',
 				null,
 				InputOption::VALUE_REQUIRED,
 				'The SWF workflow version.'
-			)
-			->addOption(
-				'taskList',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'The SWF workflow taskList'
 			)
 			->addOption(
 				'event_namespace',
@@ -99,6 +99,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 
 			$domain = $input->getArgument('domain');
 			$name = $input->getArgument('name');
+			$taskList = $input->getArgument('task_list');
 
 			$cfg = $amazonFactory->getConfig()->get('simpleworkflow');
 
@@ -107,7 +108,6 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 					foreach ($dv['workflows'] as $kk => $kv) {
 						if ($kk == $name) {
 							$version = $kv['version'];
-							$taskList = $kv['task_list'];
 							$eventNamespace = $kv['history_event_namespace'];
 							$activityNamespace = $kv['history_activity_event_namespace'];
 						}
@@ -117,9 +117,17 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 
 			// allow config to be overridden by passed values.
 			$version = $input->getOption('workflow_version') ?: $version;
-			$taskList = $input->getOption('taskList') ?: $taskList;
 			$eventNamespace = $input->getOption('event_namespace') ?: $eventNamespace;
 			$activityNamespace = $input->getOption('activity_event_namespace') ?: $activityNamespace;
+
+			if (empty($domain)
+			 || empty($name)
+			 || empty($version)
+			 || empty($taskList)
+			 || empty($eventNamespace)
+			 || empty($activityNamespace)) {
+				throw new \Exception('Decider/workflow is misconfigured.');
+			}
 
 			$logger->log(
 				'info',
