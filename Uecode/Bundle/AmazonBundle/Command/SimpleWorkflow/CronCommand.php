@@ -99,7 +99,7 @@ class CronCommand extends ContainerAwareCommand
 						continue;
 					}
 
-					$procStr = "console ue:aws:simpleworkflow:deciderworker $domainName $taskListName";
+					$procStr = "console ue:aws:simpleworkflow:deciderworker $domainName $workflowName $taskListName";
 
 					$pids = array();
 					$process = new Process('ps -ef | grep "'.$procStr.'" | grep -v grep | awk \'{print $2}\'');
@@ -141,8 +141,7 @@ class CronCommand extends ContainerAwareCommand
 						for (; $currentCount < $targetCount; ++$currentCount) {
 							// use exec() becuase from what I can tell, Process class can't
 							// do a background job.
-							echo "$rootDir/$procStr > /dev/null &\n";
-							//exec(escapeshellcmd("$rootDir/$procStr").' > /dev/null &');
+							exec(escapeshellcmd("$rootDir/$procStr").' > /dev/null &');
 						}
 					}
 				}
@@ -201,8 +200,7 @@ class CronCommand extends ContainerAwareCommand
 					for (; $currentCount < $targetCount; ++$currentCount) {
 						// use exec() becuase from what I can tell, Process class can't
 						// do a background job.
-						echo "$rootDir/$procStr > /dev/null &\n";
-						//exec(escapeshellcmd("$rootDir/$procStr").' > /dev/null &');
+						exec(escapeshellcmd("$rootDir/$procStr").' > /dev/null &');
 					}
 				}
 			}
