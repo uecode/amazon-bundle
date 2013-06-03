@@ -90,14 +90,18 @@ class CronCommand extends ContainerAwareCommand
 			foreach ($domain['workflows'] as $workflowName => $workflow) {
 				// must have count for any of this to be relevant
 				if (!isset($workflow['run_counts'])) {
+					$output->writeln('  skipped...');
 					continue;
 				}
 
 				foreach ($workflow['run_counts'] as $taskListName => $arr) {
 					$targetCount = $arr['count'];
 					if (!is_numeric($targetCount)) {
+						$output->writeln('  skipped...');
 						continue;
 					}
+
+					$output->writeln('Handling decider worker counts for '.$domainName.'.'.$workflowName.'.'.$taskListName);
 
 					$procStr = "console ue:aws:simpleworkflow:deciderworker $domainName $workflowName $taskListName";
 
@@ -118,9 +122,11 @@ class CronCommand extends ContainerAwareCommand
 
 					$currentCount = count($pids);
 
+					$output->writeln('  Current process count: '.$currentCount.', target count: '.$targetCount);
+
 					// kill processes
 					if ($currentCount > $targetCount) {
-						$output->writeln('Killing '.($currentCount-$targetCount).' decider workers');
+						$output->writeln('  Killing '.($currentCount-$targetCount).' decider workers');
 						$killed = array();
 						for ($i = 0, $currentCount; $currentCount > $targetCount, $currentCount > 0; --$currentCount, ++$i) {
 							$pid = $pids[$i];
@@ -134,10 +140,11 @@ class CronCommand extends ContainerAwareCommand
 							$killed[] = $pid;
 						}
 
-						$output->writeln("Sent a SIGTERM signal to the following PIDs. They will each finish their current job before exiting:\n".implode(', ', $killed));
+						$output->writeln("  Sent a SIGTERM signal to the following PIDs. They will each finish their current job before exiting:\n  ".implode(', ', $killed));
 					// start processes
 					} elseif ($currentCount < $targetCount) {
-						$output->writeln('Starting '.($targetCount-$currentCount).' decider workers.');
+						$output->writeln('  Starting '.($targetCount-$currentCount).' decider workers.');
+
 						for (; $currentCount < $targetCount; ++$currentCount) {
 							// use exec() becuase from what I can tell, Process class can't
 							// do a background job.
@@ -152,9 +159,12 @@ class CronCommand extends ContainerAwareCommand
 				continue;
 			}
 
+			$output->writeln('Handling activity worker counts for '.$domainName.'.'.$taskListName);
+
 			foreach ($domain['activities']['run_counts'] as $taskListName => $arr) {
 				$targetCount = $arr['count'];
 				if (!is_numeric($targetCount)) {
+					$output->writeln('  skipped...');
 					continue;
 				}
 
@@ -176,9 +186,11 @@ class CronCommand extends ContainerAwareCommand
 
 				$currentCount = count($pids);
 
+				$output->writeln('  Current process count: '.$currentCount.', target count: '.$targetCount);
+
 				// kill processes
 				if ($currentCount > $targetCount) {
-					$output->writeln('Killing '.($currentCount-$targetCount).' activity workers');
+					$output->writeln('  Killing '.($currentCount-$targetCount).' activity workers');
 
 					$killed = array();
 					for ($i = 0, $currentCount; $currentCount > $targetCount, $currentCount > 0; --$currentCount, ++$i) {
@@ -193,10 +205,10 @@ class CronCommand extends ContainerAwareCommand
 						$killed[] = $pid;
 					}
 
-					$output->writeln("Sent a SIGTERM signal to the following PIDs. They will each finish their current job before exiting:\n".implode(', ', $killed));
+					$output->writeln("  Sent a SIGTERM signal to the following PIDs. They will each finish their current job before exiting:\n  ".implode(', ', $killed));
 				// start processes
 				} elseif ($currentCount < $targetCount) {
-					$output->writeln('Starting '.($targetCount-$currentCount).' activity workers.');
+					$output->writeln('  Starting '.($targetCount-$currentCount).' activity workers.');
 					for (; $currentCount < $targetCount; ++$currentCount) {
 						// use exec() becuase from what I can tell, Process class can't
 						// do a background job.
