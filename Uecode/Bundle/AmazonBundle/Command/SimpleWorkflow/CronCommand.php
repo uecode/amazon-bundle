@@ -103,7 +103,7 @@ class CronCommand extends ContainerAwareCommand
 
 					$output->writeln('Handling decider worker counts for '.$domainName.'.'.$workflowName.'.'.$taskListName);
 
-					$procStr = "console ue:aws:simpleworkflow:deciderworker $domainName $workflowName $taskListName";
+					$procStr = "console ue:aws:simpleworkflow:deciderworker $domainName $workflowName $taskListName -e ".$kernel->getEnvironment();
 
 					$pids = array();
 					$process = new Process('ps -ef | grep "'.$procStr.'" | grep -v grep | awk \'{print $2}\'');
@@ -168,7 +168,7 @@ class CronCommand extends ContainerAwareCommand
 					continue;
 				}
 
-				$procStr = "console ue:aws:simpleworkflow:activityworker $domainName $taskListName";
+				$procStr = "console ue:aws:simpleworkflow:activityworker $domainName $taskListName -e ".$kernel->getEnvironment();
 
 				$pids = array();
 				$process = new Process('ps -ef | grep "'.$procStr.'" | grep -v grep | awk \'{print $2}\'');
