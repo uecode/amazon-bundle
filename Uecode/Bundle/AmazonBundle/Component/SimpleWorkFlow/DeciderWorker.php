@@ -73,12 +73,20 @@ class DeciderWorker extends Worker
 	private $defaultTaskList;
 
 	/**
-	 * @var int Default task start to close timeout used for registration.
+	 * @var int Default task execution to close timeout used for registration.
 	 *
 	 * @access private
 	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskStartToCloseTimeout
 	 */
 	private $defaultTaskStartToCloseTimeout;
+
+	/**
+	 * @var int Default task start to close timeout used for registration.
+	 *
+	 * @access private
+	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultExecutionStartToCloseTimeout
+	 */
+	private $defaultExecutionStartToCloseTimeout;
 
 	/**
 	 * @var string Task list to poll on
@@ -121,10 +129,11 @@ class DeciderWorker extends Worker
 	 * @param string $taskList Task list to poll on
 	 * @param string $defaultTaskList Workflow default tasklist for registration
 	 * @param string $defaultTaskStartToCloseTimeout Default task start to close timeout used for registration
+	 * @param string $defaultExecutionStartToCloseTimeout Default execution start to close timeout used for registration
 	 * @param string $eventNamespace
 	 * @param string $activityNamespace
 	 */
-	final public function __construct(AmazonSWF $swf, $domain, $name, $version = 1.0, $taskList, $defaultTaskList = null, $defaultTaskStartToCloseTimeout = null, $eventNamespace, $activityNamespace) {
+	final public function __construct(AmazonSWF $swf, $domain, $name, $version = 1.0, $taskList, $defaultTaskList = null, $defaultTaskStartToCloseTimeout = null, $defaultExecutionStartToCloseTimeout = null,$eventNamespace, $activityNamespace) {
 		parent::__construct($swf);
 
 		$this->domain = $domain;
@@ -133,6 +142,7 @@ class DeciderWorker extends Worker
 		$this->taskList = $taskList;
 		$this->defaultTaskList = $defaultTaskList;
 		$this->defaultTaskStartToCloseTimeout = $defaultTaskStartToCloseTimeout;
+		$this->defaultExecutionStartToCloseTimeout = $defaultExecutionStartToCloseTimeout;
 		$this->eventNamespace = $eventNamespace;
 		$this->activityNamespace = $activityNamespace;
 
@@ -433,14 +443,26 @@ class DeciderWorker extends Worker
 		}
 
 		if ($this->defaultTaskStartToCloseTimeout) {
-			$registerRequest['defaultTaskStartToCloseTimeout'] = $this->defaultTaskStartToCloseTimeout;
+			$registerRequest['defaultTaskStartToCloseTimeout'] = (string)$this->defaultTaskStartToCloseTimeout;
 		}
+
+		if ($this->defaultExecutionStartToCloseTimeout) {
+			$registerRequest['defaultExecutionStartToCloseTimeout'] = (string)$this->defaultExecutionStartToCloseTimeout;
+		}
+
+		$this->log(
+			'info',
+			'Registering workflow',
+			array(
+				'request' => $registerRequest
+			)
+		);
 
 		$response = $this->amazonClass->register_workflow_type($registerRequest);
 		if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
 			$this->log(
 				'alert',
-				'Could not register decider worker',
+				'Could not register workflow',
 				array(
 					'response' => json_decode(json_encode($response), true),
 				)
