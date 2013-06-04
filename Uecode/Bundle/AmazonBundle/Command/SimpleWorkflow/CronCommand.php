@@ -149,6 +149,7 @@ class CronCommand extends ContainerAwareCommand
 							// use exec() becuase from what I can tell, Process class can't
 							// do a background job.
 							exec(escapeshellcmd("$rootDir/$procStr").' > /dev/null &');
+							usleep(1000);
 						}
 					}
 				}
@@ -213,6 +214,7 @@ class CronCommand extends ContainerAwareCommand
 						// use exec() becuase from what I can tell, Process class can't
 						// do a background job.
 						exec(escapeshellcmd("$rootDir/$procStr").' > /dev/null &');
+						usleep(1000);
 					}
 				}
 			}
