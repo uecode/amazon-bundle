@@ -95,35 +95,19 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	/**
 	 * Load a decider
 	 *
-	 * @param string $name
-	 * @param float  $version
-	 * @param string $taskList
+	 * @param string $domain Domain name to register workflow in
+	 * @param string $name Workflow name used for registration
+	 * @param float  $version Workflow version used for registration
+	 * @param string $taskList Task list to poll on
+	 * @param string $defaultTaskList Workflow default tasklist for registration
+	 * @param string $defaultTaskStartToCloseTimeout Default task start to close timeout used for registration
 	 * @param string $eventNamespace
 	 * @param string $activityNamespace
-	 * @param string $deciderClass
-	 *
-	 * @throws InvalidClassException
 	 * @return DeciderWorker
 	 */
-	public function loadDecider( $name, $version = 1.0, $taskList, $eventNamespace, $activityNamespace, $deciderClass = null )
+	public function loadDecider($domain, $name, $version = 1.0, $taskList, $defaultTaskList = null, $defaultTaskStartToCloseTimeout = null, $eventNamespace, $activityNamespace)
 	{
-		$workflowOptions = array(
-			'name' => $name,
-			'version' => (string)$version,
-			'taskList' => array('name' => $taskList),
-			'domain' => $this->config->get( 'domain' )
-		);
-
-		if( null === $deciderClass ) {
-			return new DeciderWorker( $this ,$workflowOptions, $eventNamespace, $activityNamespace );
-		} else {
-			$worker = new $deciderClass( $this, $workflowOptions, $eventNamespace, $activityNamespace );
-			if( !( $worker instanceof DeciderWorker ) ) {
-				throw new InvalidClassException( $deciderClass );
-			}
-
-			return $worker;
-		}
+		return new DeciderWorker($this, $domain, $name, $version = 1.0, $taskList, $defaultTaskList = null, $defaultTaskStartToCloseTimeout = null, $eventNamespace, $activityNamespace);
 	}
 
 	public function loadActivity($taskList, $identity = null)
@@ -157,24 +141,19 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 		return $ar['namespace'];
 	}
 
-	public function debug($str)
-	{
-		echo $str;
-	}
-
 	/**
 	 * Initializes the current object
 	 *
 	 * @param Config $config
 	 * @return void
 	 */
-	public function initialize( Config $config )
+	public function initialize(Config $config)
 	{
-		if ( $this->getInitialized() ) {
+		if ($this->getInitialized()) {
 			return;
 		}
 
-		$this->initializeConfigs( $config );
+		$this->initializeConfigs($config);
 		$this->setInitialized();
 
 		return;
@@ -186,9 +165,9 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @param Config $config
 	 * @return void
 	 */
-	function initializeConfigs( Config $config )
+	function initializeConfigs(Config $config)
 	{
-		$this->setConfig( $config );
+		$this->setConfig($config);
 		$this->validateConfigs();
 	}
 
@@ -201,8 +180,8 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 */
 	public function validateConfigs()
 	{
-		if ( !$this->config->has( 'domain' ) ) {
-			throw new  InvalidConfigurationException( "Domain must be specified in this config." );
+		if (!$this->config->has('domain')) {
+			throw new  InvalidConfigurationException("Domain must be specified in this config.");
 		}
 	}
 
@@ -212,7 +191,7 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @param bool $bool
 	 * @return void
 	 */
-	public function setInitialized( $bool = true )
+	public function setInitialized($bool = true)
 	{
 		$this->initialized = $bool;
 	}
@@ -231,7 +210,7 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @param Config $config
 	 * @return void
 	 */
-	public function setConfig( Config $config )
+	public function setConfig(Config $config)
 	{
 		$this->config = $config;
 	}

@@ -59,6 +59,18 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 				'The SWF taskList to poll on.'
 			)
 			->addOption(
+				'default_task_list',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'The SWF workflow default task list that decisions tasks in this workflow will be registered with. Used for workflow registstration..'
+			)
+			->addOption(
+				'default_task_start_to_close_timeout',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'The SWF workflow defaultTaskStartToCloseTimeout.'
+			)
+			->addOption(
 				'workflow_version',
 				null,
 				InputOption::VALUE_REQUIRED,
@@ -89,6 +101,8 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 			$taskList = null;
 			$eventNamespace = null;
 			$activityNamespace = null;
+			$defaultTaskList = null;
+			$defaultTaskStartToCloseTimeout = null;
 
 			$logger->log(
 				'info',
@@ -110,6 +124,8 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 							$version = $kv['version'];
 							$eventNamespace = $kv['history_event_namespace'];
 							$activityNamespace = $kv['history_activity_event_namespace'];
+							$defaultTaskList = $kv['default_task_list'];
+							$defaultTaskStartToCloseTimeout = isset($kv['default_task_start_to_close_timeout']) ? $kv['default_task_start_to_close_timeout'] : null;
 						}
 					}
 				}
@@ -117,6 +133,8 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 
 			// allow config to be overridden by passed values.
 			$version = $input->getOption('workflow_version') ?: $version;
+			$defaultTaskList = $input->getOption('default_task_list') ?: $defaultTaskList;
+			$defaultTaskStartToCloseTimeout = $input->getOption('default_task_start_to_close_timeout') ?: $defaultTaskStartToCloseTimeout;
 			$eventNamespace = $input->getOption('event_namespace') ?: $eventNamespace;
 			$activityNamespace = $input->getOption('activity_event_namespace') ?: $activityNamespace;
 
@@ -143,7 +161,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 			);
 
 			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain), $container);
-			$decider = $swf->loadDecider($name, $version, $taskList, $eventNamespace, $activityNamespace);
+			$decider = $swf->loadDecider($domain, $name, $version, $taskList, $defaultTaskList, $defaultTaskStartToCloseTimeout, $eventNamespace, $activityNamespace);
 
 			// note that run() will sit in a loop while(true).
 			$decider->run();

@@ -184,8 +184,7 @@ class Worker extends AmazonComponent
 	 * @return bool
 	 */
 	protected function doRun() {
-		// if a system signal was caught this function
-		// call will call our signal handler.
+		// call our signal handler
 		pcntl_signal_dispatch();
 
 		return (bool)$this->doRun;

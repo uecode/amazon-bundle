@@ -49,17 +49,54 @@ class DeciderWorker extends Worker
 	private $workflow;
 
 	/**
-	 * @var array
+	 * @var string Workflow name used for registration
+	 *
+	 * @access private
+	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-name
 	 */
-	private $workflowOptions = array();
+	private $name;
+
+	/**
+	 * @var string Workflow version used for registration
+	 *
+	 * @access private
+	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-version
+	 */
+	private $version;
+
+	/**
+	 * @var string Workflow default tasklist for registration
+	 *
+	 * @access private
+	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskList
+	 */
+	private $defaultTaskList;
+
+	/**
+	 * @var int Default task start to close timeout used for registration.
+	 *
+	 * @access private
+	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskStartToCloseTimeout
+	 */
+	private $defaultTaskStartToCloseTimeout;
+
+	/**
+	 * @var string Task list to poll on
+	 *
+	 * @access private
+	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html#SWF-PollForDecisionTask-request-taskList
+	 */
+	private $taskList;
 
 	/** 
-	 * @var string event namespace
+	 * @var string Namespace where your workflow's history events are located.
+	 *
+	 * @access private
 	 */
 	private $eventNamespace;
 
 	/**
-	 * @var string activity namespace
+	 * @var string Namespace where your workflow's history activity events are located.
 	 */
 	private $activityNamespace;
 
@@ -74,20 +111,28 @@ class DeciderWorker extends Worker
 	/**
 	 * Builds the Workflow
 	 *
+	 * @final
+	 * @access public
 	 * @param \AmazonSWF $swf
 	 * @param array $workflowType
+	 * @param string $domain Domain name to register workflow in
+	 * @param string $name Workflow name used for registration
+	 * @param float  $version Workflow version used for registration
+	 * @param string $taskList Task list to poll on
+	 * @param string $defaultTaskList Workflow default tasklist for registration
+	 * @param string $defaultTaskStartToCloseTimeout Default task start to close timeout used for registration
 	 * @param string $eventNamespace
-	 * @param string $activityNamepsace
-	 *
-	 * @todo TODO change this to accept the workflowType array as individual values
-	 * that the class will hold as class properties (cleaner).
-	 * 
+	 * @param string $activityNamespace
 	 */
-	final public function __construct(AmazonSWF $swf, array $workflowType, $eventNamespace, $activityNamespace)
-	{
+	final public function __construct(AmazonSWF $swf, $domain, $name, $version = 1.0, $taskList, $defaultTaskList = null, $defaultTaskStartToCloseTimeout = null, $eventNamespace, $activityNamespace) {
 		parent::__construct($swf);
 
-		$this->workflowOptions = $workflowType;
+		$this->domain = $domain;
+		$this->name = $name;
+		$this->version = $version;
+		$this->taskList = $taskList;
+		$this->defaultTaskList = $defaultTaskList;
+		$this->defaultTaskStartToCloseTimeout = $defaultTaskStartToCloseTimeout;
 		$this->eventNamespace = $eventNamespace;
 		$this->activityNamespace = $activityNamespace;
 
@@ -122,7 +167,14 @@ class DeciderWorker extends Worker
 				$this->setAmazonWorkflowId(null);
 
 				// poll amazon for decision task and handle if successful
-				$response = $this->amazonClass->poll_for_decision_task($this->workflowOptions);
+				// http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html
+				$pollRequest = array(
+					'domain' => $this->name,
+					'taskList' => array('name' => $this->taskList)
+				);
+
+				$response = $this->amazonClass->poll_for_decision_task($pollRequest);
+
 				if ($response->isOK()) {
 					// unique id for this task which is used when we make our RespondDecisionTaskCompleted call.
 					$taskToken = (string)$response->body->taskToken;
@@ -142,7 +194,7 @@ class DeciderWorker extends Worker
 
 						try {
 							$decision = $this->decide(
-								new HistoryEventIterator($this->getAmazonClass(), $this->workflowOptions, $response)
+								new HistoryEventIterator($this->getAmazonClass(), $pollRequest, $response)
 							);
 						} catch (\Exception $e) {
 							$this->log(
@@ -369,33 +421,35 @@ class DeciderWorker extends Worker
 	 */
 	final public function registerWorkflow()
 	{
-		if ( !array_key_exists( 'name', $this->workflowOptions ) ) {
-			throw new InvalidConfigurationException( "Name must be included in the second argument." );
+		// TODO allow for all options at http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html
+		$registerRequest = array(
+			'domain' => $this->domain,
+			'name' => $this->name,
+			'version' => (string)$this->version
+		);
+
+		if ($this->defaultTaskList) {
+			$registerRequest['defaultTaskList'] = $this->defaultTaskList;
 		}
 
-		if ( !array_key_exists( 'version', $this->workflowOptions ) ) {
-			throw new InvalidConfigurationException( "Version must be included in the second argument." );
+		if ($this->defaultTaskStartToCloseTimeout) {
+			$registerRequest['defaultTaskStartToCloseTimeout'] = $this->defaultTaskStartToCloseTimeout;
 		}
 
-		if ( !array_key_exists( 'domain', $this->workflowOptions ) ) {
-			throw new InvalidConfigurationException( "Domain must be included in the third argument." );
-		}
-
-		$response = $this->amazonClass->register_workflow_type( $this->workflowOptions );
+		$response = $this->amazonClass->register_workflow_type($registerRequest);
 		if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
 			$this->log(
 				'alert',
 				'Could not register decider worker',
 				array(
-					'response' => $response,
-					'trace' => debug_backtrace()
+					'response' => json_decode(json_encode($response), true),
 				)
 			);
 
 			exit;
 		}
 
-		return $this->amazonClass->describe_workflow_type( $this->workflowOptions );
+		return $this->amazonClass->describe_workflow_type($registerRequest);
 	}
 
 	/**
