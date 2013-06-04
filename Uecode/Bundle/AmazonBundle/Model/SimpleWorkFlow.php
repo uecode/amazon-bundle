@@ -108,7 +108,7 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 */
 	public function loadDecider($domain, $name, $version = 1.0, $taskList, $defaultTaskList = null, $defaultTaskStartToCloseTimeout = null, $defaultExecutionStartToCloseTimeout = null, $eventNamespace, $activityNamespace)
 	{
-		return new DeciderWorker($this, $domain, $name, $version, $taskList, $defaultTaskList = null, $defaultTaskStartToCloseTimeout, $defaultExecutionStartToCloseTimeout, $eventNamespace, $activityNamespace);
+		return new DeciderWorker($this, $domain, $name, $version, $taskList, $defaultTaskList, $defaultTaskStartToCloseTimeout, $defaultExecutionStartToCloseTimeout, $eventNamespace, $activityNamespace);
 	}
 
 	public function loadActivity($taskList, $identity = null)

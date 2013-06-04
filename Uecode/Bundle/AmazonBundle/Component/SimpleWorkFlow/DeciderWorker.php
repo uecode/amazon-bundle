@@ -439,7 +439,7 @@ class DeciderWorker extends Worker
 		);
 
 		if ($this->defaultTaskList) {
-			$registerRequest['defaultTaskList'] = $this->defaultTaskList;
+			$registerRequest['defaultTaskList'] = array('name' => $this->defaultTaskList);
 		}
 
 		if ($this->defaultTaskStartToCloseTimeout) {

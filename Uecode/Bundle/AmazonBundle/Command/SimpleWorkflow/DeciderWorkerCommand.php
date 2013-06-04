@@ -133,6 +133,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 							$activityNamespace = $kv['history_activity_event_namespace'];
 							$defaultTaskList = $kv['default_task_list'];
 							$defaultTaskStartToCloseTimeout = isset($kv['default_task_start_to_close_timeout']) ? $kv['default_task_start_to_close_timeout'] : null;
+							$defaultExecutionStartToCloseTimeout = isset($kv['default_execution_start_to_close_timeout']) ? $kv['default_execution_start_to_close_timeout'] : null;
 						}
 					}
 				}
