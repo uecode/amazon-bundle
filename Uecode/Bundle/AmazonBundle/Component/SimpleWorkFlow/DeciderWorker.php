@@ -57,7 +57,7 @@ class DeciderWorker extends Worker
 	private $name;
 
 	/**
-	 * @var string Workflow version used for registration
+	 * @var string Workflow version. sent in registration.
 	 *
 	 * @access private
 	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-version
@@ -65,7 +65,15 @@ class DeciderWorker extends Worker
 	private $version;
 
 	/**
-	 * @var string Workflow default tasklist for registration
+	 * @var string Workflow default child policy. sent in registration.
+	 *
+	 * @access private
+	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultChildPolicy
+	 */
+	private $defaultChildPolicy;
+
+	/**
+	 * @var string Workflow default tasklist. sent in registration.
 	 *
 	 * @access private
 	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskList
@@ -73,7 +81,7 @@ class DeciderWorker extends Worker
 	private $defaultTaskList;
 
 	/**
-	 * @var int Default task execution to close timeout used for registration.
+	 * @var int Default task execution to close timeout. Sent in registration.
 	 *
 	 * @access private
 	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskStartToCloseTimeout
@@ -81,7 +89,7 @@ class DeciderWorker extends Worker
 	private $defaultTaskStartToCloseTimeout;
 
 	/**
-	 * @var int Default task start to close timeout used for registration.
+	 * @var int Default task start to close timeout. Sent in registration.
 	 *
 	 * @access private
 	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultExecutionStartToCloseTimeout
@@ -127,19 +135,21 @@ class DeciderWorker extends Worker
 	 * @param string $name Workflow name used for registration
 	 * @param float  $version Workflow version used for registration
 	 * @param string $taskList Task list to poll on
+	 * @param string $defaultChildPolicy Workflow default policy
 	 * @param string $defaultTaskList Workflow default tasklist for registration
 	 * @param string $defaultTaskStartToCloseTimeout Default task start to close timeout used for registration
 	 * @param string $defaultExecutionStartToCloseTimeout Default execution start to close timeout used for registration
 	 * @param string $eventNamespace
 	 * @param string $activityNamespace
 	 */
-	final public function __construct(AmazonSWF $swf, $domain, $name, $version = 1.0, $taskList, $defaultTaskList = null, $defaultTaskStartToCloseTimeout = null, $defaultExecutionStartToCloseTimeout = null,$eventNamespace, $activityNamespace) {
+	final public function __construct(AmazonSWF $swf, $domain, $name, $version = 1.0,  $taskList, $defaultChildPolicy = null, $defaultTaskList = null, $defaultTaskStartToCloseTimeout = null, $defaultExecutionStartToCloseTimeout = null,$eventNamespace, $activityNamespace) {
 		parent::__construct($swf);
 
 		$this->domain = $domain;
 		$this->name = $name;
 		$this->version = $version;
 		$this->taskList = $taskList;
+		$this->defaultChildPolicy = $defaultChildPolicy;
 		$this->defaultTaskList = $defaultTaskList;
 		$this->defaultTaskStartToCloseTimeout = $defaultTaskStartToCloseTimeout;
 		$this->defaultExecutionStartToCloseTimeout = $defaultExecutionStartToCloseTimeout;
@@ -437,6 +447,10 @@ class DeciderWorker extends Worker
 			'name' => $this->name,
 			'version' => (string)$this->version
 		);
+
+		if ($this->defaultChildPolicy) {
+			$registerRequest['defaultChildPolicy'] = $this->defaultChildPolicy;
+		}
 
 		if ($this->defaultTaskList) {
 			$registerRequest['defaultTaskList'] = array('name' => $this->defaultTaskList);

@@ -99,6 +99,7 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @param string $name Workflow name used for registration
 	 * @param float  $version Workflow version used for registration
 	 * @param string $taskList Task list to poll on
+	 * @param string $defaultChildPolicy Workflow default policy
 	 * @param string $defaultTaskList Workflow default tasklist for registration
 	 * @param string $defaultTaskStartToCloseTimeout Default task start to close timeout used for registration
 	 * @param string $defaultExecutionStartToCloseTimeout Default task execution start to close timeout used for registration
@@ -106,9 +107,9 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @param string $activityNamespace
 	 * @return DeciderWorker
 	 */
-	public function loadDecider($domain, $name, $version = 1.0, $taskList, $defaultTaskList = null, $defaultTaskStartToCloseTimeout = null, $defaultExecutionStartToCloseTimeout = null, $eventNamespace, $activityNamespace)
+	public function loadDecider($domain, $name, $version = 1.0, $taskList, $defaultChildPolicy = null, $defaultTaskList = null, $defaultTaskStartToCloseTimeout = null, $defaultExecutionStartToCloseTimeout = null, $eventNamespace, $activityNamespace)
 	{
-		return new DeciderWorker($this, $domain, $name, $version, $taskList, $defaultTaskList, $defaultTaskStartToCloseTimeout, $defaultExecutionStartToCloseTimeout, $eventNamespace, $activityNamespace);
+		return new DeciderWorker($this, $domain, $name, $version, $taskList, $defaultChildPolicy, $defaultTaskList, $defaultTaskStartToCloseTimeout, $defaultExecutionStartToCloseTimeout, $eventNamespace, $activityNamespace);
 	}
 
 	public function loadActivity($taskList, $identity = null)

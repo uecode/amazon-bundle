@@ -41,46 +41,52 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 	protected function configure() {
 		$this
 			->setName('ue:aws:simpleworkflow:deciderworker')
-			->setDescription('Start a decider worker which will poll amazon for a decision task. The "domain" and "name" arguments are required and they both specify config params at uecode.amazon.simpleworkflow.domains.[<domain>].workflows.[<name>]. The rest of the config values can be overridden w/ their respective options to this command.')
+			->setDescription('Start a decider worker which will register the worker then poll amazon for a decision task. The "domain", "name", and "task_list" arguments are required and they both specify config params at uecode.amazon.simpleworkflow.domains.[<domain>].workflows.[<name>]. The rest of the config values can be overridden w/ their respective options to this command.')
 			->addArgument(
 				'domain',
 				InputArgument::REQUIRED,
-				'The SWF workflow domain.'
+				'The SWF workflow domain. Used for registration and polling. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-domain and http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html#SWF-PollForDecisionTask-request-domain.'
 			)
 			->addArgument(
 				'name',
 				InputArgument::REQUIRED,
-				'The SWF workflow name.'
+				'The SWF workflow name. Used for registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-name.'
 			)
 			->addArgument(
 				'task_list',
 				null,
 				InputArgument::REQUIRED,
-				'The SWF taskList to poll on.'
-			)
-			->addOption(
-				'default_task_list',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'The SWF workflow default task list that decisions tasks in this workflow will be registered with. Used for workflow registstration..'
-			)
-			->addOption(
-				'default_task_start_to_close_timeout',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'The SWF workflow defaultTaskStartToCloseTimeout.'
-			)
-			->addOption(
-				'default_execution_start_to_close_timeout',
-				null,
-				InputOption::VALUE_REQUIRED,
-				'The SWF workflow defaultExecutionStartToCloseTimeout.'
+				'The SWF taskList to poll on. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html#SWF-PollForDecisionTask-request-taskList.'
 			)
 			->addOption(
 				'workflow_version',
 				null,
 				InputOption::VALUE_REQUIRED,
 				'The SWF workflow version.'
+			)
+			->addOption(
+				'default_child_policy',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'The SWF workflow defaultChildPolicy sent during registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultChildPolicy.'
+			)
+			->addOption(
+				'default_task_list',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'The SWF workflow defaultTaskList sent during registration. See  http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskList'
+			)
+			->addOption(
+				'default_task_start_to_close_timeout',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'The SWF workflow defaultTaskStartToCloseTimeout sent during registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskStartToCloseTimeout.'
+			)
+			->addOption(
+				'default_execution_start_to_close_timeout',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'The SWF workflow defaultExecutionStartToCloseTimeout sent during registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultExecutionStartToCloseTimeout.'
 			)
 			->addOption(
 				'event_namespace',
@@ -105,11 +111,12 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 			// default values
 			$version = null;
 			$taskList = null;
-			$eventNamespace = null;
-			$activityNamespace = null;
+			$defaultChildPolicy = null;
 			$defaultTaskList = null;
 			$defaultTaskStartToCloseTimeout = null;
 			$defaultExecutionStartToCloseTimeout = null;
+			$eventNamespace = null;
+			$activityNamespace = null;
 
 			$logger->log(
 				'info',
@@ -129,11 +136,12 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 					foreach ($dv['workflows'] as $kk => $kv) {
 						if ($kk == $name) {
 							$version = $kv['version'];
-							$eventNamespace = $kv['history_event_namespace'];
-							$activityNamespace = $kv['history_activity_event_namespace'];
+							$defaultChildPolicy = $kv['default_child_policy'];
 							$defaultTaskList = $kv['default_task_list'];
 							$defaultTaskStartToCloseTimeout = isset($kv['default_task_start_to_close_timeout']) ? $kv['default_task_start_to_close_timeout'] : null;
 							$defaultExecutionStartToCloseTimeout = isset($kv['default_execution_start_to_close_timeout']) ? $kv['default_execution_start_to_close_timeout'] : null;
+							$eventNamespace = $kv['history_event_namespace'];
+							$activityNamespace = $kv['history_activity_event_namespace'];
 						}
 					}
 				}
@@ -141,6 +149,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 
 			// allow config to be overridden by passed values.
 			$version = $input->getOption('workflow_version') ?: $version;
+			$defaultChildPolicy = $input->getOption('default_child_policy') ?: $defaultChildPolicy;
 			$defaultTaskList = $input->getOption('default_task_list') ?: $defaultTaskList;
 			$defaultTaskStartToCloseTimeout = $input->getOption('default_task_start_to_close_timeout') ?: $defaultTaskStartToCloseTimeout;
 			$defaultExecutionStartToCloseTimeout = $input->getOption('default_execution_start_to_close_timeout') ?: $defaultExecutionStartToCloseTimeout;
@@ -164,6 +173,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 					'name' => $name,
 					'version' => $version,
 					'task_list' => $taskList,
+					'default_child_policy' => $defaultChildPolicy,
 					'default_task_list' => $defaultTaskList,
 					'default_task_start_to_close_timeout' => $defaultTaskStartToCloseTimeout,
 					'default_execution_start_to_close_timeout' => $defaultExecutionStartToCloseTimeout,
@@ -173,7 +183,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 			);
 
 			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain), $container);
-			$decider = $swf->loadDecider($domain, $name, $version, $taskList, $defaultTaskList, $defaultTaskStartToCloseTimeout, $defaultExecutionStartToCloseTimeout, $eventNamespace, $activityNamespace);
+			$decider = $swf->loadDecider($domain, $name, $version, $taskList, $defaultChildPolicy, $defaultTaskList, $defaultTaskStartToCloseTimeout, $defaultExecutionStartToCloseTimeout, $eventNamespace, $activityNamespace);
 
 			// note that run() will sit in an infinite loop unless this process is killed.
 			// it's better to use SIGHUP, SIGINT, or SIGTERM than SIGKILL in those
