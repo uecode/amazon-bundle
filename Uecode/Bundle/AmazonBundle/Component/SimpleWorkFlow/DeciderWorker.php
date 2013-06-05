@@ -189,8 +189,16 @@ class DeciderWorker extends Worker
 				// poll amazon for decision task and handle if successful
 				// http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html
 				$pollRequest = array(
-					'domain' => $this->name,
+					'domain' => $this->domain,
 					'taskList' => array('name' => $this->taskList)
+				);
+
+				$this->log(
+					'info',
+					'PollForDecisionTask',
+					array(
+						'request' => $pollRequest
+					)
 				);
 
 				$response = $this->amazonClass->poll_for_decision_task($pollRequest);
