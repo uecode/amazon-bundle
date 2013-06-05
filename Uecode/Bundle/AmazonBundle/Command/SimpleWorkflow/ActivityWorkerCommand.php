@@ -89,7 +89,9 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain), $container);
 			$activity = $swf->loadActivity($taskList, $identity);
 
-			// note that run() will sit in a loop while(true).
+			// note that run() will sit in an infinite loop unless this process is killed.
+			// it's better to use SIGHUP, SIGINT, or SIGTERM than SIGKILL since the workers
+			// have signal handlers.
 			$activity->run();
 
 			$output->writeln('done');

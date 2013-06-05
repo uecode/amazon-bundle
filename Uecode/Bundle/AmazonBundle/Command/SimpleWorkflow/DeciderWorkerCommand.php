@@ -186,8 +186,8 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 			$decider = $swf->loadDecider($domain, $name, $version, $taskList, $defaultChildPolicy, $defaultTaskList, $defaultTaskStartToCloseTimeout, $defaultExecutionStartToCloseTimeout, $eventNamespace, $activityNamespace);
 
 			// note that run() will sit in an infinite loop unless this process is killed.
-			// it's better to use SIGHUP, SIGINT, or SIGTERM than SIGKILL in those
-			// circumstances.
+			// it's better to use SIGHUP, SIGINT, or SIGTERM than SIGKILL since the workers
+			// have signal handlers.
 			$decider->run();
 
 			$output->writeln('done');
