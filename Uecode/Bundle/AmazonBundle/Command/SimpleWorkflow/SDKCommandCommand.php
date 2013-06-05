@@ -27,7 +27,7 @@
 
 namespace Uecode\Bundle\AmazonBundle\Command\SimpleWorkflow;
 
-use Symfony\Component\Console\Command\Command;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -37,45 +37,34 @@ use Symfony\Component\Console\Output\OutputInterface;
 use \AmazonSWF;
 use \CFRuntime;
 
-class SDKCommandCommand extends Command
+class SDKCommandCommand extends ContainerAwareCommand
 {
     protected function configure() {
         $this
             ->setName('ue:aws:simpleworkflow:sdkcommand')
             ->setDescription('Call an SDK command.')
-            ->addOption(
-                'key',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'The amazon AWS key used for authentication'
-            )
-            ->addOption(
-                'secret',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'The amazon AWS secret used for authentication'
-            )
-            ->addOption(
+            ->addArgument(
                 'sdk_command',
-                null,
-                InputOption::VALUE_REQUIRED,
+                InputArgument::REQUIRED,
                 'The amazon SDK command (v1 of SDK)'
             )
-            ->addOption(
+            ->addArgument(
                 'options',
-                null,
-                InputOption::VALUE_REQUIRED,
+                InputArgument::REQUIRED,
                 'The amazon SWF options (as JSON object)'
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {
-        $key = $input->getOption('key');
-        $secret = $input->getOption('secret');
-        $command = $input->getOption('sdk_command');
-        $options = $input->getOption('options');
+		$container = $this->getApplication()->getKernel()->getContainer();
 
-        $swf = new AmazonSWF(array('key' => $key, 'secret' => $secret));
+        $command = $input->getArgument('sdk_command');
+        $options = $input->getArgument('options');
+
+		$swf = $container
+		  ->get('uecode.amazon')
+		  ->getFactory('ue')
+		  ->build('AmazonSWF', array('domain' => 'uePoc'), $container);
 
         if (!method_exists($swf, $command)) {
             throw new \Exception('Amazon SWF/SDK method "'.$command.'" does not exist');
