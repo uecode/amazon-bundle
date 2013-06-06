@@ -119,7 +119,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 			$activityNamespace = null;
 
 			$logger->log(
-				'info',
+				'debug',
 				'About to start decider worker'
 			);
 
@@ -156,6 +156,8 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 			$eventNamespace = $input->getOption('event_namespace') ?: $eventNamespace;
 			$activityNamespace = $input->getOption('activity_event_namespace') ?: $activityNamespace;
 
+			echo "$domain, $name, $version, $taskList, $eventNamespace, $activityNamespace\n";
+
 			if (empty($domain)
 			 || empty($name)
 			 || empty($version)
@@ -167,7 +169,7 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 
 			$logger->log(
 				'info',
-				'Loading decider worker object',
+				'Starting decider worker',
 				array(
 					'domain' => $domain,
 					'name' => $name,
@@ -190,24 +192,24 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 			// have signal handlers.
 			$decider->run();
 
-			$output->writeln('done');
-			$logger->log(
+			$output->writeln('exiting');
+			$decider->log(
 				'info',
 				'Decider worker ended'
 			);
 		} catch (\Exception $e) {
-			echo "ERROR: {$e->getMessage()}\n";
-			// if this fails... then... damn...
 			try {
 				$logger->log(
-					'error',
+					'critical',
 					'Caught exception: '.$e->getMessage(),
 					array(
 						'trace' => $e->getTrace()
 					)
 				);
+			// if that failed... then... damn...
 			} catch (Exception $e) {
-				echo 'EXCEPTION: '.$e->getMessage()."\n";
+				$output->writeln('EXCEPTION: '.$e->getMessage());
+				$output->writeln(print_r($e, true));
 			}
 		}
 	}

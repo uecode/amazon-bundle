@@ -86,53 +86,73 @@ class ActivityWorker extends Worker
 	{
 		$this->log(
 			'info',
-			'Starting activity worker poll'
+			'Starting activity worker polling'
 		);
 
-		// run until we receive a signal to stop
-		while ($this->doRun()) {
-			// these values can only be set from amazon response
-			$this->setAmazonRunId(null);
-			$this->setAmazonWorkflowId(null);
+		try {
+			// run until we receive a signal to stop
+			while ($this->doRun()) {
+				// these values can only be set from amazon response
+				$this->setAmazonRunId(null);
+				$this->setAmazonWorkflowId(null);
 
-			$opts = array(
-				'taskList' => array(
-					'name' => $this->taskList,
-				),
-				'domain' => $this->amazonClass->getConfig()->get('domain'),
-				'identity' => $this->identity
-			);
+				$pollRequest = array(
+					'taskList' => array(
+						'name' => $this->taskList,
+					),
+					'domain' => $this->amazonClass->getConfig()->get('domain'),
+					'identity' => $this->identity
+				);
 
-			$response = $this->amazonClass->poll_for_activity_task($opts);
-			if ($response->isOK()) {
-				$taskToken = (string)$response->body->taskToken;
+				$response = $this->amazonClass->poll_for_activity_task($pollRequest);
 
-				if (!empty($taskToken)) {
-					$this->log(
-						'info',
-						'PollForActivityTask response received',
-						array(
-							'taskToken' => $taskToken
-						)
-					);
+				$this->log(
+					'debug',
+					'PollForActivityTask',
+					array(
+						'request' => $pollRequest,
+						'response' => $response
+					)
+				);
 
-					// set relevant amazon ids
-					$this->setAmazonRunId((string)$response->body->workflowExecution->runId);
-					$this->setAmazonWorkflowId((string)$response->body->workflowExecution->workflowId);
+				if ($response->isOK()) {
+					$taskToken = (string)$response->body->taskToken;
 
-					$this->runActivity($response);
+					if (!empty($taskToken)) {
+						$this->log(
+							'info',
+							'PollForActivityTask activity task received',
+							array(
+								'taskToken' => $taskToken
+							)
+						);
+
+						// set relevant amazon ids
+						$this->setAmazonRunId((string)$response->body->workflowExecution->runId);
+						$this->setAmazonWorkflowId((string)$response->body->workflowExecution->workflowId);
+
+						$this->runActivity($response);
+					} else {
+						$this->log(
+							'debug',
+							'PollForActivityTask received empty response'
+						);
+					}
 				} else {
 					$this->log(
-						'info',
-						'PollForActivityTask received empty response'
+						'critical',
+						'PollForActivityTask failed'
 					);
 				}
-			} else {
-				$this->log(
-					'critical',
-					'PollForActivityTask failed'
-				);
 			}
+		} catch (Exception $e) {
+			$this->log(
+				'critical',
+				'Exception in activity worker: '.get_class($e).' - '.$e->getMessage(),
+				array(
+					'trace' => $e->getTrace()
+				)
+			);
 		}
 	}
 
@@ -168,33 +188,35 @@ class ActivityWorker extends Worker
 					throw new InvalidClassException('Activity class "'.$class.'" must extend AbstractActivity.');
 				}
 
-				$taskResponse = $obj->run($token, $this, $response);
-				$taskResponse->taskToken = $taskResponse->taskToken ?: $token;
+				$request = $obj->run($token, $this, $response);
+				$request->taskToken = $request->taskToken ?: $token;
 
-				$method = 'respond_activity_task_'.str_replace('ActivityTask', '', basename(str_replace('\\', '/', get_class($taskResponse))));
-				$completeResponse = $this->amazonClass->{$method}((array)$taskResponse);
+				$method = 'respond_activity_task_'.str_replace('ActivityTask', '', basename(str_replace('\\', '/', get_class($request))));
 
-				if ($completeResponse->isOK()) {
+				$response = $this->amazonClass->{$method}((array)$request);
+
+				if ($response->isOK()) {
 					$this->log(
 						'info',
 						'Activity completed (RespondActivityTaskCompleted successful)',
 						array(
-							'response' => (array)$taskResponse
+							'request' => (array)$request,
+							'response' => (array)$response
 						)
 					);
 				} else {
 					$this->log(
-						'error',
+						'critical',
 						'Activity failed (RespondActivityTaskCompleted failed)',
 						array(
-							'request' => $taskResponse,
-							'response' => $completeResponse
+							'request' => $request,
+							'response' => $response
 						)
 					);
 				}
 			} else {
 				$this->log(
-					'error',
+					'warning',
 					'Activity task class not found',
 					array(
 						'class' => $class
@@ -203,8 +225,8 @@ class ActivityWorker extends Worker
 			}
 		} catch (\Exception $e) {
 			$this->log(
-				'alert',
-				'Exception when attempting to run activity: '.get_class($e).' - '.$e->getMessage(),
+				'critical',
+				'Exception in activity worker: '.get_class($e).' - '.$e->getMessage(),
 				array(
 					'trace' => $e->getTrace()
 				)

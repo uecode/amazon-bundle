@@ -66,7 +66,7 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 
 		try {
 			$logger->log(
-				'info',
+				'debug',
 				'About to start activity worker'
 			);
 
@@ -94,24 +94,25 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 			// have signal handlers.
 			$activity->run();
 
-			$output->writeln('done');
+			$output->writeln('existing');
 
-			$logger->log(
+			$activity->log(
 				'info',
 				'Activity worker ended'
 			);
 		} catch (\Exception $e) {
-			// if this fails... then... damn...
 			try {
 				$logger->log(
-					'error',
+					'critical',
 					'Caught exception: '.$e->getMessage(),
 					array(
 						'trace' => $e->getTrace()
 					)
 				);
+			// if that failed... then... damn.
 			} catch (Exception $e) {
-				echo 'EXCEPTION: '.$e->getMessage()."\n";
+				$output->writeln('EXCEPTION: '.$e->getMessage());
+				$output->writeln(print_r($e, true));
 			}
 		}
 	}

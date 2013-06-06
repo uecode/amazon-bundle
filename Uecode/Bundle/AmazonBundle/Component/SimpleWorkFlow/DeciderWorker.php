@@ -176,7 +176,7 @@ class DeciderWorker extends Worker
 	{
 		$this->log(
 			'info',
-			'Starting decider worker poll'
+			'Starting decider worker polling'
 		);
 
 		try {
@@ -193,15 +193,16 @@ class DeciderWorker extends Worker
 					'taskList' => array('name' => $this->taskList)
 				);
 
+				$response = $this->amazonClass->poll_for_decision_task($pollRequest);
+
 				$this->log(
-					'info',
+					'debug',
 					'PollForDecisionTask',
 					array(
-						'request' => $pollRequest
+						'request' => $pollRequest,
+						'response' => $response
 					)
 				);
-
-				$response = $this->amazonClass->poll_for_decision_task($pollRequest);
 
 				if ($response->isOK()) {
 					// unique id for this task which is used when we make our RespondDecisionTaskCompleted call.
@@ -210,10 +211,7 @@ class DeciderWorker extends Worker
 					if (!empty($taskToken)) {
 						$this->log(
 							'info',
-							'PollForDecisionTask response received',
-							array(
-								'response' => json_decode(json_encode($response->body), true)
-							)
+							'PollForDecisionTask decision task received'
 						);
 
 						// set relevant amazon ids
@@ -266,7 +264,7 @@ class DeciderWorker extends Worker
 					// received empty response
 					} else {
 						$this->log(
-							'info',
+							'debug',
 							'PollForDecisionTask received empty response'
 						);
 					}
@@ -281,11 +279,9 @@ class DeciderWorker extends Worker
 				}
 			}
 		} catch (\Exception $e) {
-			// make this a high level log alert due to the fact
-			// that it shouldn't really happen.
 			$this->log(
-				'alert',
-				'Exception when attempting to make decision: '.get_class($e).' - '.$e->getMessage(),
+				'critical',
+				'Exception in decider worker: '.get_class($e).' - '.$e->getMessage(),
 				array(
 					'trace' => $e->getTrace()
 				)
@@ -472,15 +468,18 @@ class DeciderWorker extends Worker
 			$registerRequest['defaultExecutionStartToCloseTimeout'] = (string)$this->defaultExecutionStartToCloseTimeout;
 		}
 
+
+		$response = $this->amazonClass->register_workflow_type($registerRequest);
+
 		$this->log(
 			'info',
 			'Registering workflow',
 			array(
-				'request' => $registerRequest
+				'request' => $registerRequest,
+				'response' => $response
 			)
 		);
 
-		$response = $this->amazonClass->register_workflow_type($registerRequest);
 		if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
 			$this->log(
 				'alert',
@@ -508,7 +507,7 @@ class DeciderWorker extends Worker
 		$domain = $this->amazonClass->getConfig()->get('domain');
 
 		$this->log(
-			'debug',
+			'info',
 			'Registering activities in '.$arr['directory'],
 			array(
 				'activities' => $arr
@@ -528,7 +527,7 @@ class DeciderWorker extends Worker
 				// don't error here. user may have legitimate file int his
 				// dir that just isn't an activity class.
 				$this->log(
-					'info',
+					'warning',
 					'Found activity file '.$file.' but it does not have the expected class '.$class.' in it. Skipping.'
 				);
 
@@ -541,28 +540,40 @@ class DeciderWorker extends Worker
 				// don't error here. user may have legitimate file in his
 				// dir that just isn't an activity class.
 				$this->log(
-					'info',
+					'warning',
 					'Found activity file '.$file.' but it is not an instance of AbstractActivity. Skipping.'
 				);
 
 				continue;
 			}
 
-			$opts = array(
+			$request = array(
 				'domain' => $domain,
 				'name' => $base,
 				'version' => $obj->getVersion(),
-				'defaultTaskList' => array('name' => $arr['default_task_list'])
 			);
 
+			if ($arr['default_task_list']) {
+				$request['defaultTaskList'] = array('name' => $arr['default_task_list']);
+			}
+
 			// register type (ignoring "already exists" fault for now)
-			$response = $this->amazonClass->register_activity_type($opts);
+			$response = $this->amazonClass->register_activity_type($request);
+
+			$this->log(
+				'debug',
+				'RegisterActivityType',
+				array(
+					'request' => $request,
+					'response' => $response
+				)
+			);
+
 			if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
 				$this->log(
 					'alert',
 					'Could not register activity',
 					array(
-						'response' => $response,
 						'trace' => debug_backtrace()
 					)
 				);
