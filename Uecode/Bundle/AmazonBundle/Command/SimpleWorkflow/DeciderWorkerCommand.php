@@ -156,8 +156,6 @@ class DeciderWorkerCommand extends ContainerAwareCommand
 			$eventNamespace = $input->getOption('event_namespace') ?: $eventNamespace;
 			$activityNamespace = $input->getOption('activity_event_namespace') ?: $activityNamespace;
 
-			echo "$domain, $name, $version, $taskList, $eventNamespace, $activityNamespace\n";
-
 			if (empty($domain)
 			 || empty($name)
 			 || empty($version)
