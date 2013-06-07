@@ -476,17 +476,14 @@ class DeciderWorker extends Worker
 			'Registering workflow',
 			array(
 				'request' => $registerRequest,
-				'response' => $response
+				'response' => json_decode(json_encode($response), true)
 			)
 		);
 
 		if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
 			$this->log(
 				'alert',
-				'Could not register workflow',
-				array(
-					'response' => json_decode(json_encode($response), true),
-				)
+				'Could not register workflow'
 			);
 
 			exit;
