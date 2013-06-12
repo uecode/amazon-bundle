@@ -119,6 +119,10 @@ class ActivityWorker extends Worker
 					$taskToken = (string)$response->body->taskToken;
 
 					if (!empty($taskToken)) {
+						// set relevant amazon ids
+						$this->setAmazonRunId((string)$response->body->workflowExecution->runId);
+						$this->setAmazonWorkflowId((string)$response->body->workflowExecution->workflowId);
+
 						$this->log(
 							'info',
 							'PollForActivityTask activity task received',
@@ -126,10 +130,6 @@ class ActivityWorker extends Worker
 								'taskToken' => $taskToken
 							)
 						);
-
-						// set relevant amazon ids
-						$this->setAmazonRunId((string)$response->body->workflowExecution->runId);
-						$this->setAmazonWorkflowId((string)$response->body->workflowExecution->workflowId);
 
 						$this->runActivity($response);
 					} else {
