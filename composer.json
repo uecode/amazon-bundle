@@ -12,6 +12,12 @@
 			"email":    "aequasi@gmail.com",
 			"role":     "developer",
 			"homepage": "https://github.com/aequasi"
+		},
+		{
+			"name":     "John Pancoast",
+			"email":    "shideon@gmail.com",
+			"role":     "developer",
+			"homepage": "https://github.com/shideon"
 		}
 	],
 	"support":     {
