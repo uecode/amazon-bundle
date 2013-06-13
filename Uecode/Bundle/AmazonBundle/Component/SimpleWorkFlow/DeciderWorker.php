@@ -200,7 +200,7 @@ class DeciderWorker extends Worker
 					'PollForDecisionTask',
 					array(
 						'request' => $pollRequest,
-						'response' => $response
+						'response' => json_decode(json_encode($response), true)
 					)
 				);
 

@@ -111,7 +111,7 @@ class ActivityWorker extends Worker
 					'PollForActivityTask',
 					array(
 						'request' => $pollRequest,
-						'response' => $response
+						'response' => json_decode(json_encode($response), true)
 					)
 				);
 

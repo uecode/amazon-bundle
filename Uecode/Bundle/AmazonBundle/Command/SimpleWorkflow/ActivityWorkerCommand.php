@@ -94,7 +94,7 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 			// have signal handlers.
 			$activity->run();
 
-			$output->writeln('existing');
+			$output->writeln('exiting');
 
 			$activity->log(
 				'info',
