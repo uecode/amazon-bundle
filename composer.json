@@ -1,6 +1,5 @@
 {
 	"name":        "uecode/amazon-bundle",
-	"version":     "1.0.4",
 	"type":        "library",
 	"description": "Symfony2 Uecode Amazon Bundle",
 	"keywords":    ["php", "uecode"],
