@@ -35,11 +35,11 @@ use Symfony\Component\DependencyInjection\Container;
 use \AmazonSWF;
 use \CFRuntime;
 
-class ActivityWorkerCommand extends ContainerAwareCommand
+class RunActivityWorkerCommand extends ContainerAwareCommand
 {
 	protected function configure() {
 		$this
-			->setName('ue:aws:swf:activity_worker')
+			->setName('ue:aws:swf:run_activity_worker')
 			->setDescription('Start an activity worker which will poll amazon for an activity task.')
 			->addArgument(
 				'domain',

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Start a decider worker.
+ * Start a decider.
  *
  * @package amazon-bundle
  * @copyright (c) 2013 Underground Elephant
@@ -36,11 +36,11 @@ use Symfony\Component\DependencyInjection\Container;
 use \AmazonSWF;
 use \CFRuntime;
 
-class DeciderWorkerCommand extends ContainerAwareCommand
+class RunDeciderCommand extends ContainerAwareCommand
 {
 	protected function configure() {
 		$this
-			->setName('ue:aws:swf:decider_worker')
+			->setName('ue:aws:swf:run_decider')
 			->setDescription('Start a decider worker which will register the worker then poll amazon for a decision task. The "domain", "name", and "task_list" arguments are required and they both specify config params at uecode.amazon.simpleworkflow.domains.[<domain>].workflows.[<name>]. The rest of the config values can be overridden w/ their respective options to this command.')
 			->addArgument(
 				'domain',
