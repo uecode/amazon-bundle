@@ -167,7 +167,7 @@ class Worker extends AmazonComponent
 	{
 		return array(
 			'worker' => true,
-			'worker_type' => ($workerType == 'd' || $workerType == 'a') ? $workerType : 'unknown',
+			'workerType' => ($workerType == 'd' || $workerType == 'a') ? $workerType : 'unknown',
 			'host' => gethostname(),
 			'processId' => $processId,
 			'executionId' => $executionId,
