@@ -57,7 +57,7 @@ class CountOpenWorkflowExecutionsCommand extends ListOpenWorkflowExecutionsComma
 	 *
 	 * @access protected
 	 */
-	protected $name = 'ue:aws:swf:countopenworkflowexecutions';
+	protected $name = 'ue:aws:swf:count_open_workflow_executions';
 
 	/**
 	 * @var string command description

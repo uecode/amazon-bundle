@@ -39,7 +39,7 @@ class ActivityWorkerCommand extends ContainerAwareCommand
 {
 	protected function configure() {
 		$this
-			->setName('ue:aws:swf:activityworker')
+			->setName('ue:aws:swf:activity_worker')
 			->setDescription('Start an activity worker which will poll amazon for an activity task.')
 			->addArgument(
 				'domain',

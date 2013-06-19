@@ -117,11 +117,11 @@ class ListOpenWorkflowExecutionsCommand extends SDKCommandCommand
 		$tagFilter = $input->getOption('tag_filter');
 
 		if (!$domain) {
-			throw new \Exception('Must pass domain option.');
+			throw new \Exception('Must pass --domain option.');
 		}
 
 		if (!$oldestDate) {
-			throw new \Exception('Must pass oldest_date option.');
+			throw new \Exception('Must pass --oldest_date option.');
 		}
 
 		$options = array(
