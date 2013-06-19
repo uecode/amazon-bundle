@@ -41,15 +41,17 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 		$this
 			->setName('ue:aws:swf:run_activity_worker')
 			->setDescription('Start an activity worker which will poll amazon for an activity task.')
-			->addArgument(
+			->addOption(
 				'domain',
-				InputArgument::REQUIRED,
-				'The SWF workflow domain config key.'
+				'd',
+				InputOption::VALUE_REQUIRED,
+				'[Required] The SWF workflow domain config key.'
 			)
-			->addArgument(
+			->addOption(
 				'tasklist',
-				InputArgument::REQUIRED,
-				'The SWF activity tasklist'
+				't',
+				InputOption::VALUE_REQUIRED,
+				'[Required] The SWF activity tasklist'
 			)
 			->addOption(
 				'identity',
@@ -72,9 +74,13 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 
 			$amazonFactory = $container->get( 'uecode.amazon' )->getFactory( 'ue' );
 
-			$domain = $input->getArgument('domain');
-			$taskList = $input->getArgument('tasklist');
+			$domain = $input->getOption('domain');
+			$taskList = $input->getOption('tasklist');
 			$identity = $input->getOption('identity');
+
+			if (!$domain || !$taskList) {
+				throw new \Exception('Must define --domain and --tasklist');
+			}
 
 			$logger->log(
 				'info',

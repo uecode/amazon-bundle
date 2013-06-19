@@ -77,7 +77,7 @@ class ListOpenWorkflowExecutionsCommand extends SDKCommandCommand
 				'domain',
 				'd',
 				InputOption::VALUE_REQUIRED,
-				'See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_ListOpenWorkflowExecutions.html'
+				'[Required] See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_ListOpenWorkflowExecutions.html'
 			)
 			->addOption(
 				'workflow_id',
@@ -89,13 +89,13 @@ class ListOpenWorkflowExecutionsCommand extends SDKCommandCommand
 				'latest_date',
 				'l',
 				InputOption::VALUE_REQUIRED,
-				'http://docs.aws.amazon.com/amazonswf/latest/apireference/API_ListOpenWorkflowExecutions.html'
+				'See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_ListOpenWorkflowExecutions.html'
 			)
 			->addOption(
 				'oldest_date',
 				'o',
 				InputOption::VALUE_REQUIRED,
-				'oldestDate. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_ListOpenWorkflowExecutions.html'
+				'[Required] See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_ListOpenWorkflowExecutions.html'
 			)
 			->addOption(
 				'tag_filter',
@@ -153,7 +153,7 @@ class ListOpenWorkflowExecutionsCommand extends SDKCommandCommand
 	 * @access protected
 	 * @final
 	 */
-	protected function callCommand(array $options) {
+	final protected function callCommand(array $options) {
 		return $this->callSDKCommand($this->command, $options);
 	}
 }

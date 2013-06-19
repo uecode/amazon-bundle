@@ -41,62 +41,64 @@ class RunDeciderCommand extends ContainerAwareCommand
 	protected function configure() {
 		$this
 			->setName('ue:aws:swf:run_decider')
-			->setDescription('Start a decider worker which will register the worker then poll amazon for a decision task. The "domain", "name", and "task_list" arguments are required and they both specify config params at uecode.amazon.simpleworkflow.domains.[<domain>].workflows.[<name>]. The rest of the config values can be overridden w/ their respective options to this command.')
-			->addArgument(
+			->setDescription('Start a decider worker which will register the worker then poll amazon for a decision task. The "domain", "name", and "tasklist" arguments are required. "domain" and "name" specify config params at uecode.amazon.simpleworkflow.domains.[<domain>].workflows.[<name>]. The rest of the config values can be overridden w/ their respective options to this command.')
+			->addOption(
 				'domain',
-				InputArgument::REQUIRED,
+				'd',
+				InputOption::VALUE_REQUIRED,
 				'The SWF workflow domain. Used for registration and polling. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-domain and http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html#SWF-PollForDecisionTask-request-domain.'
 			)
-			->addArgument(
-				'name',
-				InputArgument::REQUIRED,
+			->addOption(
+				'workflow_name',
+				'w',
+				InputOption::VALUE_REQUIRED,
 				'The SWF workflow name. Used for registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-name.'
 			)
-			->addArgument(
-				'task_list',
-				null,
-				InputArgument::REQUIRED,
+			->addOption(
+				'tasklist',
+				't',
+				InputOption::VALUE_REQUIRED,
 				'The SWF taskList to poll on. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html#SWF-PollForDecisionTask-request-taskList.'
 			)
 			->addOption(
 				'workflow_version',
-				null,
+				'wv',
 				InputOption::VALUE_REQUIRED,
 				'The SWF workflow version.'
 			)
 			->addOption(
 				'default_child_policy',
-				null,
+				'cp',
 				InputOption::VALUE_REQUIRED,
 				'The SWF workflow defaultChildPolicy sent during registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultChildPolicy.'
 			)
 			->addOption(
 				'default_task_list',
-				null,
+				'dt',
 				InputOption::VALUE_REQUIRED,
 				'The SWF workflow defaultTaskList sent during registration. See  http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskList'
 			)
 			->addOption(
 				'default_task_start_to_close_timeout',
-				null,
+				'tto',
 				InputOption::VALUE_REQUIRED,
 				'The SWF workflow defaultTaskStartToCloseTimeout sent during registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskStartToCloseTimeout.'
 			)
 			->addOption(
 				'default_execution_start_to_close_timeout',
-				null,
+				'eto',
 				InputOption::VALUE_REQUIRED,
 				'The SWF workflow defaultExecutionStartToCloseTimeout sent during registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultExecutionStartToCloseTimeout.'
 			)
 			->addOption(
 				'event_namespace',
-				null,
+				'ens',
 				InputOption::VALUE_REQUIRED,
 				'Where your event classes are located'
 			)
 			->addOption(
 				'activity_event_namespace',
-				null,
+				'ans',
 				InputOption::VALUE_REQUIRED,
 				'Where your activity classes are located'
 			);
@@ -105,18 +107,27 @@ class RunDeciderCommand extends ContainerAwareCommand
 	protected function execute(InputInterface $input, OutputInterface $output) {
 		$container = $this->getApplication()->getKernel()->getContainer();
 
+		// default values
+		$version = null;
+		$taskList = null;
+		$defaultChildPolicy = null;
+		$defaultTaskList = null;
+		$defaultTaskStartToCloseTimeout = null;
+		$defaultExecutionStartToCloseTimeout = null;
+		$eventNamespace = null;
+		$activityNamespace = null;
+
+		$domain = $input->getOption('domain');
+		$name = $input->getOption('workflow_name');
+		$taskList = $input->getOption('tasklist');
+
+		if (empty($domain) || empty($name) || empty($taskList)) {
+			throw new \Exception('--domain, --name and --tasklist are requried options.');
+		}
+
 		$logger = $container->get('logger');
 
 		try {
-			// default values
-			$version = null;
-			$taskList = null;
-			$defaultChildPolicy = null;
-			$defaultTaskList = null;
-			$defaultTaskStartToCloseTimeout = null;
-			$defaultExecutionStartToCloseTimeout = null;
-			$eventNamespace = null;
-			$activityNamespace = null;
 
 			$logger->log(
 				'debug',
@@ -124,10 +135,6 @@ class RunDeciderCommand extends ContainerAwareCommand
 			);
 
 			$amazonFactory = $container->get('uecode.amazon')->getFactory('ue');
-
-			$domain = $input->getArgument('domain');
-			$name = $input->getArgument('name');
-			$taskList = $input->getArgument('task_list');
 
 			$cfg = $amazonFactory->getConfig()->get('simpleworkflow');
 
