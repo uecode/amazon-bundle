@@ -39,39 +39,43 @@ use \CFRuntime;
 
 class SDKCommandCommand extends ContainerAwareCommand
 {
-    protected function configure() {
-        $this
-            ->setName('ue:aws:simpleworkflow:sdkcommand')
-            ->setDescription('Call an SDK command.')
-            ->addArgument(
-                'sdk_command',
-                InputArgument::REQUIRED,
-                'The amazon SDK command (v1 of SDK)'
-            )
-            ->addArgument(
-                'options',
-                InputArgument::REQUIRED,
-                'The amazon SWF options (as JSON object)'
-            );
-    }
+	protected function configure() {
+		$this
+			->setName('ue:aws:swf:sdkcommand')
+			->setDescription('Call an SDK command.')
+			->addArgument(
+				'sdk_command',
+				InputArgument::REQUIRED,
+				'The amazon SDK command (v1 of SDK)'
+			)
+			->addArgument(
+				'options',
+				InputArgument::REQUIRED,
+				'The amazon SWF options (as JSON object)'
+			);
+	}
 
-    protected function execute(InputInterface $input, OutputInterface $output) {
+	protected function execute(InputInterface $input, OutputInterface $output) {
+		$command = $input->getArgument('sdk_command');
+		$options = $input->getArgument('options');
+
+		$options = json_decode($options, true);
+
+		$output->writeln(print_r($this->callSDKCommand($command, $options), true));
+	}
+
+	final protected function callSDKCommand($command, $options) {
 		$container = $this->getApplication()->getKernel()->getContainer();
-
-        $command = $input->getArgument('sdk_command');
-        $options = $input->getArgument('options');
 
 		$swf = $container
 		  ->get('uecode.amazon')
 		  ->getFactory('ue')
 		  ->build('AmazonSWF', array('domain' => 'uePoc'), $container);
 
-        if (!method_exists($swf, $command)) {
-            throw new \Exception('Amazon SWF/SDK method "'.$command.'" does not exist');
-        }
+		if (!method_exists($swf, $command)) {
+			throw new \Exception('Amazon SWF/SDK method "'.$command.'" does not exist');
+		}
 
-        $options = json_decode($options, true);
-        $result = $swf->{$command}($options);
-        $output->writeln(print_r($result->body, true));
-    }
+		return $swf->{$command}($options);
+	}
 }
