@@ -55,7 +55,7 @@ class ListOpenWorkflowExecutionsCommand extends SDKCommandCommand
 	 *
 	 * @access protected
 	 */
-	protected $name = 'ue:aws:swf:listopenworkflowexecutions';
+	protected $name = 'ue:aws:swf:list_open_workflow_executions';
 
 	/**
 	 * @var string command description
