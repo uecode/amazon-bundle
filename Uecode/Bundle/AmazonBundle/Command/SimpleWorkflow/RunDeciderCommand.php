@@ -129,48 +129,7 @@ class RunDeciderCommand extends ContainerAwareCommand
 		$logger = $container->get('logger');
 
 		try {
-
-			$logger->log(
-				'debug',
-				'About to start decider worker'
-			);
-
 			$amazonFactory = $container->get('uecode.amazon')->getFactory('ue');
-
-			$cfg = $amazonFactory->getConfig()->get('simpleworkflow');
-
-			foreach ($cfg['domains'] as $dk => $dv) {
-				if ($dk == $domain) {
-					foreach ($dv['workflows'] as $kk => $kv) {
-						if ($kk == $name) {
-							$defaultChildPolicy = $kv['default_child_policy'];
-							$defaultTaskList = $kv['default_task_list'];
-							$defaultTaskStartToCloseTimeout = isset($kv['default_task_timeout']) ? $kv['default_task_timeout'] : null;
-							$defaultExecutionStartToCloseTimeout = isset($kv['default_execution_timeout']) ? $kv['default_execution_timeout'] : null;
-							$eventNamespace = $kv['history_event_namespace'];
-							$activityNamespace = $kv['history_activity_event_namespace'];
-						}
-					}
-				}
-			}
-
-			// allow config to be overridden by passed values.
-			//$version = $input->getOption('workflow_version') ?: $version;
-			$defaultChildPolicy = $input->getOption('default_child_policy') ?: $defaultChildPolicy;
-			$defaultTaskList = $input->getOption('default_task_list') ?: $defaultTaskList;
-			$defaultTaskStartToCloseTimeout = $input->getOption('default_task_timeout') ?: $defaultTaskStartToCloseTimeout;
-			$defaultExecutionStartToCloseTimeout = $input->getOption('default_execution_timeout') ?: $defaultExecutionStartToCloseTimeout;
-			$eventNamespace = $input->getOption('event_namespace') ?: $eventNamespace;
-			$activityNamespace = $input->getOption('activity_event_namespace') ?: $activityNamespace;
-
-			if (empty($domain)
-			 || empty($name)
-			 || empty($version)
-			 || empty($taskList)
-			 || empty($eventNamespace)
-			 || empty($activityNamespace)) {
-				throw new \Exception('Decider/workflow is misconfigured.');
-			}
 
 			$logger->log(
 				'info',
@@ -190,7 +149,7 @@ class RunDeciderCommand extends ContainerAwareCommand
 			);
 
 			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain), $container);
-			$decider = $swf->loadDecider($domain, $name, $version, $taskList, $defaultChildPolicy, $defaultTaskList, $defaultTaskStartToCloseTimeout, $defaultExecutionStartToCloseTimeout, $eventNamespace, $activityNamespace);
+			$decider = $swf->loadDecider($domain, $name, $version, $taskList);
 
 			// note that run() will sit in an infinite loop unless this process is killed.
 			// it's better to use SIGHUP, SIGINT, or SIGTERM than SIGKILL since the workers
