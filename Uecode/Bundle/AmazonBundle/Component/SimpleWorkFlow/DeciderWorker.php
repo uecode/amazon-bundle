@@ -518,16 +518,17 @@ class DeciderWorker extends Worker
 	{
 		$arr = $this->getActivityArray();
 		$domain = $this->amazonClass->getConfig()->get('domain');
+		$dir = 'src/'.str_replace('\\', '/', $arr['namespace']);
 
 		$this->log(
 			'info',
-			'Registering activities in '.$arr['directory'],
+			'Registering activities in '.$dir,
 			array(
 				'activities' => $arr
 			)
 		);
 
-		foreach (glob($arr['directory'].'/*.php') as $file) {
+		foreach (glob($dir.'/*.php') as $file) {
 			$base = substr(basename($file), 0, -4);
 			$class = $arr['namespace'].'\\'.$base;
 
