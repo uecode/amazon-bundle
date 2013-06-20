@@ -61,7 +61,7 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 			)
 			->addOption(
 				'activity_version',
-				'vv',
+				'z',
 				InputOption::VALUE_REQUIRED,
 				'[Required] What version of the activities should we register. See config value at uecode.amazon.simpleworkflow.domain.[domain].activities.[activity_version].'
 			);
@@ -73,19 +73,13 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 		$logger = $container->get('logger');
 
 		try {
-			$logger->log(
-				'debug',
-				'About to start activity worker'
-			);
-
-			$amazonFactory = $container->get( 'uecode.amazon' )->getFactory( 'ue' );
-
 			$domain = $input->getOption('domain');
 			$taskList = $input->getOption('tasklist');
 			$identity = $input->getOption('identity');
+			$version = $input->getOption('activity_version');
 
-			if (!$domain || !$taskList) {
-				throw new \Exception('Must define --domain and --tasklist');
+			if (!$domain || !$taskList || !$version) {
+				throw new \Exception('Must define --domain, --tasklist, and --activity_version');
 			}
 
 			$logger->log(
@@ -95,11 +89,13 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 					'domain' => $domain,
 					'taskList' => $taskList,
 					'identity' => $identity,
+					'activity_version' => $version
 				)
 			);
 
+			$amazonFactory = $container->get( 'uecode.amazon' )->getFactory( 'ue' );
 			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain), $container);
-			$activity = $swf->loadActivity($taskList, $identity);
+			$activity = $swf->loadActivity($taskList, $version, $identity);
 
 			// note that run() will sit in an infinite loop unless this process is killed.
 			// it's better to use SIGHUP, SIGINT, or SIGTERM than SIGKILL since the workers

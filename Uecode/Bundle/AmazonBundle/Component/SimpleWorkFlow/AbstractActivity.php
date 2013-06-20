@@ -34,13 +34,6 @@ use \CFResponse;
 abstract class AbstractActivity
 {
 	/**
-	 * @var string The version of this activity type (in this domain).
-	 *
-	 * @access protected
-	 */
-	protected $version = '1.0';
-
-	/**
 	 * Activity logic that gets executed when an activity worker assigns work
 	 *
 	 * Note that the activity is considered successful unless you explicitly return false.
@@ -74,16 +67,5 @@ abstract class AbstractActivity
 		}
 
 		return $resp;
-	}
-
-	/**
-	 * Get version
-	 *
-	 * @access public
-	 * @return string
-	 */
-	public function getVersion()
-	{
-		return $this->version;
 	}
 }

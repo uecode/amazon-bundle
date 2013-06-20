@@ -97,44 +97,19 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 *
 	 * @param string $domain Domain name to register workflow in
 	 * @param string $name Workflow name used for registration
-	 * @param float  $version Workflow version used for registration
+	 * @param string $workflowVersion Workflow version used for egistration and finding decider related classes.
+	 * @param string $activityVersion Activity version used for activity registration and finding activity related classes.
 	 * @param string $taskList Task list to poll on
 	 * @return DeciderWorker
 	 */
-	public function loadDecider($domain, $name, $version, $taskList)
+	public function loadDecider($domain, $name, $workflowVersion, $activityVersion, $taskList)
 	{
-		return new DeciderWorker($this, $domain, $name, $version, $taskList);
+		return new DeciderWorker($this, $domain, $name, $workflowVersion, $activityVersion, $taskList);
 	}
 
-	public function loadActivity($taskList, $identity = null)
+	public function loadActivity($taskList, $activityVersion, $identity = null)
 	{
-		return new ActivityWorker($this, $taskList, $identity);
-	}
-
-	public function getActivityArray()
-	{
-		$config = $this->getConfig();
-		$wf = $config->get('simpleworkflow');
-		$domain = $config->get('domain');
-		foreach ($wf['domains'] as $dk => $dv)
-		{
-			if ($domain == $dk)
-			{
-				return $dv['activities'];
-			}
-		}
-	}
-
-	public function getActivityDirectory()
-	{
-		$ar = $this->getActivityArray();
-		return $ar['directory'];
-	}
-
-	public function getActivityNamespace()
-	{
-		$ar = $this->getActivityArray();
-		return $ar['namespace'];
+		return new ActivityWorker($this, $taskList, $activityVersion, $identity);
 	}
 
 	/**

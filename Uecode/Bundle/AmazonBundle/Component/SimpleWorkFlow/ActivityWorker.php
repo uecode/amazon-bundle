@@ -59,14 +59,15 @@ class ActivityWorker extends Worker
 	 * @access protected
 	 * @param AmazonSWF $swf Simple workflow object
 	 * @param string $taskList
-	 * @param string $namespace
+	 * @param string $activityVersion
 	 * @param string $identity
 	 */
-	public function __construct(AmazonSWF $swf, $taskList, $identity = null)
+	public function __construct(AmazonSWF $swf, $taskList, $activityVersion, $identity = null)
 	{
 		parent::__construct($swf);
 
 		$this->taskList = $taskList;
+		$this->activityVersion = $activityVersion;
 		$this->identity = $identity;
 	}
 
@@ -170,10 +171,9 @@ class ActivityWorker extends Worker
 		try {
 			$name = $response->body->activityType->name;
 			$token = (string)$response->body->taskToken;
-			$activityArr = $this->amazonClass->getActivityArray();
-			$class = $activityArr['namespace'].'\\'.$name;
-			if (class_exists($class))
-			{
+			$class = $this->getActivityNamespace().'\\'.$name;
+
+			if (class_exists($class)) {
 				$this->log(
 					'info',
 					'Activity task class found',

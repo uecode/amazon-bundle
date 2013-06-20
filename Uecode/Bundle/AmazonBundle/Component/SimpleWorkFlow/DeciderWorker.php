@@ -57,14 +57,6 @@ class DeciderWorker extends Worker
 	private $name;
 
 	/**
-	 * @var string Workflow version. sent in registration.
-	 *
-	 * @access private
-	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-version
-	 */
-	private $version;
-
-	/**
 	 * @var string Workflow default child policy. sent in registration.
 	 *
 	 * @access private
@@ -123,7 +115,6 @@ class DeciderWorker extends Worker
 	 */
 	protected $events = array();
 
-
 	/**
 	 * Builds the Workflow
 	 *
@@ -133,10 +124,11 @@ class DeciderWorker extends Worker
 	 * @param array $workflowType
 	 * @param string $domain Domain name to register workflow in
 	 * @param string $name Workflow name used for registration
-	 * @param float  $version Workflow version used for registration
+	 * @param string $workflowVersion Workflow version used for egistration and finding decider related classes.
+	 * @param string $activityVersion Activity version used for activity registration and finding activity related classes.
 	 * @param string $taskList Task list to poll on
 	 */
-	final public function __construct(AmazonSWF $swf, $domain, $name, $version, $taskList) {
+	final public function __construct(AmazonSWF $swf, $domain, $name, $workflowVersion, $activityVersion, $taskList) {
 		parent::__construct($swf);
 
 		$cfg = $swf->getConfig()->get('simpleworkflow');
@@ -152,12 +144,13 @@ class DeciderWorker extends Worker
 					}
 
 					foreach ($dv['workflows'] as $w) {
-						if ($w['name'] == $name && $w['version'] == $version) {
+						if ($w['name'] == $name && $w['version'] == $workflowVersion) {
 							$match = true;
 
 							$this->domain = $domain;
 							$this->name = $name;
-							$this->version = $version;
+							$this->workflowVersion = $workflowVersion;
+							$this->activityVersion = $activityVersion;
 							$this->taskList = $taskList;
 							$this->defaultChildPolicy = $w['default_child_policy'];;
 							$this->defaultTaskList = $w['default_task_list'];
@@ -461,6 +454,8 @@ class DeciderWorker extends Worker
 	 * @final
 	 * @return mixed
 	 * @throws InvalidConfigurationException
+	 *
+	 * @todo registration should be decoupled methods of the code that this code calls.
 	 */
 	final public function registerWorkflow()
 	{
@@ -468,7 +463,7 @@ class DeciderWorker extends Worker
 		$registerRequest = array(
 			'domain' => $this->domain,
 			'name' => $this->name,
-			'version' => (string)$this->version
+			'version' => (string)$this->workflowVersion
 		);
 
 		if ($this->defaultChildPolicy) {
@@ -516,10 +511,12 @@ class DeciderWorker extends Worker
 	 *
 	 * @access protected
 	 * @todo TODO check for existing activities and don't make the call unless that activity/version/domain combo is not yet registered.
+	 *
+	 * @todo registration should be decoupled methods of the code that this code calls.
 	 */
 	protected function registerActivities()
 	{
-		$arr = $this->amazonClass->getActivityArray();
+		$arr = $this->getActivityArray();
 		$domain = $this->amazonClass->getConfig()->get('domain');
 
 		$this->log(
@@ -566,7 +563,7 @@ class DeciderWorker extends Worker
 			$request = array(
 				'domain' => $domain,
 				'name' => $base,
-				'version' => $obj->getVersion(),
+				'version' => $this->activityVersion,
 			);
 
 			if ($arr['default_task_list']) {
@@ -605,7 +602,7 @@ class DeciderWorker extends Worker
 	 * @access public
 	 * @return string
 	 */
-	public function getActivityNamespace()
+	public function getEventActivityNamespace()
 	{
 		return $this->activityNamespace;
 	}

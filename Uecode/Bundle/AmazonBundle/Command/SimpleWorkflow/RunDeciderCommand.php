@@ -56,74 +56,35 @@ class RunDeciderCommand extends ContainerAwareCommand
 			)
 			->addOption(
 				'workflow_version',
-				'z',
+				'y',
 				InputOption::VALUE_REQUIRED,
 				'[Required] The version of the workflow type that we should register. See config value at uecode.amazon.simpleworkflow.domain.[domain].workflows.[workflow_version]'
+			)
+			->addOption(
+				'activity_version',
+				'z',
+				InputOption::VALUE_REQUIRED,
+				'[Required] The version of the activities that wwill be registered. See config value at uecode.amazon.simpleworkflow.domain.[domain].workflows.[].version'
 			)
 			->addOption(
 				'tasklist',
 				't',
 				InputOption::VALUE_REQUIRED,
 				'[Required] The SWF taskList to poll on. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html#SWF-PollForDecisionTask-request-taskList.'
-			)
-			->addOption(
-				'default_child_policy',
-				'c',
-				InputOption::VALUE_REQUIRED,
-				'The SWF workflow defaultChildPolicy sent during registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultChildPolicy.'
-			)
-			->addOption(
-				'default_task_list',
-				'l',
-				InputOption::VALUE_REQUIRED,
-				'The SWF workflow defaultTaskList sent during registration. See  http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskList'
-			)
-			->addOption(
-				'default_task_timeout',
-				'o',
-				InputOption::VALUE_REQUIRED,
-				'The SWF workflow defaultTaskStartToCloseTimeout sent during registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskStartToCloseTimeout.'
-			)
-			->addOption(
-				'default_execution_timeout',
-				'p',
-				InputOption::VALUE_REQUIRED,
-				'The SWF workflow defaultExecutionStartToCloseTimeout sent during registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultExecutionStartToCloseTimeout.'
-			)
-			->addOption(
-				'event_namespace',
-				'b',
-				InputOption::VALUE_REQUIRED,
-				'Where your event classes are located'
-			)
-			->addOption(
-				'activity_event_namespace',
-				'a',
-				InputOption::VALUE_REQUIRED,
-				'Where your activity classes are located'
 			);
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
 		$container = $this->getApplication()->getKernel()->getContainer();
 
-		// default values
-		$version = null;
-		$taskList = null;
-		$defaultChildPolicy = null;
-		$defaultTaskList = null;
-		$defaultTaskStartToCloseTimeout = null;
-		$defaultExecutionStartToCloseTimeout = null;
-		$eventNamespace = null;
-		$activityNamespace = null;
-
 		$domain = $input->getOption('domain');
 		$name = $input->getOption('workflow_name');
 		$taskList = $input->getOption('tasklist');
-		$version = $input->getOption('workflow_version');
+		$workflowVersion = $input->getOption('workflow_version');
+		$activityVersion = $input->getOption('activity_version');
 
-		if (empty($domain) || empty($name) || empty($taskList) || empty($version)) {
-			throw new \Exception('--domain, --workflow_name, --workflow_version, and --tasklist are requried options.');
+		if (empty($domain) || empty($name) || empty($taskList) || empty($workflowVersion) || empty($activityVersion)) {
+			throw new \Exception('--domain, --workflow_name, --workflow_version, activity_version, and --tasklist are requried options.');
 		}
 
 		$logger = $container->get('logger');
@@ -137,19 +98,14 @@ class RunDeciderCommand extends ContainerAwareCommand
 				array(
 					'domain' => $domain,
 					'name' => $name,
-					'version' => $version,
+					'workflow_version' => $workflowVersion,
+					'activity_version' => $activityVersion,
 					'task_list' => $taskList,
-					'default_child_policy' => $defaultChildPolicy,
-					'default_task_list' => $defaultTaskList,
-					'default_task_timeout' => $defaultTaskStartToCloseTimeout,
-					'default_execution_timeout' => $defaultExecutionStartToCloseTimeout,
-					'eventNamespace' => $eventNamespace,
-					'activityNamespace' => $activityNamespace
 				)
 			);
 
 			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain), $container);
-			$decider = $swf->loadDecider($domain, $name, $version, $taskList);
+			$decider = $swf->loadDecider($domain, $name, $workflowVersion, $activityVersion, $taskList);
 
 			// note that run() will sit in an infinite loop unless this process is killed.
 			// it's better to use SIGHUP, SIGINT, or SIGTERM than SIGKILL since the workers
