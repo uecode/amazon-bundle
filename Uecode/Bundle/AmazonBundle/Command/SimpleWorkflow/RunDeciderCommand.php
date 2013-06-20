@@ -46,59 +46,59 @@ class RunDeciderCommand extends ContainerAwareCommand
 				'domain',
 				'd',
 				InputOption::VALUE_REQUIRED,
-				'The SWF workflow domain. Used for registration and polling. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-domain and http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html#SWF-PollForDecisionTask-request-domain.'
+				'[Required] The SWF workflow domain. Used for registration and polling. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-domain and http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html#SWF-PollForDecisionTask-request-domain.'
 			)
 			->addOption(
 				'workflow_name',
 				'w',
 				InputOption::VALUE_REQUIRED,
-				'The SWF workflow name. Used for registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-name.'
+				'[Required] The SWF workflow name. Used for registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-name.'
+			)
+			->addOption(
+				'workflow_version',
+				'z',
+				InputOption::VALUE_REQUIRED,
+				'[Required] The version of the workflow type that we should register. See config value at uecode.amazon.simpleworkflow.domain.[domain].workflows.[workflow_version]'
 			)
 			->addOption(
 				'tasklist',
 				't',
 				InputOption::VALUE_REQUIRED,
-				'The SWF taskList to poll on. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html#SWF-PollForDecisionTask-request-taskList.'
-			)
-			->addOption(
-				'workflow_version',
-				'wv',
-				InputOption::VALUE_REQUIRED,
-				'The SWF workflow version.'
+				'[Required] The SWF taskList to poll on. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html#SWF-PollForDecisionTask-request-taskList.'
 			)
 			->addOption(
 				'default_child_policy',
-				'cp',
+				'c',
 				InputOption::VALUE_REQUIRED,
 				'The SWF workflow defaultChildPolicy sent during registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultChildPolicy.'
 			)
 			->addOption(
 				'default_task_list',
-				'dt',
+				'l',
 				InputOption::VALUE_REQUIRED,
 				'The SWF workflow defaultTaskList sent during registration. See  http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskList'
 			)
 			->addOption(
-				'default_task_start_to_close_timeout',
-				'tto',
+				'default_task_timeout',
+				'o',
 				InputOption::VALUE_REQUIRED,
 				'The SWF workflow defaultTaskStartToCloseTimeout sent during registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskStartToCloseTimeout.'
 			)
 			->addOption(
-				'default_execution_start_to_close_timeout',
-				'eto',
+				'default_execution_timeout',
+				'p',
 				InputOption::VALUE_REQUIRED,
 				'The SWF workflow defaultExecutionStartToCloseTimeout sent during registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultExecutionStartToCloseTimeout.'
 			)
 			->addOption(
 				'event_namespace',
-				'ens',
+				'b',
 				InputOption::VALUE_REQUIRED,
 				'Where your event classes are located'
 			)
 			->addOption(
 				'activity_event_namespace',
-				'ans',
+				'a',
 				InputOption::VALUE_REQUIRED,
 				'Where your activity classes are located'
 			);
@@ -120,9 +120,10 @@ class RunDeciderCommand extends ContainerAwareCommand
 		$domain = $input->getOption('domain');
 		$name = $input->getOption('workflow_name');
 		$taskList = $input->getOption('tasklist');
+		$version = $input->getOption('workflow_version');
 
-		if (empty($domain) || empty($name) || empty($taskList)) {
-			throw new \Exception('--domain, --name and --tasklist are requried options.');
+		if (empty($domain) || empty($name) || empty($taskList) || empty($version)) {
+			throw new \Exception('--domain, --workflow_name, --workflow_version, and --tasklist are requried options.');
 		}
 
 		$logger = $container->get('logger');
@@ -142,11 +143,10 @@ class RunDeciderCommand extends ContainerAwareCommand
 				if ($dk == $domain) {
 					foreach ($dv['workflows'] as $kk => $kv) {
 						if ($kk == $name) {
-							$version = $kv['version'];
 							$defaultChildPolicy = $kv['default_child_policy'];
 							$defaultTaskList = $kv['default_task_list'];
-							$defaultTaskStartToCloseTimeout = isset($kv['default_task_start_to_close_timeout']) ? $kv['default_task_start_to_close_timeout'] : null;
-							$defaultExecutionStartToCloseTimeout = isset($kv['default_execution_start_to_close_timeout']) ? $kv['default_execution_start_to_close_timeout'] : null;
+							$defaultTaskStartToCloseTimeout = isset($kv['default_task_timeout']) ? $kv['default_task_timeout'] : null;
+							$defaultExecutionStartToCloseTimeout = isset($kv['default_execution_timeout']) ? $kv['default_execution_timeout'] : null;
 							$eventNamespace = $kv['history_event_namespace'];
 							$activityNamespace = $kv['history_activity_event_namespace'];
 						}
@@ -155,11 +155,11 @@ class RunDeciderCommand extends ContainerAwareCommand
 			}
 
 			// allow config to be overridden by passed values.
-			$version = $input->getOption('workflow_version') ?: $version;
+			//$version = $input->getOption('workflow_version') ?: $version;
 			$defaultChildPolicy = $input->getOption('default_child_policy') ?: $defaultChildPolicy;
 			$defaultTaskList = $input->getOption('default_task_list') ?: $defaultTaskList;
-			$defaultTaskStartToCloseTimeout = $input->getOption('default_task_start_to_close_timeout') ?: $defaultTaskStartToCloseTimeout;
-			$defaultExecutionStartToCloseTimeout = $input->getOption('default_execution_start_to_close_timeout') ?: $defaultExecutionStartToCloseTimeout;
+			$defaultTaskStartToCloseTimeout = $input->getOption('default_task_timeout') ?: $defaultTaskStartToCloseTimeout;
+			$defaultExecutionStartToCloseTimeout = $input->getOption('default_execution_timeout') ?: $defaultExecutionStartToCloseTimeout;
 			$eventNamespace = $input->getOption('event_namespace') ?: $eventNamespace;
 			$activityNamespace = $input->getOption('activity_event_namespace') ?: $activityNamespace;
 
@@ -182,8 +182,8 @@ class RunDeciderCommand extends ContainerAwareCommand
 					'task_list' => $taskList,
 					'default_child_policy' => $defaultChildPolicy,
 					'default_task_list' => $defaultTaskList,
-					'default_task_start_to_close_timeout' => $defaultTaskStartToCloseTimeout,
-					'default_execution_start_to_close_timeout' => $defaultExecutionStartToCloseTimeout,
+					'default_task_timeout' => $defaultTaskStartToCloseTimeout,
+					'default_execution_timeout' => $defaultExecutionStartToCloseTimeout,
 					'eventNamespace' => $eventNamespace,
 					'activityNamespace' => $activityNamespace
 				)
@@ -203,19 +203,15 @@ class RunDeciderCommand extends ContainerAwareCommand
 				'Decider worker ended'
 			);
 		} catch (\Exception $e) {
-			try {
-				$logger->log(
-					'critical',
-					'Caught exception: '.$e->getMessage(),
-					array(
-						'trace' => $e->getTrace()
-					)
-				);
-			// if that failed... then... damn...
-			} catch (Exception $e) {
-				$output->writeln('EXCEPTION: '.$e->getMessage());
-				$output->writeln(print_r($e, true));
-			}
+			$logger->log(
+				'critical',
+				'Caught exception: '.$e->getMessage(),
+				array(
+					'trace' => $e->getTrace()
+				)
+			);
+
+			throw $e;
 		}
 	}
 }

@@ -45,19 +45,25 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 				'domain',
 				'd',
 				InputOption::VALUE_REQUIRED,
-				'[Required] The SWF workflow domain config key.'
+				'[Required] The SWF workflow domain config key. Used both for registration and polling for activities in this domain.'
 			)
 			->addOption(
 				'tasklist',
 				't',
 				InputOption::VALUE_REQUIRED,
-				'[Required] The SWF activity tasklist'
+				'[Required] The SWF activity tasklist. Used for polling.'
 			)
 			->addOption(
 				'identity',
-				null,
+				'i',
 				InputOption::VALUE_REQUIRED,
-				'The SWF activity identity'
+				'The SWF activity identity. Used for polling.'
+			)
+			->addOption(
+				'activity_version',
+				'vv',
+				InputOption::VALUE_REQUIRED,
+				'[Required] What version of the activities should we register. See config value at uecode.amazon.simpleworkflow.domain.[domain].activities.[activity_version].'
 			);
 	}
 

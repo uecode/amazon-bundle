@@ -135,26 +135,45 @@ class DeciderWorker extends Worker
 	 * @param string $name Workflow name used for registration
 	 * @param float  $version Workflow version used for registration
 	 * @param string $taskList Task list to poll on
-	 * @param string $defaultChildPolicy Workflow default policy
-	 * @param string $defaultTaskList Workflow default tasklist for registration
-	 * @param string $defaultTaskStartToCloseTimeout Default task start to close timeout used for registration
-	 * @param string $defaultExecutionStartToCloseTimeout Default execution start to close timeout used for registration
-	 * @param string $eventNamespace
-	 * @param string $activityNamespace
 	 */
-	final public function __construct(AmazonSWF $swf, $domain, $name, $version = 1.0,  $taskList, $defaultChildPolicy = null, $defaultTaskList = null, $defaultTaskStartToCloseTimeout = null, $defaultExecutionStartToCloseTimeout = null,$eventNamespace, $activityNamespace) {
+	final public function __construct(AmazonSWF $swf, $domain, $name, $version, $taskList) {
 		parent::__construct($swf);
 
-		$this->domain = $domain;
-		$this->name = $name;
-		$this->version = $version;
-		$this->taskList = $taskList;
-		$this->defaultChildPolicy = $defaultChildPolicy;
-		$this->defaultTaskList = $defaultTaskList;
-		$this->defaultTaskStartToCloseTimeout = $defaultTaskStartToCloseTimeout;
-		$this->defaultExecutionStartToCloseTimeout = $defaultExecutionStartToCloseTimeout;
-		$this->eventNamespace = $eventNamespace;
-		$this->activityNamespace = $activityNamespace;
+		$cfg = $swf->getConfig()->get('simpleworkflow');
+
+		// did we find a match in config
+		$match = false;
+
+		if (isset($cfg['domains'])) {
+			foreach ($cfg['domains'] as $dk => $dv) {
+				if ($dk == $domain) {
+					if (!isset($dv['workflows'])) {
+						continue;
+					}
+
+					foreach ($dv['workflows'] as $w) {
+						if ($w['name'] == $name && $w['version'] == $version) {
+							$match = true;
+
+							$this->domain = $domain;
+							$this->name = $name;
+							$this->version = $version;
+							$this->taskList = $taskList;
+							$this->defaultChildPolicy = $w['default_child_policy'];;
+							$this->defaultTaskList = $w['default_task_list'];
+							$this->defaultTaskStartToCloseTimeout = isset($w['default_task_timeout']) ? $w['default_task_timeout'] : null;
+							$this->defaultExecutionStartToCloseTimeout = isset($w['default_execution_timeout']) ? $w['default_execution_timeout'] : null;
+							$this->eventNamespace = $w['history_event_namespace'];
+							$this->activityNamespace = $w['history_activity_event_namespace'];
+						}
+					}
+				}
+			}
+		}
+
+		if (!$match) {
+			throw new \Exception("Decider is not configured [domain: $domain, workflow type: $name, version: $version]");
+		}
 
 		$this->registerWorkflow();
 		$this->registerActivities();
