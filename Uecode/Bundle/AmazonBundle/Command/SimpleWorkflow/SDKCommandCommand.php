@@ -61,6 +61,10 @@ class SDKCommandCommand extends ContainerAwareCommand
 
 		$options = json_decode($options, true);
 
+		if (!$options || empty($options)) {
+			throw new \Exception('Invalid or empty JSON string');
+		}
+
 		$output->writeln(print_r($this->callSDKCommand($command, $options), true));
 	}
 
@@ -70,7 +74,7 @@ class SDKCommandCommand extends ContainerAwareCommand
 		$swf = $container
 		  ->get('uecode.amazon')
 		  ->getFactory('ue')
-		  ->build('AmazonSWF', array('domain' => 'uePoc'), $container);
+		  ->build('AmazonSWF', array(), $container);
 
 		if (!method_exists($swf, $command)) {
 			throw new \Exception('Amazon SWF/SDK method "'.$command.'" does not exist');
