@@ -135,7 +135,7 @@ class Configuration implements ConfigurationInterface
 									->scalarNode( 'version' )
 										->isRequired()
 									->end()
-									->scalarNode( 'namespace' )
+									->scalarNode( 'class' )
 										->isRequired()
 									->end()
 									->scalarNode( 'default_task_list' )

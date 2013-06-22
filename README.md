@@ -42,28 +42,21 @@ See LICENSE-2.0.txt.
 	                    secret: somesecret
 	```
 
-4. Define a service
-	```php
-	services:
-		uecode.amazon:
-			class: Uecode\Bundle\AmazonBundle\Service\AmazonService
-			arguments: [ %uecode.amazon%, @logger ]
-	```
-	
 ## Usage
 
 In your code, after doing the above, you should be able to get the amazon factory with:
 
 ```php
-$amazonFactory = $container->get( 'uecode.amazon' );
+$amazonFactory = $container->get( 'uecode.amazon' )->getFactory('ue');
 
 // Example to get a particular AWS object
-$obj = $amazonFactory->build('AmazonClass', array(), $container);```
+$obj = $amazonFactory->build('AmazonClass', array(), $container);
 ```
 
 At present, this lib only has support for Amazon SWF.
 ```
-$swf = $amazonFactory->build( 'AmazonSWF', array(), $container);```
+$swf = $amazonFactory->build( 'AmazonSWF', array(), $container);
 ```
 
-This project is still in the making as are its docs.
+This project is still in the making as are its docs but we should have some docs on
+creating SWF workflows soon.
