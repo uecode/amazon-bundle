@@ -40,6 +40,7 @@ use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\AbstractHistoryEvent;
 // Amazon Classes
 use \AmazonSWF;
 use \CFRuntime;
+use \CFResponse;
 
 class DeciderWorker extends Worker
 {
@@ -223,7 +224,6 @@ class DeciderWorker extends Worker
 								'critical',
 								'Exception while making decision: '.get_class($e).' - '.$e->getMessage(),
 								array(
-									'decision' => $this->createSWFDecisionArray($decision),
 									'trace' => $e->getTrace()
 								)
 							);
@@ -298,7 +298,7 @@ class DeciderWorker extends Worker
 	 * @return Decision
 	 * @uses processEvent
 	 */
-	final private function decide(HistoryEventIterator $history, CFResponse $response)
+	final private function decide(HistoryEventIterator $history, \CFResponse $response)
 	{
 		$maxEventId = 01;
 
@@ -307,23 +307,23 @@ class DeciderWorker extends Worker
 		// of the decision by adding, removing or editiing decision events.
 		$decision = new Decision;
 
-		foreach ($history as $event) {
-			try {
+		try {
+			foreach ($history as $event) {
 				$this->processEvent($decision, $event, $maxEventId, $response);
-			} catch (\Exception $e) {
-				// log the actual event that failed
-				$this->log(
-					'critical',
-					'Exception while processing event: '.get_class($e).' - '.$e->getMessage(),
-					array(
-						'event' => $event,
-						'trace' => $e->getTrace()
-					)
-				);
-
-				// let the decider know there was a problem
-				throw new \Exception('Failed processing event');
 			}
+		} catch (\Exception $e) {
+			// log the actual event that failed
+			$this->log(
+				'critical',
+				'Exception while processing event: '.get_class($e).' - '.$e->getMessage(),
+				array(
+					'event' => $event,
+					'trace' => $e->getTrace()
+				)
+			);
+
+			// let the decider know there was a problem
+			throw new \Exception('Exception while processing event: '.get_class($e).' - '.$e->getMessage());
 		}
 
 		return $decision;
@@ -343,7 +343,7 @@ class DeciderWorker extends Worker
 	 * @param Decision $decision
 	 * @param int $maxEventId
 	 */
-	final private function processEvent(Decision $decision, $event, &$maxEventId, CFResponse $response)
+	final private function processEvent(Decision $decision, $event, &$maxEventId, \CFResponse $response)
 	{
 		$maxEventId = max($maxEventId, intval($event->eventId));
 		$eventType = (string)$event->eventType;
@@ -355,7 +355,9 @@ class DeciderWorker extends Worker
 			'activity_type' => ($eventType == 'ActivityTaskScheduled' ? (string)$event->activityTaskScheduledEventAttributes->activityType->name : null)
 		);
 
-		$userClass = $this->eventNamespace.'\\'.$event_type;
+		$name = $response->body->workflowType->name;
+		$version = $response->body->workflowType->version;
+		$userClass = $this->getEventNamespace($name, $version).'\\'.$eventType;
 		$defaultClass = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEvent\\'.$eventType;
 
 		if (class_exists($userClass)) {

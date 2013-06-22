@@ -405,20 +405,20 @@ class Worker extends AmazonComponent
 
 	final protected function getEventNamespace($name, $version) {
 		$cfg = $this->getWorkflowConfig($name, $version);
-		if (count($cfg) != 1 || !isset($cfg['history_event_namespace'])) {
+		if (count($cfg) != 1 || !isset($cfg[0]['history_event_namespace'])) {
 			return;
 		}
 
-		return $cfg['history_event_namespace'];
+		return $cfg[0]['history_event_namespace'];
 	}
 
 	final protected function getActivityEventNamespace($name, $version) {
 		$cfg = $this->getWorkflowConfig($name, $version);
-		if (count($cfg) != 1 || !isset($cfg['history_activity_event_namespace'])) {
+		if (count($cfg) != 1 || !isset($cfg[0]['history_activity_event_namespace'])) {
 			return;
 		}
 
-		return $cfg['history_event_namespace'];
+		return $cfg[0]['history_activity_event_namespace'];
 	}
 
 	/**
