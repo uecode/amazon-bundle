@@ -107,9 +107,9 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 		return new DeciderWorker($this, $domain, $name, $workflowVersion, $activityVersion, $taskList);
 	}
 
-	public function loadActivity($taskList, $activityVersion, $identity = null)
+	public function loadActivityWorker($domain, $taskList, $activityVersion, $identity = null)
 	{
-		return new ActivityWorker($this, $taskList, $activityVersion, $identity);
+		return new ActivityWorker($this, $domain, $taskList, $activityVersion, $identity);
 	}
 
 	/**
@@ -151,9 +151,6 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 */
 	public function validateConfigs()
 	{
-		if (!$this->config->has('domain')) {
-			throw new  InvalidConfigurationException("Domain must be specified in this config.");
-		}
 	}
 
 	/**

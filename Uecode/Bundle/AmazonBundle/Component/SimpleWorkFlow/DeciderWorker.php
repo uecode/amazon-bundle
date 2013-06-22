@@ -96,18 +96,6 @@ class DeciderWorker extends Worker
 	 */
 	private $taskList;
 
-	/** 
-	 * @var string Namespace where your workflow's history events are located.
-	 *
-	 * @access private
-	 */
-	private $eventNamespace;
-
-	/**
-	 * @var string Namespace where your workflow's history activity events are located.
-	 */
-	private $activityNamespace;
-
 	/**
 	 * @var array Holds events in history (can be used for task lookup)
 	 *
@@ -149,8 +137,6 @@ class DeciderWorker extends Worker
 
 							$this->domain = $domain;
 							$this->name = $name;
-							$this->workflowVersion = $workflowVersion;
-							$this->activityVersion = $activityVersion;
 							$this->taskList = $taskList;
 							$this->defaultChildPolicy = $w['default_child_policy'];;
 							$this->defaultTaskList = $w['default_task_list'];
@@ -168,8 +154,8 @@ class DeciderWorker extends Worker
 			throw new \Exception("Decider is not configured [domain: $domain, workflow type: $name, version: $version]");
 		}
 
-		$this->registerWorkflow();
-		$this->registerActivities();
+		$this->registerWorkflow($workflowVersion);
+		$this->registerActivities($activityVersion);
 	}
 
 	/**
@@ -231,9 +217,7 @@ class DeciderWorker extends Worker
 						$this->setAmazonWorkflowId((string)$response->body->workflowExecution->workflowId);
 
 						try {
-							$decision = $this->decide(
-								new HistoryEventIterator($this->getAmazonClass(), $pollRequest, $response)
-							);
+							$decision = $this->decide(new HistoryEventIterator($this->getAmazonClass(), $pollRequest, $response), $response);
 						} catch (\Exception $e) {
 							$this->log(
 								'critical',
@@ -314,9 +298,9 @@ class DeciderWorker extends Worker
 	 * @return Decision
 	 * @uses processEvent
 	 */
-	final private function decide(HistoryEventIterator $history)
+	final private function decide(HistoryEventIterator $history, CFResponse $response)
 	{
-		$maxEventId = 0;
+		$maxEventId = 01;
 
 		// we have a decision object who will be passed to each event in history
 		// if they have a corresponding class. Each event class can change the state
@@ -325,7 +309,7 @@ class DeciderWorker extends Worker
 
 		foreach ($history as $event) {
 			try {
-				$this->processEvent($decision, $event, $maxEventId);
+				$this->processEvent($decision, $event, $maxEventId, $response);
 			} catch (\Exception $e) {
 				// log the actual event that failed
 				$this->log(
@@ -359,7 +343,7 @@ class DeciderWorker extends Worker
 	 * @param Decision $decision
 	 * @param int $maxEventId
 	 */
-	final private function processEvent(Decision $decision, $event, &$maxEventId)
+	final private function processEvent(Decision $decision, $event, &$maxEventId, CFResponse $response)
 	{
 		$maxEventId = max($maxEventId, intval($event->eventId));
 
@@ -374,8 +358,8 @@ class DeciderWorker extends Worker
 
 		$defaultEventNamespace = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEvent';
 
-		$userClass = $this->eventNamespace.'\\'.$eventType;
-		$defaultClass = $defaultEventNamespace.'\\'.$eventType;
+		$userClass = $this->eventNamespace.'\\'.$event_type;
+		$defaultClass = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEvent\\'.$eventType;
 
 		if (class_exists($userClass)) {
 			$this->log(
@@ -457,13 +441,13 @@ class DeciderWorker extends Worker
 	 *
 	 * @todo registration should be decoupled methods of the code that this code calls.
 	 */
-	final public function registerWorkflow()
+	final public function registerWorkflow($version)
 	{
 		// TODO allow for all options at http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html
 		$registerRequest = array(
 			'domain' => $this->domain,
 			'name' => $this->name,
-			'version' => (string)$this->workflowVersion
+			'version' => (string)$version
 		);
 
 		if ($this->defaultChildPolicy) {
@@ -514,62 +498,46 @@ class DeciderWorker extends Worker
 	 *
 	 * @todo registration should be decoupled methods of the code that this code calls.
 	 */
-	protected function registerActivities()
+	protected function registerActivities($version)
 	{
-		$arr = $this->getActivityArray();
-		$domain = $this->amazonClass->getConfig()->get('domain');
-		$dir = 'src/'.str_replace('\\', '/', $arr['namespace']);
+		$activities = $this->getActivityConfig(null, $version);
 
-		$this->log(
-			'info',
-			'Registering activities in '.$dir,
-			array(
-				'activities' => $arr
-			)
-		);
-
-		foreach (glob($dir.'/*.php') as $file) {
-			$base = substr(basename($file), 0, -4);
-			$class = $arr['namespace'].'\\'.$base;
-
+		if (empty($activities)) {
 			$this->log(
-				'debug',
-				'Attempting to register activity \''.$base.'\''
+				'info',
+				'Attempting to register activities but no activities in config'
 			);
 
-			if (!class_exists($class)) {
-				// don't error here. user may have legitimate file int his
-				// dir that just isn't an activity class.
-				$this->log(
-					'warning',
-					'Found activity file '.$file.' but it does not have the expected class '.$class.' in it. Skipping.'
-				);
+			return;
+		}
 
-				continue;
+		foreach ($activities as $a) {
+			$this->log(
+				'debug',
+				'Attempting to register activity \''.$a['class'].'\''
+			);
+
+			if (!class_exists($a['class'])) {
+				throw new InvalidConfigurationException('Cannot find activity class to register @ '.$a['class']);
 			}
 
-			$obj = new $class;
+			$obj = new $a['class'];
 
 			if (!($obj instanceof AbstractActivity)) {
-				// don't error here. user may have legitimate file in his
-				// dir that just isn't an activity class.
-				$this->log(
-					'warning',
-					'Found activity file '.$file.' but it is not an instance of AbstractActivity. Skipping.'
-				);
-
-				continue;
+				throw new InvalidClassException('Found activity '.$a['class'].' but it is not an instance of AbstractActivity');
 			}
 
 			$request = array(
-				'domain' => $domain,
-				'name' => $base,
-				'version' => $this->activityVersion,
+				'domain' => $this->domain,
+				'name' => $a['name'],
+				'version' => (string)$a['version']
 			);
 
-			if ($arr['default_task_list']) {
-				$request['defaultTaskList'] = array('name' => $arr['default_task_list']);
+			if ($a['default_task_list']) {
+				$request['defaultTaskList'] = array('name' => $a['default_task_list']);
 			}
+
+			// TODO add other registration key/value pairs here
 
 			// register type (ignoring "already exists" fault for now)
 			$response = $this->amazonClass->register_activity_type($request);

@@ -94,8 +94,8 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 			);
 
 			$amazonFactory = $container->get( 'uecode.amazon' )->getFactory( 'ue' );
-			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain), $container);
-			$activity = $swf->loadActivity($taskList, $version, $identity);
+			$swf = $amazonFactory->build('AmazonSWF', array(), $container);
+			$activity = $swf->loadActivityWorker($domain, $taskList, $version, $identity);
 
 			// note that run() will sit in an infinite loop unless this process is killed.
 			// it's better to use SIGHUP, SIGINT, or SIGTERM than SIGKILL since the workers

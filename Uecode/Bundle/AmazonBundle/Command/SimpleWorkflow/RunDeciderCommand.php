@@ -104,7 +104,7 @@ class RunDeciderCommand extends ContainerAwareCommand
 				)
 			);
 
-			$swf = $amazonFactory->build('AmazonSWF', array('domain' => $domain), $container);
+			$swf = $amazonFactory->build('AmazonSWF', array(), $container);
 			$decider = $swf->loadDecider($domain, $name, $workflowVersion, $activityVersion, $taskList);
 
 			// note that run() will sit in an infinite loop unless this process is killed.

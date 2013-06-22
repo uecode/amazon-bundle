@@ -58,14 +58,16 @@ class ActivityWorker extends Worker
 	 *
 	 * @access protected
 	 * @param AmazonSWF $swf Simple workflow object
+	 * @param string The SWF domain this worker is working in
 	 * @param string $taskList
 	 * @param string $activityVersion
 	 * @param string $identity
 	 */
-	public function __construct(AmazonSWF $swf, $taskList, $activityVersion, $identity = null)
+	public function __construct(AmazonSWF $swf, $domain, $taskList, $activityVersion, $identity = null)
 	{
 		parent::__construct($swf);
 
+		$this->domain = $domain;
 		$this->taskList = $taskList;
 		$this->activityVersion = $activityVersion;
 		$this->identity = $identity;
@@ -101,7 +103,7 @@ class ActivityWorker extends Worker
 					'taskList' => array(
 						'name' => $this->taskList,
 					),
-					'domain' => $this->amazonClass->getConfig()->get('domain'),
+					'domain' => $this->domain,
 					'identity' => $this->identity
 				);
 

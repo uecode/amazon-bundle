@@ -38,6 +38,13 @@ use Monolog\Logger;
 class Worker extends AmazonComponent
 {
 	/**
+	 * @var string The SWF domain this worker is working in.
+	 *
+	 *  @access protected
+	 */
+	protected $domain;
+
+	/**
 	 * @var int This workers process id.
 	 *
 	 * @access private
@@ -105,14 +112,17 @@ class Worker extends AmazonComponent
 	 * Constructor
 	 *
 	 * @param AmazonSWF $swf An instance of the main amazon class
+	 * @param string The SWF domain this worker is working in
 	 * @access protected
 	 */
 	protected function __construct(AmazonSWF $swf)
 	{
-		$this->executionId = Util::generateUUID();
 		$this->registerSignalHandlers();
 		$this->setAmazonClass($swf);
 		$this->setLogger($swf->getLogger());
+
+		// TODO this should be reset each worker loop
+		$this->executionId = Util::generateUUID();
 	}
 
 	/**
@@ -326,23 +336,37 @@ class Worker extends AmazonComponent
 	 * @access protected
 	 * @return array
 	 */
-	final protected function getActivityArray()
+	final protected function getActivityConfig($name = null, $version = null)
 	{
-		$config = $this->amazonClass->getConfig();
-		$wf = $config->get('simpleworkflow');
-		$domain = $config->get('domain');
+		$ret = array();
+
+		$wf = $this->amazonClass->getConfig()->get('simpleworkflow');
 
 		foreach ($wf['domains'] as $dk => $dv) {
-			if ($domain == $dk) {
+			if ($this->domain == $dk) {
+				if (!$name && !$version) {
+					$ret = $dv['activities'];
+					continue;
+				}
+
 				foreach ($dv['activities'] as $a) {
-					if ($a['version'] == $this->activityVersion) {
-						return $a;
+					if (($name && $version && $name == $a['name'] && $version == $a['version'])
+					 || ($name && !$version && $name == $a['name'])
+					 || (!$name && $version && $version == $a['version'])) {	
+						$ret[] = $a;
 					}
 				}
 			}
 		}
 
-		return array();
+		return $ret;
+	}
+
+	/**
+	 * ** backward compat **
+	 */
+	final protected function getActivityArray($name = null, $version) {
+		return $this->getActivityConfig($type, $version);
 	}
 
 	/**
