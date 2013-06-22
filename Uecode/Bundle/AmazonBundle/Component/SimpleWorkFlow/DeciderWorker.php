@@ -346,7 +346,6 @@ class DeciderWorker extends Worker
 	final private function processEvent(Decision $decision, $event, &$maxEventId, CFResponse $response)
 	{
 		$maxEventId = max($maxEventId, intval($event->eventId));
-
 		$eventType = (string)$event->eventType;
 		$eventId = (int)$event->eventId;
 
@@ -356,15 +355,13 @@ class DeciderWorker extends Worker
 			'activity_type' => ($eventType == 'ActivityTaskScheduled' ? (string)$event->activityTaskScheduledEventAttributes->activityType->name : null)
 		);
 
-		$defaultEventNamespace = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEvent';
-
 		$userClass = $this->eventNamespace.'\\'.$event_type;
 		$defaultClass = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEvent\\'.$eventType;
 
 		if (class_exists($userClass)) {
 			$this->log(
 				'debug',
-				"Processing decision event [$eventId - $eventType] - user class found",
+				"Processing decision event - user class found",
 				array(
 					'user class' => $userClass,
 					'default class' => $defaultClass,
@@ -379,10 +376,11 @@ class DeciderWorker extends Worker
 			}
 
 			$obj->run($this, $decision, $event, $maxEventId);
+
 		} elseif (class_exists($defaultClass)) {
 			$this->log(
 				'debug',
-				"Processing decision event [$eventId - $eventType] - default class found",
+				"Processing decision event - default class found",
 				array(
 					'user class' => $userClass,
 					'default class' => $defaultClass,
@@ -397,10 +395,11 @@ class DeciderWorker extends Worker
 			}
 
 			$obj->run($this, $decision, $event, $maxEventId);
+
 		} else {
 			$this->log(
 				'debug',
-				"Processing decision event [$eventId - $eventType] - no class",
+				"Processing decision event - no class",
 				array(
 					'user class' => $userClass,
 					'default class' => $defaultClass,
@@ -434,8 +433,9 @@ class DeciderWorker extends Worker
 	/**
 	 * Registers the workflow.
 	 *
-	 * @access public
 	 * @final
+	 * @access public
+	 * @param string $version The version of activities to register
 	 * @return mixed
 	 * @throws InvalidConfigurationException
 	 *
@@ -494,9 +494,8 @@ class DeciderWorker extends Worker
 	 * Registers activities in this workflow
 	 *
 	 * @access protected
-	 * @todo TODO check for existing activities and don't make the call unless that activity/version/domain combo is not yet registered.
-	 *
-	 * @todo registration should be decoupled methods of the code that this code calls.
+	 * @param string $version The version of activities to register
+	 * @todo TODO check for existing activities and don't make the call unless not registered.
 	 */
 	protected function registerActivities($version)
 	{

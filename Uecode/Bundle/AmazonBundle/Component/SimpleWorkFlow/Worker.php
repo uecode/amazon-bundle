@@ -332,8 +332,12 @@ class Worker extends AmazonComponent
 	/**
 	 * Simple helper to get activity array out of config
 	 *
+	 * You can pass any (or no) combination of name and version to find that set.
+	 *
 	 * @final
 	 * @access protected
+	 * @param string $name The activityType name
+	 * @param mixed $version The activity version
 	 * @return array
 	 */
 	final protected function getActivityConfig($name = null, $version = null)
@@ -363,10 +367,58 @@ class Worker extends AmazonComponent
 	}
 
 	/**
-	 * ** backward compat **
+	 * ** for backward compat **
 	 */
-	final protected function getActivityArray($name = null, $version) {
+	final protected function getActivityArray($name = null, $version = null)
+	{
 		return $this->getActivityConfig($type, $version);
+	}
+
+	/**
+	 * Get a workflow array from config
+	 */
+	final public function getWorkflowConfig($name = null, $version = null)
+	{
+		$ret = array();
+
+		$wf = $this->amazonClass->getConfig()->get('simpleworkflow');
+
+		foreach ($wf['domains'] as $dk => $dv) {
+			if ($this->domain == $dk) {
+				if (!$name && !$version) {
+					$ret = $dv['workflows'];
+					continue;
+				}
+
+				foreach ($dv['workflows'] as $a) {
+					if (($name && $version && $name == $a['name'] && $version == $a['version'])
+					 || ($name && !$version && $name == $a['name'])
+					 || (!$name && $version && $version == $a['version'])) {
+						$ret[] = $a;
+					}
+				}
+			}
+		}
+
+		return $ret;
+	}
+
+	final protected function getEventNamespace($name, $version) {
+		$cfg = $this->getWorkflowConfig($name, $version);
+		if (count($cfg) != 1 || !isset($cfg['history_event_namespace'])) {
+			return;
+		}
+
+		return $cfg['history_event_namespace'];
+	}
+
+	final protected function getActivityEventNamespace($name, $version) {
+		$cfg = $this->getWorkflowConfig($name, $version);
+		if (count($cfg) != 1 || !isset($cfg['history_activity_event_namespace'])) {
+			return;
+		}
+
+		return $cfg['history_event_namespace'];
 	}
 
 	/**
