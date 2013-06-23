@@ -189,7 +189,7 @@ class DeciderWorker extends Worker
 					'taskList' => array('name' => $this->taskList)
 				);
 
-				$this->response = $this->amazonClass->poll_for_decision_task($pollRequest);
+				$this->response = $this->amazonObj->poll_for_decision_task($pollRequest);
 
 				$this->log(
 					'debug',
@@ -235,7 +235,7 @@ class DeciderWorker extends Worker
 							'decisions' => $this->createSWFDecisionArray($decision)
 						);
 
-						$completeResponse = $this->amazonClass->respond_decision_task_completed($decisionArray);
+						$completeResponse = $this->amazonObj->respond_decision_task_completed($decisionArray);
 
 						if ($completeResponse->isOK()) {
 							$this->log(
@@ -467,7 +467,7 @@ class DeciderWorker extends Worker
 		}
 
 
-		$response = $this->amazonClass->register_workflow_type($registerRequest);
+		$response = $this->amazonObj->register_workflow_type($registerRequest);
 
 		$this->log(
 			'info',
@@ -487,7 +487,7 @@ class DeciderWorker extends Worker
 			exit;
 		}
 
-		return $this->amazonClass->describe_workflow_type($registerRequest);
+		return $this->amazonObj->describe_workflow_type($registerRequest);
 	}
 
 	/**
@@ -539,7 +539,7 @@ class DeciderWorker extends Worker
 			// TODO add other registration key/value pairs here
 
 			// register type (ignoring "already exists" fault for now)
-			$response = $this->amazonClass->register_activity_type($request);
+			$response = $this->amazonObj->register_activity_type($request);
 
 			$this->log(
 				'debug',

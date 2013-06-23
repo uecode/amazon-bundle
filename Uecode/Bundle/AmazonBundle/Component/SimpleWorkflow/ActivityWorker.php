@@ -109,7 +109,7 @@ class ActivityWorker extends Worker
 					'identity' => $this->identity
 				);
 
-				$this->response = $this->amazonClass->poll_for_activity_task($pollRequest);
+				$this->response = $this->amazonObj->poll_for_activity_task($pollRequest);
 
 				$this->log(
 					'debug',
@@ -198,7 +198,7 @@ class ActivityWorker extends Worker
 
 				$method = 'respond_activity_task_'.str_replace('ActivityTask', '', basename(str_replace('\\', '/', get_class($request))));
 
-				$this->response = $this->amazonClass->{$method}((array)$request);
+				$this->response = $this->amazonObj->{$method}((array)$request);
 
 				if ($this->response->isOK()) {
 					$this->log(

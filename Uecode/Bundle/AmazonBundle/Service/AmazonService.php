@@ -24,10 +24,15 @@ namespace Uecode\Bundle\AmazonBundle\Service;
 
 // Symfony
 use Monolog\Logger;
+use Symfony\Component\Yaml\Yaml;
 
 // Uecode
 use \Uecode\Bundle\UecodeBundle\Component\Config;
 use \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory;
+
+// AmazonBundle Exceptions
+use \Uecode\Bundle\AmazonBundle\Exception\ClassNotFoundException;
+use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
 class AmazonService
 {
@@ -37,48 +42,63 @@ class AmazonService
 	 */
 	private $factories = array();
 
+	private $config;
+	private $logger;
+
 	/**
 	 * Constructor
 	 *
 	 * @param array  $config
 	 * @param Logger $logger
 	 */
-	public function __construct(array $config, Logger $logger = null)
+	public function __construct($config, Logger $logger = null)
 	{
-		if(!empty($config)) {
-			foreach($config['accounts']['connections'] as $name => $account) {
-				$factory = new AmazonFactory($name, new Config($config));
-				$factory->setLogger($logger);
-				$this->addFactory($name, $factory);
+		$this->config = new Config($config);
+		$this->logger = $logger;
+
+		$file = __DIR__ . '/../Resources/config/models.yml';
+		$this->modelConfig = new Config((array)Yaml::parse($file));
+	}
+
+	public function getAmazonService($awsServiceName, $configConnectionKey, array $awsServiceOptions = array())
+	{
+		$class = $this->getAWSClass($awsServiceName);
+
+		if (!$class) {
+			throw new ClassNotFoundException($awsServiceName);
+		}
+
+		/** @var $config array Merge given configs with account configs */
+		$this->config->setItems(array('aws_options' => $awsServiceOptions));
+
+		$config = $this->config->all();
+
+		$object = new $class();
+
+		$amazonObject = $object->buildAmazonObject($config['accounts']['connections'][$configConnectionKey]);
+
+		// Check to make sure its a valid Amazon object
+		if (!($amazonObject instanceof \CFRuntime)) {
+			throw new InvalidClassException('Amazon object could not be built.');
+		}
+
+		$object->setAmazonObject($amazonObject);
+
+		// TODO add support for v2
+
+		$object->setLogger($this->logger);
+
+		return $object;
+	}
+
+	private function getAWSClass($className)
+	{
+		foreach ($this->modelConfig->all()['model'] as $modelName => $class) {
+			if ($className === $modelName) {
+				return $class;
 			}
 		}
-	}
 
-	public function addFactory($name, $factory)
-	{
-		if( array_key_exists($name, $this->factories)) {
-			throw new \Exception(sprintf("The `%s` factory has already been added.", $name));
-		}
-		
-		return $this->factories[$name] = $factory;
-	}
-
-	public function getFactory($name)
-	{
-		if( !array_key_exists($name, $this->factories)) {
-			throw new \Exception(sprintf("The `%s` factory does not exist.", $name));
-		}
-		
-		return $this->factories[$name];
-	}
-
-	public function get($name)
-	{
-		return $this->getFactory($name);
-	}
-
-	public function __get($name)
-	{
-		return $this->getFactory($name);
+		return null;
 	}
 }

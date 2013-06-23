@@ -20,7 +20,7 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Model;
+namespace Uecode\Bundle\AmazonBundle\Component;
 
 // Symfony (and related)
 use Monolog\Logger;
@@ -34,8 +34,9 @@ use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
 // Amazon Bundle Components
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DeciderWorker;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\ActivityWorker;
+use \Uecode\Bundle\AmazonBundle\Component\AbstractAmazonComponent;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DeciderWorker;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityWorker;
 
 // Uecode Bundle Components
 use \Uecode\Bundle\UecodeBundle\Component\Config;
@@ -45,7 +46,7 @@ use \AmazonSWF as SWF;
 /**
  * @todo this class should encapsulate swf, not extend it.
  */
-class SimpleWorkFlow extends SWF implements AmazonInterface
+class SimpleWorkflow extends AbstractAmazonComponent
 {
 
 	/**
@@ -73,6 +74,14 @@ class SimpleWorkFlow extends SWF implements AmazonInterface
 	 * @var Symfony container
 	 */
 	private $container;
+
+	/*
+	 * inherit
+	 */
+	public function buildAmazonObject(array $options)
+	{
+		return new \AmazonSWF($options);
+	}
 
 	/**
 	 * Load a decider

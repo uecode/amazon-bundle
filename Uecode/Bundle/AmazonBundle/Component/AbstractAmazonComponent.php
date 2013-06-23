@@ -24,19 +24,28 @@ namespace Uecode\Bundle\AmazonBundle\Component;
 
 use \CFRuntime;
 
-class AmazonComponent
+abstract class AbstractAmazonComponent
 {
 	/**
 	 * @var CFRuntime
 	 */
-	protected $amazonClass;
+	protected $amazonObject;
 
 	/**
-	 * @param CFRuntime $amazonClass
+	 * Build and return ana amazon object
+	 *
+	 * @abstract
+	 * @access public
+	 * @return CFRuntime
 	 */
-	public function setAmazonClass( CFRuntime $amazonClass )
+	abstract public function buildAmazonObject(array $options);
+
+	/**
+	 * @param CFRuntime $amazonObject
+	 */
+	public function setAmazonObject(CFRuntime $amazonObject)
 	{
-		$this->amazonClass = $amazonClass;
+		$this->amazonObject = $amazonObject;
 	}
 
 	/**

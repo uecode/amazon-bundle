@@ -1,4 +1,3 @@
 model:
-    simpleWorkFlow:
-        amazon_class: AmazonSWF
-        uecode_class: \Uecode\Bundle\AmazonBundle\Model\SimpleWorkFlow
+    # class names can be overridden by developer
+    SimpleWorkflow: \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow

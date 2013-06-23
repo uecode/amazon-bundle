@@ -335,7 +335,7 @@ class Worker extends AmazonComponent
 	{
 		$ret = array();
 
-		$wf = $this->amazonClass->getConfig()->get('simpleworkflow');
+		$wf = $this->amazonObj->getConfig()->get('simpleworkflow');
 
 		foreach ($wf['domains'] as $dk => $dv) {
 			if ($this->domain == $dk) {
@@ -373,7 +373,7 @@ class Worker extends AmazonComponent
 	{
 		$ret = array();
 
-		$wf = $this->amazonClass->getConfig()->get('simpleworkflow');
+		$wf = $this->amazonObj->getConfig()->get('simpleworkflow');
 
 		foreach ($wf['domains'] as $dk => $dv) {
 			if ($this->domain == $dk) {
