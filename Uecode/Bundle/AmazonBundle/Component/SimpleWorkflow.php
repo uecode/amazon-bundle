@@ -34,7 +34,6 @@ use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityWorker;
 /**
  * For working w/ Amazon SWF
  *
- * @copyright (c) 2013 Underground Elepahant
  * @author John Pancoast
  */
 class SimpleWorkflow extends AbstractAmazonComponent
