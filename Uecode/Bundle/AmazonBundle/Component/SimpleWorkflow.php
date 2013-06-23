@@ -105,8 +105,12 @@ class SimpleWorkflow extends AbstractAmazonComponent
 		$b->run();
 	}
 
+	#########################################
+	## SDK ABSTRACTIONS #####################
+	#########################################
+
 	/**
-	 * Wrapper for SDK pollForDecisionTask
+	 * Wrapper for SDK PollForDecisionTask
 	 *
 	 * @param array $options
 	 * @return CFResponse
@@ -118,7 +122,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
-	 * Wrapper for SDK respondDecisionTaskCompleted
+	 * Wrapper for SDK RespondDecisionTaskCompleted
 	 *
 	 * @param array $options
 	 * @return CFResponse
@@ -130,7 +134,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
-	 * Wrapper for SDK pollForActivityTask
+	 * Wrapper for SDK PollForActivityTask
 	 *
 	 * @param array $options
 	 * @return CFResponse
@@ -142,7 +146,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
-	 * Wrapper for SDK respondActivityTaskCompleted
+	 * Wrapper for SDK RespondActivityTaskCompleted
 	 *
 	 * @param array $options
 	 * @return CFResponse
@@ -154,7 +158,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
-	 * Wrapper for SDK respondActivityTaskCanceled
+	 * Wrapper for SDK RespondActivityTaskCanceled
 	 *
 	 * @param array $options
 	 * @return CFResponse
@@ -166,7 +170,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
-	 * Wrapper for SDK respondActivityTaskFailed
+	 * Wrapper for SDK RespondActivityTaskFailed
 	 *
 	 * @param array $options
 	 * @return CFResponse
@@ -178,7 +182,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
-	 * Wrapper for SDK registerWorkflowType
+	 * Wrapper for SDK RegisterWorkflowType
 	 *
 	 * @param array $options
 	 * @return CFResponse
@@ -190,7 +194,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
-	 * Wrapper for SDK describeWorkflowType
+	 * Wrapper for SDK DescribeWorkflowType
 	 *
 	 * @param array $options
 	 * @return CFResponse
@@ -202,7 +206,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
-	 * Wrapper for SDK registerActivityType
+	 * Wrapper for SDK RegisterActivityType
 	 *
 	 * @param array $options
 	 * @return CFResponse
@@ -211,5 +215,41 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	public function registerActivityType(array $options = array())
 	{
 		return $this->getAmazonObject()->register_activity_type($options);
+	}
+
+	/**
+	 * Wrapper for SDK ListOpenWorkflowExecutions
+	 *
+	 * @param array $options
+	 * @return CFResponse
+	 * @throws \Exception (TODO what is actual exception, lazy?)
+	 */
+	public function listOpenWorkflowExecutions(array $options = array())
+	{
+		return $this->getAmazonObject()->list_open_workflow_executions($options);
+	}
+
+	/**
+	 * Wrapper for SDK CountOpenWorkflowExecutions
+	 *
+	 * @param array $options
+	 * @return CFResponse
+	 * @throws \Exception (TODO what is actual exception, lazy?)
+	 */
+	public function countOpenWorkflowExecutions(array $options = array())
+	{
+		return $this->getAmazonObject()->count_open_workflow_executions($options);
+	}
+
+	/**
+	 * Wrapper for SDK TerminateWorkflowExecution
+	 *
+	 * @param array $options
+	 * @return CFResponse
+	 * @throws \Exception (TODO what is actual exception, lazy?)
+	 */
+	public function terminateWorkflowExecution(array $options = array())
+	{
+		return $this->getAmazonObject()->terminate_workflow_executions($options);
 	}
 }

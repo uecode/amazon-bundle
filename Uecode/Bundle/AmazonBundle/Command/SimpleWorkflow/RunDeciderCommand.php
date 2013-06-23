@@ -90,8 +90,6 @@ class RunDeciderCommand extends ContainerAwareCommand
 		$logger = $container->get('logger');
 
 		try {
-			$amazonFactory = $container->get('uecode.amazon')->getFactory('ue');
-
 			$logger->log(
 				'info',
 				'Starting decider worker',
@@ -104,15 +102,14 @@ class RunDeciderCommand extends ContainerAwareCommand
 				)
 			);
 
-			$swf = $amazonFactory->build('AmazonSWF', array(), $container);
-			$decider = $swf->loadDecider($domain, $name, $workflowVersion, $activityVersion, $taskList);
-
-			// note that run() will sit in an infinite loop unless this process is killed.
-			// it's better to use SIGHUP, SIGINT, or SIGTERM than SIGKILL since the workers
-			// have signal handlers.
-			$decider->run();
+			// this will sit in an infinite loop (only while code conditions stay true).
+			// it is best to send this a SIGHUP, SIGINT, or SIGTERM so it ends nicely.
+			$container->get('uecode.amazon')
+			          ->getAmazonService('SimpleWorkflow', 'ue', array('domain' => $domain))
+			          ->runDecider($name, $workflowVersion, $activityVersion, $taskList);
 
 			$output->writeln('exiting');
+
 			$decider->log(
 				'info',
 				'Decider worker ended'

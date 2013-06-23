@@ -93,14 +93,11 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 				)
 			);
 
-			$amazonFactory = $container->get( 'uecode.amazon' )->getFactory( 'ue' );
-			$swf = $amazonFactory->build('AmazonSWF', array(), $container);
-			$activity = $swf->loadActivityWorker($domain, $taskList, $version, $identity);
-
-			// note that run() will sit in an infinite loop unless this process is killed.
-			// it's better to use SIGHUP, SIGINT, or SIGTERM than SIGKILL since the workers
-			// have signal handlers.
-			$activity->run();
+			// this will sit in an infinite loop (only while code conditions stay true).
+			// it is best to send this a SIGHUP, SIGINT, or SIGTERM so it ends nicely.
+			$container->get('uecode.amazon')
+			          ->getAmazonService('SimpleWorkflow', 'ue', array('domain' => $domain))
+			          ->runActivityWorker($taskList, $identity);
 
 			$output->writeln('exiting');
 
@@ -109,19 +106,15 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 				'Activity worker ended'
 			);
 		} catch (\Exception $e) {
-			try {
-				$logger->log(
-					'critical',
-					'Caught exception: '.$e->getMessage(),
-					array(
-						'trace' => $e->getTrace()
-					)
-				);
-			// if that failed... then... damn.
-			} catch (Exception $e) {
-				$output->writeln('EXCEPTION: '.$e->getMessage());
-				$output->writeln(print_r($e, true));
-			}
+			$logger->log(
+				'critical',
+				'Caught exception: '.$e->getMessage(),
+				array(
+					'trace' => $e->getTrace()
+				)
+			);
+
+			throw $e;
 		}
 	}
 }

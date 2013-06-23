@@ -71,13 +71,11 @@ class SDKCommandCommand extends ContainerAwareCommand
 	final protected function callSDKCommand($command, $options) {
 		$container = $this->getApplication()->getKernel()->getContainer();
 
-		$swf = $container
-		  ->get('uecode.amazon')
-		  ->getFactory('ue')
-		  ->build('AmazonSWF', array(), $container);
+		$swf = $container->get('uecode.amazon')
+		                 ->getAmazonService('SimpleWorkflow', 'ue', array());
 
 		if (!method_exists($swf, $command)) {
-			throw new \Exception('Amazon SWF/SDK method "'.$command.'" does not exist');
+			throw new \Exception('SimpleWorkflow::'.$command.' does not exist');
 		}
 
 		return $swf->{$command}($options);

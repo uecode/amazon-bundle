@@ -46,7 +46,7 @@ class ListOpenWorkflowExecutionsCommand extends SDKCommandCommand
 	 *
 	 * @access protected
 	 */
-	protected $command = 'list_open_workflow_executions';
+	protected $command = 'listOpenWorkflowExecutions';
 
 	/**
 	 * @var string command name

@@ -122,6 +122,6 @@ class TerminateWorkflowExecutionCommand extends SDKCommandCommand
 			$options['runId'] = $runId;
 		}
 
-		$output->writeln(print_r($this->callSDKCommand('terminate_workflow_execution', $options)->body, true));
+		$output->writeln(print_r($this->callSDKCommand('terminateWorkflowExecution', $options)->body, true));
 	}
 }
