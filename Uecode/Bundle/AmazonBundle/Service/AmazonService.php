@@ -74,19 +74,9 @@ class AmazonService
 		$config = $this->config->all();
 
 		$object = new $class();
-
-		$amazonObject = $object->buildAmazonObject($config['accounts']['connections'][$configConnectionKey]);
-
-		// Check to make sure its a valid Amazon object
-		if (!($amazonObject instanceof \CFRuntime)) {
-			throw new InvalidClassException('Amazon object could not be built.');
-		}
-
-		$object->setAmazonObject($amazonObject);
-
-		// TODO add support for v2
-
-		$object->setLogger($this->logger);
+		$object->initialize($this->config)
+		       ->setAmazonObject($object->buildAmazonObject($config['accounts']['connections'][$configConnectionKey]))
+		       ->setLogger($this->logger);
 
 		return $object;
 	}

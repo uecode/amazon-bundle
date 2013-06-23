@@ -25,7 +25,7 @@
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
 // Amazon components
-use \Uecode\Bundle\AmazonBundle\Component\AmazonComponent;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Util;
 
 // Amazon Classes
@@ -35,8 +35,15 @@ use \CFRuntime;
 // Symfony and related
 use Monolog\Logger;
 
-class Worker extends AmazonComponent
+class Worker
 {
+	/**
+	 * @var SimpleWorkflow
+	 *
+	 * @access protected
+	 */
+	protected $swf;
+
 	/**
 	 * @var \CFResponse A response from either PollForDecisionTask or PollForActivityTask (depends on context)
 	 *
@@ -88,13 +95,6 @@ class Worker extends AmazonComponent
 	protected $amazonWorkflowId;
 
 	/**
-	 * @var Logger Logger instance
-	 *
-	 * @access protected
-	 */
-	protected $logger;
-
-	/**
 	 * @var bool Do we run another loop of work.
 	 */
 	private $doRun = true;
@@ -106,11 +106,10 @@ class Worker extends AmazonComponent
 	 * @param string The SWF domain this worker is working in
 	 * @access protected
 	 */
-	protected function __construct(AmazonSWF $swf)
+	protected function __construct(SimpleWorkflow $swf)
 	{
 		$this->registerSignalHandlers();
-		$this->setAmazonClass($swf);
-		$this->setLogger($swf->getLogger());
+		$this->setSWFObject($swf);
 
 		// TODO this should be reset each worker loop
 		$this->executionId = Util::generateUUID();
@@ -299,28 +298,6 @@ class Worker extends AmazonComponent
 	}
 
 	/**
-	 * Set the logger
-	 *
-	 * @access protected
-	 * @param Logger $logger
-	 */
-	protected function setLogger(Logger $logger)
-	{
-		$this->logger = $logger;
-	}
-
-	/**
-	 * Get the logger
-	 *
-	 * @access protected
-	 * @return Logger
-	 */
-	protected function getLogger()
-	{
-		return $this->logger;
-	}
-
-	/**
 	 * Get a workflow array from config
 	 *
 	 * You can pass any (or no) combination of name and version to find that set.
@@ -335,7 +312,7 @@ class Worker extends AmazonComponent
 	{
 		$ret = array();
 
-		$wf = $this->amazonObj->getConfig()->get('simpleworkflow');
+		$wf = $this->getSWFObject()->getConfig()->get('simpleworkflow');
 
 		foreach ($wf['domains'] as $dk => $dv) {
 			if ($this->domain == $dk) {
@@ -373,7 +350,7 @@ class Worker extends AmazonComponent
 	{
 		$ret = array();
 
-		$wf = $this->amazonObj->getConfig()->get('simpleworkflow');
+		$wf = $this->getSWFObject()->getConfig()->get('simpleworkflow');
 
 		foreach ($wf['domains'] as $dk => $dv) {
 			if ($this->domain == $dk) {
@@ -456,5 +433,42 @@ class Worker extends AmazonComponent
 	public function getResponse()
 	{
 		return $this->response;
+	}
+
+	/**
+	 * @param AmazonSWF $amazonObject
+	 *
+	 * @access public
+	 * @param SimpleWorkflow
+	 * @return Worker
+	 */
+	public function setSWFObject(SimpleWorkflow $swfObject)
+	{
+		$this->swf = $swfObject;
+		return $this;
+	}
+
+	/**
+	 * @return Simpleworkflow
+	 */
+	public function getSWFObject()
+	{
+		return $this->swf;
+	}
+
+	/**
+	 * @return AmazonSWF
+	 */
+	public function getAmazonObject()
+	{
+		return $this->getSWFObject()->getAmazonObject();
+	}
+
+	/**
+	 * @return Logger
+	 */
+	public function getLogger()
+	{
+		return $this->getSWFObject()->getLogger();
 	}
 }

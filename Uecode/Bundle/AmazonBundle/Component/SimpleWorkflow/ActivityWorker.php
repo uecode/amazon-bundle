@@ -25,7 +25,7 @@
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
 // Amazon Components
-use \Uecode\Bundle\AmazonBundle\Model\SimpleWorkFlow;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Worker;
 
 // Amazon Exceptions
@@ -57,19 +57,17 @@ class ActivityWorker extends Worker
 	 * constructor
 	 *
 	 * @access protected
-	 * @param AmazonSWF $swf Simple workflow object
+	 * @param SimpleWorkflow $swf Simple workflow object
 	 * @param string The SWF domain this worker is working in
 	 * @param string $taskList
-	 * @param string $activityVersion
 	 * @param string $identity
 	 */
-	public function __construct(AmazonSWF $swf, $domain, $taskList, $activityVersion, $identity = null)
+	public function __construct(SimpleWorkflow $swf, $domain, $taskList, $identity = null)
 	{
 		parent::__construct($swf);
 
 		$this->domain = $domain;
 		$this->taskList = $taskList;
-		$this->activityVersion = $activityVersion;
 		$this->identity = $identity;
 	}
 
@@ -109,7 +107,7 @@ class ActivityWorker extends Worker
 					'identity' => $this->identity
 				);
 
-				$this->response = $this->amazonObj->poll_for_activity_task($pollRequest);
+				$this->response = $this->getSWFObject()->pollForActivityTask($pollRequest);
 
 				$this->log(
 					'debug',
@@ -196,9 +194,11 @@ class ActivityWorker extends Worker
 				$request = $obj->run($token, $this);
 				$request->taskToken = $request->taskToken ?: $token;
 
-				$method = 'respond_activity_task_'.str_replace('ActivityTask', '', basename(str_replace('\\', '/', get_class($request))));
+				// use basename on the classname that came from object above.
+				// this is our response type.
+				$method = 'respondActivityTask'.ucFirst(strtolower(str_replace('ActivityTask', '', basename(str_replace('\\', '/', get_class($request))))));
 
-				$this->response = $this->amazonObj->{$method}((array)$request);
+				$this->response = $this->getSWFObject()->{$method}((array)$request);
 
 				if ($this->response->isOK()) {
 					$this->log(

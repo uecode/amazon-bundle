@@ -22,61 +22,26 @@
 
 namespace Uecode\Bundle\AmazonBundle\Component;
 
-// Symfony (and related)
-use Monolog\Logger;
-use Symfony\Component\DependencyInjection\Container;
-
-// Models
-use \Uecode\Bundle\AmazonBundle\Model\AmazonInterface;
-
 // Exceptions
-use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
-use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
+//use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
+//use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
 // Amazon Bundle Components
 use \Uecode\Bundle\AmazonBundle\Component\AbstractAmazonComponent;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DeciderWorker;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityWorker;
 
-// Uecode Bundle Components
-use \Uecode\Bundle\UecodeBundle\Component\Config;
-
-use \AmazonSWF as SWF;
-
 /**
- * @todo this class should encapsulate swf, not extend it.
+ * For working w/ Amazon SWF
+ *
+ * @copyright (c) 2013 Underground Elepahant
+ * @author John Pancoast
  */
 class SimpleWorkflow extends AbstractAmazonComponent
 {
-
-	/**
-	 * @var bool Defines whether or not initialize() has been ran.
-	 */
-	private $initialized = false;
-
-	/**
-	 * @var Config
-	 */
-	protected $config;
-
-	/**
-	 * @var
-	 */
-	protected $workflow;
-
-	/**
-	 * @var Logger Logger instance
-	 * @access  protected
-	 */
-	protected $logger;
-
-	/**
-	 * @var Symfony container
-	 */
-	private $container;
-
 	/*
 	 * inherit
+	 * @return \AmazonSWF
 	 */
 	public function buildAmazonObject(array $options)
 	{
@@ -84,141 +49,171 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
-	 * Load a decider
+	 * Build a decider
 	 *
-	 * @param string $domain Domain name to register workflow in
+	 * @access public
 	 * @param string $name Workflow name used for registration
 	 * @param string $workflowVersion Workflow version used for egistration and finding decider related classes.
 	 * @param string $activityVersion Activity version used for activity registration and finding activity related classes.
 	 * @param string $taskList Task list to poll on
 	 * @return DeciderWorker
 	 */
-	public function loadDecider($domain, $name, $workflowVersion, $activityVersion, $taskList)
+	public function buildDecider($name, $workflowVersion, $activityVersion, $taskList)
 	{
+		// TODO remove the need for this to be passed to worker
+		$domain = $this->getConfig()->get('aws_options')['domain'];
 		return new DeciderWorker($this, $domain, $name, $workflowVersion, $activityVersion, $taskList);
 	}
 
-	public function loadActivityWorker($domain, $taskList, $activityVersion, $identity = null)
-	{
-		return new ActivityWorker($this, $domain, $taskList, $activityVersion, $identity);
-	}
-
 	/**
-	 * Initializes the current object
-	 *
-	 * @param Config $config
-	 * @return void
-	 */
-	public function initialize(Config $config)
-	{
-		if ($this->getInitialized()) {
-			return;
-		}
-
-		$this->initializeConfigs($config);
-		$this->setInitialized();
-
-		return;
-	}
-
-	/**
-	 * Initialize Configs
-	 *
-	 * @param Config $config
-	 * @return void
-	 */
-	function initializeConfigs(Config $config)
-	{
-		$this->setConfig($config);
-		$this->validateConfigs();
-	}
-
-
-	/**
-	 * Validates $this->configs. Should be called within initialize
-	 *
-	 * @throws InvalidConfigurationException
-	 * @return bool
-	 */
-	public function validateConfigs()
-	{
-	}
-
-	/**
-	 * Should be called at the end of initialize to show that the class has been initialized.
-	 *
-	 * @param bool $bool
-	 * @return void
-	 */
-	public function setInitialized($bool = true)
-	{
-		$this->initialized = $bool;
-	}
-
-	/**
-	 * Should return whether or not the initialize function has been ran.
-	 *
-	 * @return bool
-	 */
-	public function getInitialized()
-	{
-		return $this->initialized;
-	}
-
-	/**
-	 * @param Config $config
-	 * @return void
-	 */
-	public function setConfig(Config $config)
-	{
-		$this->config = $config;
-	}
-
-	/**
-	 * @return Config
-	 */
-	public function getConfig()
-	{
-		return $this->config;
-	}
-
-	/**
-	 * Set the logger
-	 *
-	 * @param Logger $logger
-	 */
-	public function setLogger(Logger $logger)
-	{
-		$this->logger = $logger;
-	}
-
-	/**
-	 * Get the logger
-	 *
-	 * @return Logger
-	 */
-	public function getLogger()
-	{
-		return $this->logger;
-	}
-
-	/**
-	 * Set container
+	 * Build and run a decider
 	 *
 	 * @access public
-	 * @param Container $container Service container
+	 * @param string $name Workflow name used for registration
+	 * @param string $workflowVersion Workflow version used for egistration and finding decider related classes.
+	 * @param string $activityVersion Activity version used for activity registration and finding activity related classes.
+	 * @param string $taskList Task list to poll on
 	 */
-	public function setContainer(Container $container) {
-		$this->container = $container;
+	public function runDecider($name, $workflowVersion, $activityVersion, $taskList)
+	{
+		$b = $this->buildDecider($name, $workflowVersion, $activityVersion, $taskList);
+		$b->run();
+	}
+
+
+	/**
+	 * Build an activity worker
+	 *
+	 * @access public
+	 * @param string $taskList Task list to poll on
+	 * @param string $identity Identity of this activity worker (recorded in ActivityTaskStarted event)
+	 * @return ActivityWorker
+	 */
+	public function buildActivityWorker($taskList, $identity = null)
+	{
+		// TODO remove the need for this to be passed to worker
+		$domain = $this->getConfig()->get('aws_options')['domain'];
+		return new ActivityWorker($this, $domain, $taskList, $identity);
 	}
 
 	/**
-	 * Get container
+	 * Build and run activity worker
 	 *
 	 * @access public
-	 * return Container
+	 * @param string $taskList Task list to poll on
+	 * @param string $identity Identity of this activity worker (recorded in ActivityTaskStarted event)
 	 */
-	public function getContainer() {
-		return $this->container;
+	public function runActivityWorker($taskList, $identity = null)
+	{
+		$b = $this->buildActivityWorker($taskList, $identity);
+		$b->run();
+	}
+
+	/**
+	 * Wrapper for SDK pollForDecisionTask
+	 *
+	 * @param array $options
+	 * @return CFResponse
+	 * @throws \Exception (TODO what is actual exception, lazy?)
+	 */
+	public function pollForDecisionTask(array $options = array())
+	{
+		return $this->getAmazonObject()->poll_for_decision_task($options);
+	}
+
+	/**
+	 * Wrapper for SDK respondDecisionTaskCompleted
+	 *
+	 * @param array $options
+	 * @return CFResponse
+	 * @throws \Exception (TODO what is actual exception, lazy?)
+	 */
+	public function respondDecisionTaskCompleted(array $options = array())
+	{
+		return $this->getAmazonObject()->respond_decision_task_completed($options);
+	}
+
+	/**
+	 * Wrapper for SDK pollForActivityTask
+	 *
+	 * @param array $options
+	 * @return CFResponse
+	 * @throws \Exception (TODO what is actual exception, lazy?)
+	 */
+	public function pollForActivityTask(array $options = array())
+	{
+		return $this->getAmazonObject()->poll_for_activity_task($options);
+	}
+
+	/**
+	 * Wrapper for SDK respondActivityTaskCompleted
+	 *
+	 * @param array $options
+	 * @return CFResponse
+	 * @throws \Exception (TODO what is actual exception, lazy?)
+	 */
+	public function respondActivityTaskCompleted(array $options = array())
+	{
+		return $this->getAmazonObject()->respond_activity_task_completed($options);
+	}
+
+	/**
+	 * Wrapper for SDK respondActivityTaskCanceled
+	 *
+	 * @param array $options
+	 * @return CFResponse
+	 * @throws \Exception (TODO what is actual exception, lazy?)
+	 */
+	public function respondActivityTaskCanceled(array $options = array())
+	{
+		return $this->getAmazonObject()->respond_activity_task_canceled($options);
+	}
+
+	/**
+	 * Wrapper for SDK respondActivityTaskFailed
+	 *
+	 * @param array $options
+	 * @return CFResponse
+	 * @throws \Exception (TODO what is actual exception, lazy?)
+	 */
+	public function respondActivityTaskFailed(array $options = array())
+	{
+		return $this->getAmazonObject()->respond_activity_task_failed($options);
+	}
+
+	/**
+	 * Wrapper for SDK registerWorkflowType
+	 *
+	 * @param array $options
+	 * @return CFResponse
+	 * @throws \Exception (TODO what is actual exception, lazy?)
+	 */
+	public function registerWorkflowType(array $options = array())
+	{
+		return $this->getAmazonObject()->register_workflow_type($options);
+	}
+
+	/**
+	 * Wrapper for SDK describeWorkflowType
+	 *
+	 * @param array $options
+	 * @return CFResponse
+	 * @throws \Exception (TODO what is actual exception, lazy?)
+	 */
+	public function describeWorkflowType(array $options = array())
+	{
+		return $this->getAmazonObject()->describe_workflow_type($options);
+	}
+
+	/**
+	 * Wrapper for SDK registerActivityType
+	 *
+	 * @param array $options
+	 * @return CFResponse
+	 * @throws \Exception (TODO what is actual exception, lazy?)
+	 */
+	public function registerActivityType(array $options = array())
+	{
+		return $this->getAmazonObject()->register_activity_type($options);
 	}
 }

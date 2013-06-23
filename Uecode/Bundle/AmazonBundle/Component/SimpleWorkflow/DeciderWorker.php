@@ -25,9 +25,9 @@
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
 // Amazon Components
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\HistoryEventIterator;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\State\DeciderWorkerState;
-use \Uecode\Bundle\AmazonBundle\Model\SimpleWorkflow;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Worker;
 
 // Amazon Exceptions
@@ -104,7 +104,7 @@ class DeciderWorker extends Worker
 	 *
 	 * @final
 	 * @access public
-	 * @param \AmazonSWF $swf
+	 * @param \SimpleWorkflow $swf
 	 * @param array $workflowType
 	 * @param string $domain Domain name to register workflow in
 	 * @param string $name Workflow name used for registration
@@ -112,7 +112,7 @@ class DeciderWorker extends Worker
 	 * @param string $activityVersion Activity version used for activity registration and finding activity related classes.
 	 * @param string $taskList Task list to poll on
 	 */
-	final public function __construct(AmazonSWF $swf, $domain, $name, $workflowVersion, $activityVersion, $taskList) {
+	final public function __construct(SimpleWorkflow $swf, $domain, $name, $workflowVersion, $activityVersion, $taskList) {
 		parent::__construct($swf);
 
 		$cfg = $swf->getConfig()->get('simpleworkflow');
@@ -189,7 +189,7 @@ class DeciderWorker extends Worker
 					'taskList' => array('name' => $this->taskList)
 				);
 
-				$this->response = $this->amazonObj->poll_for_decision_task($pollRequest);
+				$this->response = $this->getSWFObject()->pollForDecisionTask($pollRequest);
 
 				$this->log(
 					'debug',
@@ -235,7 +235,7 @@ class DeciderWorker extends Worker
 							'decisions' => $this->createSWFDecisionArray($decision)
 						);
 
-						$completeResponse = $this->amazonObj->respond_decision_task_completed($decisionArray);
+						$completeResponse = $this->getSWFObject()->respondDecisionTaskCompleted($decisionArray);
 
 						if ($completeResponse->isOK()) {
 							$this->log(
@@ -467,7 +467,7 @@ class DeciderWorker extends Worker
 		}
 
 
-		$response = $this->amazonObj->register_workflow_type($registerRequest);
+		$response = $this->getSWFObject()->registerWorkflowType($registerRequest);
 
 		$this->log(
 			'info',
@@ -487,7 +487,7 @@ class DeciderWorker extends Worker
 			exit;
 		}
 
-		return $this->amazonObj->describe_workflow_type($registerRequest);
+		return $this->getSWFObject()->describeWorkflowType($registerRequest);
 	}
 
 	/**
@@ -539,7 +539,7 @@ class DeciderWorker extends Worker
 			// TODO add other registration key/value pairs here
 
 			// register type (ignoring "already exists" fault for now)
-			$response = $this->amazonObj->register_activity_type($request);
+			$response = $this->getSWFObject()->registerActivityType($request);
 
 			$this->log(
 				'debug',
