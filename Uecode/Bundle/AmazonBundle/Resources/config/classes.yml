@@ -1,0 +1,3 @@
+classes:
+    # class names can be overridden by developer
+    SimpleWorkflow: \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow

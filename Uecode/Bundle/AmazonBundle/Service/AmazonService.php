@@ -3,7 +3,7 @@
 /**
  * @package amazon-bundle
  * @copyright (c) 2013 Undeground Elephant
- * @author Aaron Scherer
+ * @author John Pancoast
  *
  * Copyright 2013 Underground Elephant
  *
@@ -28,21 +28,37 @@ use Symfony\Component\Yaml\Yaml;
 
 // Uecode
 use \Uecode\Bundle\UecodeBundle\Component\Config;
-use \Uecode\Bundle\AmazonBundle\Factory\AmazonFactory;
 
 // AmazonBundle Exceptions
 use \Uecode\Bundle\AmazonBundle\Exception\ClassNotFoundException;
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
+/**
+ * Service for loading Amazon services
+ *
+ * @author John Pancoast
+ */
 class AmazonService
 {
+	/**
+	 * @var Config
+	 *
+	 * @access private
+	 */
+	private $config;
 
 	/**
-	 * @var Uecode\Bundle\AmazonBundle\Factory\AmazonFactory[]
+	 * @var array Where amazon service class locations are defined
+	 *
+	 * @access private
 	 */
-	private $factories = array();
+	private $classConfig;
 
-	private $config;
+	/**
+	 * @var Logger
+	 *
+	 * @access private
+	 */
 	private $logger;
 
 	/**
@@ -56,13 +72,22 @@ class AmazonService
 		$this->config = new Config($config);
 		$this->logger = $logger;
 
-		$file = __DIR__ . '/../Resources/config/models.yml';
-		$this->modelConfig = new Config((array)Yaml::parse($file));
+		$file = __DIR__ . '/../Resources/config/classes.yml';
+		$this->classConfig = new Config((array)Yaml::parse($file));
 	}
 
+	/**
+	 * Get an amazon servive
+	 *
+	 * @access public
+	 * @param string $awsserviceName The service to load
+	 * @param string $configConnectionKey A config key specifying amazon connection to use (relative to uecode.amazon.accounts.connections)
+	 * @param array $awsServiceOptions Options needed for the service
+	 * @return AbstractAmazonComponent (child of it)
+	 */
 	public function getAmazonService($awsServiceName, $configConnectionKey, array $awsServiceOptions = array())
 	{
-		$class = $this->getAWSClass($awsServiceName);
+		$class = $this->getAmazonClass($awsServiceName);
 
 		if (!$class) {
 			throw new ClassNotFoundException($awsServiceName);
@@ -81,10 +106,17 @@ class AmazonService
 		return $object;
 	}
 
-	private function getAWSClass($className)
+	/**
+	 * Find amazon class location
+	 *
+	 * @access private
+	 * @param string $className The name of class to locate
+	 * @return mixed string|null
+	 */
+	private function getAmazonClass($className)
 	{
-		foreach ($this->modelConfig->all()['model'] as $modelName => $class) {
-			if ($className === $modelName) {
+		foreach ($this->classConfig->all()['classes'] as $cName => $class) {
+			if ($className === $cName) {
 				return $class;
 			}
 		}
