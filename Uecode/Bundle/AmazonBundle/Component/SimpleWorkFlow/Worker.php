@@ -38,6 +38,13 @@ use Monolog\Logger;
 class Worker extends AmazonComponent
 {
 	/**
+	 * @var \CFResponse A response from either PollForDecisionTask or PollForActivityTask (depends on context)
+	 *
+	 * @access protected
+	 */
+	protected $response;
+
+	/**
 	 * @var string The SWF domain this worker is working in.
 	 *
 	 *  @access protected
@@ -117,7 +124,7 @@ class Worker extends AmazonComponent
 	 */
 	protected function __construct(AmazonSWF $swf)
 	{
-		$this->registerSignalHandlers();
+		///$this->registerSignalHandlers();
 		$this->setAmazonClass($swf);
 		$this->setLogger($swf->getLogger());
 
@@ -330,52 +337,15 @@ class Worker extends AmazonComponent
 	}
 
 	/**
-	 * Simple helper to get activity array out of config
+	 * Get a workflow array from config
 	 *
 	 * You can pass any (or no) combination of name and version to find that set.
 	 *
 	 * @final
 	 * @access protected
-	 * @param string $name The activityType name
-	 * @param mixed $version The activity version
+	 * @param string $name The workflowType name
+	 * @param mixed $version The workflowType version
 	 * @return array
-	 */
-	final protected function getActivityConfig($name = null, $version = null)
-	{
-		$ret = array();
-
-		$wf = $this->amazonClass->getConfig()->get('simpleworkflow');
-
-		foreach ($wf['domains'] as $dk => $dv) {
-			if ($this->domain == $dk) {
-				if (!$name && !$version) {
-					$ret = $dv['activities'];
-					continue;
-				}
-
-				foreach ($dv['activities'] as $a) {
-					if (($name && $version && $name == $a['name'] && $version == $a['version'])
-					 || ($name && !$version && $name == $a['name'])
-					 || (!$name && $version && $version == $a['version'])) {	
-						$ret[] = $a;
-					}
-				}
-			}
-		}
-
-		return $ret;
-	}
-
-	/**
-	 * ** for backward compat **
-	 */
-	final protected function getActivityArray($name = null, $version = null)
-	{
-		return $this->getActivityConfig($type, $version);
-	}
-
-	/**
-	 * Get a workflow array from config
 	 */
 	final public function getWorkflowConfig($name = null, $version = null)
 	{
@@ -403,7 +373,54 @@ class Worker extends AmazonComponent
 		return $ret;
 	}
 
-	final protected function getEventNamespace($name, $version) {
+
+	/**
+	 * Get activity array out of config
+	 *
+	 * You can pass any (or no) combination of name and version to find that set.
+	 *
+	 * @final
+	 * @access protected
+	 * @param string $name The activityType name
+	 * @param mixed $version The activityType version
+	 * @return array
+	 */
+	final public function getActivityConfig($name = null, $version = null)
+	{
+		$ret = array();
+
+		$wf = $this->amazonClass->getConfig()->get('simpleworkflow');
+
+		foreach ($wf['domains'] as $dk => $dv) {
+			if ($this->domain == $dk) {
+				if (!$name && !$version) {
+					$ret = $dv['activities'];
+					continue;
+				}
+
+				foreach ($dv['activities'] as $a) {
+					if (($name && $version && $name == $a['name'] && $version == $a['version'])
+					 || ($name && !$version && $name == $a['name'])
+					 || (!$name && $version && $version == $a['version'])) {
+						$ret[] = $a;
+					}
+				}
+			}
+		}
+
+		return $ret;
+	}
+
+	/**
+	 * Find event namespace from workflow config section
+	 *
+	 * @final
+	 * @access protected
+	 * @param string $name The workfloeType name
+	 * @param mixed $version The workflowType version
+	 * @return string
+	 */
+	final public function getEventNamespace($name, $version) {
 		$cfg = $this->getWorkflowConfig($name, $version);
 		if (count($cfg) != 1 || !isset($cfg[0]['history_event_namespace'])) {
 			return;
@@ -412,7 +429,16 @@ class Worker extends AmazonComponent
 		return $cfg[0]['history_event_namespace'];
 	}
 
-	final protected function getActivityEventNamespace($name, $version) {
+	/**
+	 * Find activity event namespace from workflow config section 
+	 *
+	 * @final
+	 * @access protected
+	 * @param string $name The workfloeType name
+	 * @param mixed $version The workflowType version
+	 * @return string
+	 */
+	final public function getActivityEventNamespace($name, $version) {
 		$cfg = $this->getWorkflowConfig($name, $version);
 		if (count($cfg) != 1 || !isset($cfg[0]['history_activity_event_namespace'])) {
 			return;
@@ -422,27 +448,29 @@ class Worker extends AmazonComponent
 	}
 
 	/**
-	 * Simple helper to get activity directory out of config
+	 * Get activity namespace from activity config section
 	 *
 	 * @final
+	 * @param string $name activityType name
+	 * @param mixed $version activitytype version
 	 * @access protected
 	 * @return string
 	 */
-	final protected function getActivityDirectory()
+	final public function getActivityClass($name, $version)
 	{
-		$ar = $this->getActivityArray();
-		return $ar['directory'];
+		$cfg = $this->getActivityConfig($name, $version);
+		if (count($cfg) != 1 || !isset($cfg[0]['class'])) {
+			return;
+		}
+
+		return $cfg[0]['class'];
 	}
 
 	/**
-	 * Simple helper to get activity namespace out of config
-	 *
-	 * @final
-	 * @access protected
+	 * Get the response the worker is currently working w/
 	 */
-	final protected function getActivityNamespace()
+	public function getResponse()
 	{
-		$ar = $this->getActivityArray();
-		return $ar['namespace'];
+		return $this->response;
 	}
 }

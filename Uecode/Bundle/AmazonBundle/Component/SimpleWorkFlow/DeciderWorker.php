@@ -45,11 +45,6 @@ use \CFResponse;
 class DeciderWorker extends Worker
 {
 	/**
-	 * @var \CFResponse
-	 */
-	private $workflow;
-
-	/**
 	 * @var string Workflow name used for registration
 	 *
 	 * @access private
@@ -181,6 +176,8 @@ class DeciderWorker extends Worker
 		try {
 			// run until we receive a signal to stop
 			while ($this->doRun()) {
+				$this->response = null;
+
 				// these values can only be set from amazon response
 				$this->setAmazonRunId(null);
 				$this->setAmazonWorkflowId(null);
@@ -192,20 +189,20 @@ class DeciderWorker extends Worker
 					'taskList' => array('name' => $this->taskList)
 				);
 
-				$response = $this->amazonClass->poll_for_decision_task($pollRequest);
+				$this->response = $this->amazonClass->poll_for_decision_task($pollRequest);
 
 				$this->log(
 					'debug',
 					'PollForDecisionTask',
 					array(
 						'request' => $pollRequest,
-						'response' => json_decode(json_encode($response), true)
+						'response' => json_decode(json_encode($this->response), true)
 					)
 				);
 
-				if ($response->isOK()) {
+				if ($this->response->isOK()) {
 					// unique id for this task which is used when we make our RespondDecisionTaskCompleted call.
-					$taskToken = (string)$response->body->taskToken;
+					$taskToken = (string)$this->response->body->taskToken;
 
 					if (!empty($taskToken)) {
 						$this->log(
@@ -214,11 +211,12 @@ class DeciderWorker extends Worker
 						);
 
 						// set relevant amazon ids
-						$this->setAmazonRunId((string)$response->body->workflowExecution->runId);
-						$this->setAmazonWorkflowId((string)$response->body->workflowExecution->workflowId);
+						$this->setAmazonRunId((string)$this->response->body->workflowExecution->runId);
+						$this->setAmazonWorkflowId((string)$this->response->body->workflowExecution->workflowId);
 
 						try {
-							$decision = $this->decide(new HistoryEventIterator($this->getAmazonClass(), $pollRequest, $response), $response);
+							// start main decision logic
+							$decision = $this->decide(new HistoryEventIterator($this->getAmazonClass(), $pollRequest, $this->response));
 						} catch (\Exception $e) {
 							$this->log(
 								'critical',
@@ -269,7 +267,7 @@ class DeciderWorker extends Worker
 						'critical',
 						'PollForDecisionTask failed',
 						array(
-							'response' => $response->body
+							'response' => $this->response->body
 						)
 					);
 				}
@@ -298,7 +296,7 @@ class DeciderWorker extends Worker
 	 * @return Decision
 	 * @uses processEvent
 	 */
-	final private function decide(HistoryEventIterator $history, \CFResponse $response)
+	final private function decide(HistoryEventIterator $history)
 	{
 		$maxEventId = 01;
 
@@ -309,7 +307,7 @@ class DeciderWorker extends Worker
 
 		try {
 			foreach ($history as $event) {
-				$this->processEvent($decision, $event, $maxEventId, $response);
+				$this->processEvent($decision, $event, $maxEventId);
 			}
 		} catch (\Exception $e) {
 			// log the actual event that failed
@@ -343,7 +341,7 @@ class DeciderWorker extends Worker
 	 * @param Decision $decision
 	 * @param int $maxEventId
 	 */
-	final private function processEvent(Decision $decision, $event, &$maxEventId, \CFResponse $response)
+	final private function processEvent(Decision $decision, $event, &$maxEventId)
 	{
 		$maxEventId = max($maxEventId, intval($event->eventId));
 		$eventType = (string)$event->eventType;
@@ -355,8 +353,8 @@ class DeciderWorker extends Worker
 			'activity_type' => ($eventType == 'ActivityTaskScheduled' ? (string)$event->activityTaskScheduledEventAttributes->activityType->name : null)
 		);
 
-		$name = $response->body->workflowType->name;
-		$version = $response->body->workflowType->version;
+		$name = $this->response->body->workflowType->name;
+		$version = $this->response->body->workflowType->version;
 		$userClass = $this->getEventNamespace($name, $version).'\\'.$eventType;
 		$defaultClass = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEvent\\'.$eventType;
 
@@ -564,17 +562,6 @@ class DeciderWorker extends Worker
 				exit;
 			}
 		}
-	}
-
-	/**
-	 * Get the namespace where activities are located
-	 *
-	 * @access public
-	 * @return string
-	 */
-	public function getEventActivityNamespace()
-	{
-		return $this->activityNamespace;
 	}
 
 	/**

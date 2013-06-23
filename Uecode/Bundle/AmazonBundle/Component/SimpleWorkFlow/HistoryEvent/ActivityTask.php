@@ -68,7 +68,10 @@ class ActivityTask extends AbstractHistoryEvent
 		$eventName = $events[$scheduledId]['activity_type'];
 
 		if ($eventName) {
-			$class = $decider->getEventActivityNamespace().'\\'.$eventName;
+			$name = $decider->getResponse()->body->workflowType->name;
+			$version = $decider->getResponse()->body->workflowType->version;
+
+			$class = $decider->getActivityEventNamespace($name, $version).'\\'.$eventName;
 			$method = str_replace('ActivityTask', 'activityEvent', $eventType).'Logic';
 
 			$obj = new $class;
