@@ -100,22 +100,6 @@ class Worker extends AmazonComponent
 	private $doRun = true;
 
 	/**
-	 * @var string Workflow type version used for registration and for finding location of decider related classes.
-	 *
-	 * @access protected
-	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-version
-	 */
-	protected $workflowVersion;
-
-	/**
-	 * @var string Activity version used for activity registration and finding activity related classes.
-	 *
-	 * @access protected
-	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterActivityType.html#SWF-RegisterActivityType-request-version
-	 */
-	protected $activityVersion;
-
-	/**
 	 * Constructor
 	 *
 	 * @param AmazonSWF $swf An instance of the main amazon class
