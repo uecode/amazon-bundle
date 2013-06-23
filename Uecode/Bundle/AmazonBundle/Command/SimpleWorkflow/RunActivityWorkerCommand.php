@@ -59,12 +59,7 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 				InputOption::VALUE_REQUIRED,
 				'The SWF activity identity. Used for polling.'
 			)
-			->addOption(
-				'activity_version',
-				'z',
-				InputOption::VALUE_REQUIRED,
-				'[Required] What version of the activities should we register. See config value at uecode.amazon.simpleworkflow.domain.[domain].activities.[activity_version].'
-			);
+			;
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
@@ -76,9 +71,8 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 			$domain = $input->getOption('domain');
 			$taskList = $input->getOption('tasklist');
 			$identity = $input->getOption('identity');
-			$version = $input->getOption('activity_version');
 
-			if (!$domain || !$taskList || !$version) {
+			if (!$domain || !$taskList) {
 				throw new \Exception('Must define --domain, --tasklist, and --activity_version');
 			}
 
@@ -89,7 +83,6 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 					'domain' => $domain,
 					'taskList' => $taskList,
 					'identity' => $identity,
-					'activity_version' => $version
 				)
 			);
 
