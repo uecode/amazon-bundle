@@ -124,7 +124,7 @@ class Worker extends AmazonComponent
 	 */
 	protected function __construct(AmazonSWF $swf)
 	{
-		///$this->registerSignalHandlers();
+		$this->registerSignalHandlers();
 		$this->setAmazonClass($swf);
 		$this->setLogger($swf->getLogger());
 
