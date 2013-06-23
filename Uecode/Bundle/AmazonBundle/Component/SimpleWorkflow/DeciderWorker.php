@@ -22,20 +22,20 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
 // Amazon Components
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEventIterator;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\State\DeciderWorkerState;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\HistoryEventIterator;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\State\DeciderWorkerState;
 use \Uecode\Bundle\AmazonBundle\Model\SimpleWorkflow;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Worker;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Worker;
 
 // Amazon Exceptions
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
 // Events
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\AbstractHistoryEvent;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\AbstractHistoryEvent;
 
 // Amazon Classes
 use \AmazonSWF;
@@ -356,7 +356,7 @@ class DeciderWorker extends Worker
 		$name = $this->response->body->workflowType->name;
 		$version = $this->response->body->workflowType->version;
 		$userClass = $this->getEventNamespace($name, $version).'\\'.$eventType;
-		$defaultClass = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEvent\\'.$eventType;
+		$defaultClass = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\HistoryEvent\\'.$eventType;
 
 		if (class_exists($userClass)) {
 			$this->log(

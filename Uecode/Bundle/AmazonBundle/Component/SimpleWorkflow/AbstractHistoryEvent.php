@@ -22,10 +22,10 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DeciderWorker;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decision;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DeciderWorker;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Decision;
 
 /**
  * Abstraction to handle history events.

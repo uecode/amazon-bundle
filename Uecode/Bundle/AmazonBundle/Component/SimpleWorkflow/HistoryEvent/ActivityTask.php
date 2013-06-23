@@ -30,11 +30,11 @@ namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\HistoryEvent;
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
 // Amazon component
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\AbstractHistoryEvent;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryActivityEventInterface;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DeciderWorker;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decision;
-use Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DecisionEvent\ScheduleActivityTask;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\AbstractHistoryEvent;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\HistoryActivityEventInterface;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DeciderWorker;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Decision;
+use Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DecisionEvent\ScheduleActivityTask;
 
 /**
  * For handling any of the ActivityTask* events

@@ -1,12 +1,11 @@
 <?php
 
 /**
- * Activity task failed response
+ * Activity task response
  *
  * @package amazon-bundle
  * @copyright (c) 2013 Underground Elephant
  * @author John Pancoast
- * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RespondActivityTaskFailed.html
  *
  * Copyright 2013 Underground Elephant
  *
@@ -23,13 +22,12 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\ActivityTaskResponse;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
-use Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\ActivityTaskResponse;
-
-class ActivityTaskFailed extends ActivityTaskResponse
+/**
+ * An activity task response. All task responses must extend this.
+ */
+class ActivityTaskResponse
 {
-	public $details;
-	public $reason;
-	public $taskToken;
+	// presently just for type hinting
 }

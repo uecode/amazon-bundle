@@ -26,9 +26,9 @@
 
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\HistoryEvent;
 
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\HistoryEvent\ActivityTask;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DeciderWorker;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Decision;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\HistoryEvent\ActivityTask;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DeciderWorker;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Decision;
 
 /**
  * ActivityTaskCompleted event.

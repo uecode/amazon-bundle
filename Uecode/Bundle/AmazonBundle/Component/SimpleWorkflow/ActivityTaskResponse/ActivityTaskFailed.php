@@ -1,13 +1,12 @@
 <?php
 
 /**
- * CompleteWorkflowExecution decision event
+ * Activity task failed response
  *
  * @package amazon-bundle
  * @copyright (c) 2013 Underground Elephant
  * @author John Pancoast
- * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_Decision.html
- * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_CompleteWorkflowExecutionDecisionAttributes.html
+ * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RespondActivityTaskFailed.html
  *
  * Copyright 2013 Underground Elephant
  *
@@ -24,11 +23,13 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DecisionEvent;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityTaskResponse;
 
-use Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\DecisionEvent;
+use Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityTaskResponse;
 
-class CompleteWorkflowExecution extends DecisionEvent
+class ActivityTaskFailed extends ActivityTaskResponse
 {
-	public $result = '';
+	public $details;
+	public $reason;
+	public $taskToken;
 }

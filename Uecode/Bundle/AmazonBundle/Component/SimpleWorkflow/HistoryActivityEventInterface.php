@@ -23,7 +23,7 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
 interface HistoryActivityEventInterface
 {

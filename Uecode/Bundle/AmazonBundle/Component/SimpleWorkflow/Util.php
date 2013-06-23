@@ -21,7 +21,7 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
 class Util {
 	public static function generateUUID() {

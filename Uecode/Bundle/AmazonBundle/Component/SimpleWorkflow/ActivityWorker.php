@@ -22,11 +22,11 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
 // Amazon Components
 use \Uecode\Bundle\AmazonBundle\Model\SimpleWorkFlow;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Worker;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Worker;
 
 // Amazon Exceptions
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;

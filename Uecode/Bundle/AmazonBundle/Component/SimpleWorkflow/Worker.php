@@ -22,11 +22,11 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
 // Amazon components
 use \Uecode\Bundle\AmazonBundle\Component\AmazonComponent;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\Util;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Util;
 
 // Amazon Classes
 use \AmazonSWF;

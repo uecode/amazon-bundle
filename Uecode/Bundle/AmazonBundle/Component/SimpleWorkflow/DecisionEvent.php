@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Activity task response
+ * A decision event that all decision events must extend.
  *
  * @package amazon-bundle
  * @copyright (c) 2013 Underground Elephant
@@ -22,12 +22,47 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
-/**
- * An activity task response. All task responses must extend this.
- */
-class ActivityTaskResponse
+class DecisionEvent
 {
-	// presently just for type hinting
+	/**
+	 * @var string Event title.
+	 *
+	 * @access protected
+	 */
+	protected $title;
+
+	/**
+	 * Constructor
+	 *
+	 * @access public
+	 */
+	public function __construct()
+	{
+		// set the title to class name for now
+		$this->setTitle(basename(str_replace('\\', '/', get_class($this))));
+	}
+
+	/**
+	 * Set the event title
+	 *
+	 * @param string $title
+	 * @access public
+	 */
+	public function setTitle($title)
+	{
+		$this->title = $title;
+	}
+
+	/**
+	 * Get the event title
+	 *
+	 * @access public
+	 * @return string
+	 */
+	public function getTitle()
+	{
+		return $this->title;
+	}
 }

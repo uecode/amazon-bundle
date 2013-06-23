@@ -23,9 +23,9 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\ActivityTaskResponse;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityTaskResponse;
 
-use Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\ActivityTaskResponse;
+use Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityTaskResponse;
 
 class ActivityTaskCompleted extends ActivityTaskResponse
 {

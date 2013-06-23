@@ -22,11 +22,11 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow;
+namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
 // amazon bundle
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
-use Uecode\Bundle\AmazonBundle\Component\SimpleWorkFlow\ActivityWorker;
+use Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityWorker;
 
 // amazon
 use \CFResponse;
