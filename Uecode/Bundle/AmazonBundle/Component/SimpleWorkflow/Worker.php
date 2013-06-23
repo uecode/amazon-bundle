@@ -110,6 +110,7 @@ class Worker
 	{
 		$this->registerSignalHandlers();
 		$this->setSWFObject($swf);
+		$this->domain = $swf->getConfig()->get('aws_options')['domain'];
 
 		// TODO this should be reset each worker loop
 		$this->executionId = Util::generateUUID();

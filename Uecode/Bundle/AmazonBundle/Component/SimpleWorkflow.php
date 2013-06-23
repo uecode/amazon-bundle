@@ -60,9 +60,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	 */
 	public function buildDecider($name, $workflowVersion, $activityVersion, $taskList)
 	{
-		// TODO remove the need for this to be passed to worker
-		$domain = $this->getConfig()->get('aws_options')['domain'];
-		return new DeciderWorker($this, $domain, $name, $workflowVersion, $activityVersion, $taskList);
+		return new DeciderWorker($this, $name, $workflowVersion, $activityVersion, $taskList);
 	}
 
 	/**
@@ -91,9 +89,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	 */
 	public function buildActivityWorker($taskList, $identity = null)
 	{
-		// TODO remove the need for this to be passed to worker
-		$domain = $this->getConfig()->get('aws_options')['domain'];
-		return new ActivityWorker($this, $domain, $taskList, $identity);
+		return new ActivityWorker($this, $taskList, $identity);
 	}
 
 	/**

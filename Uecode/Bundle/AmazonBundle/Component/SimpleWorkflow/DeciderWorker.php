@@ -106,13 +106,12 @@ class DeciderWorker extends Worker
 	 * @access public
 	 * @param \SimpleWorkflow $swf
 	 * @param array $workflowType
-	 * @param string $domain Domain name to register workflow in
 	 * @param string $name Workflow name used for registration
 	 * @param string $workflowVersion Workflow version used for egistration and finding decider related classes.
 	 * @param string $activityVersion Activity version used for activity registration and finding activity related classes.
 	 * @param string $taskList Task list to poll on
 	 */
-	final public function __construct(SimpleWorkflow $swf, $domain, $name, $workflowVersion, $activityVersion, $taskList) {
+	final public function __construct(SimpleWorkflow $swf, $name, $workflowVersion, $activityVersion, $taskList) {
 		parent::__construct($swf);
 
 		$cfg = $swf->getConfig()->get('simpleworkflow');
@@ -122,7 +121,7 @@ class DeciderWorker extends Worker
 
 		if (isset($cfg['domains'])) {
 			foreach ($cfg['domains'] as $dk => $dv) {
-				if ($dk == $domain) {
+				if ($dk == $this->domain) {
 					if (!isset($dv['workflows'])) {
 						continue;
 					}
@@ -131,7 +130,6 @@ class DeciderWorker extends Worker
 						if ($w['name'] == $name && $w['version'] == $workflowVersion) {
 							$match = true;
 
-							$this->domain = $domain;
 							$this->name = $name;
 							$this->taskList = $taskList;
 							$this->defaultChildPolicy = $w['default_child_policy'];;
@@ -147,7 +145,7 @@ class DeciderWorker extends Worker
 		}
 
 		if (!$match) {
-			throw new \Exception("Decider is not configured [domain: $domain, workflow type: $name, version: $version]");
+			throw new \Exception("Decider is not configured [domain: {$this->domain}, workflow type: $name, version: $version]");
 		}
 
 		$this->registerWorkflow($workflowVersion);

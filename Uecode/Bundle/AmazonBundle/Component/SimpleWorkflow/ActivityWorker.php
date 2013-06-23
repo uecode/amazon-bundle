@@ -62,11 +62,10 @@ class ActivityWorker extends Worker
 	 * @param string $taskList
 	 * @param string $identity
 	 */
-	public function __construct(SimpleWorkflow $swf, $domain, $taskList, $identity = null)
+	public function __construct(SimpleWorkflow $swf, $taskList, $identity = null)
 	{
 		parent::__construct($swf);
 
-		$this->domain = $domain;
 		$this->taskList = $taskList;
 		$this->identity = $identity;
 	}
