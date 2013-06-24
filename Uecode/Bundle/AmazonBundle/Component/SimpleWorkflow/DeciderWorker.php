@@ -53,38 +53,6 @@ class DeciderWorker extends Worker
 	private $name;
 
 	/**
-	 * @var string Workflow default child policy. sent in registration.
-	 *
-	 * @access private
-	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultChildPolicy
-	 */
-	private $defaultChildPolicy;
-
-	/**
-	 * @var string Workflow default tasklist. sent in registration.
-	 *
-	 * @access private
-	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskList
-	 */
-	private $defaultTaskList;
-
-	/**
-	 * @var int Default task execution to close timeout. Sent in registration.
-	 *
-	 * @access private
-	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultTaskStartToCloseTimeout
-	 */
-	private $defaultTaskStartToCloseTimeout;
-
-	/**
-	 * @var int Default task start to close timeout. Sent in registration.
-	 *
-	 * @access private
-	 * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-defaultExecutionStartToCloseTimeout
-	 */
-	private $defaultExecutionStartToCloseTimeout;
-
-	/**
 	 * @var string Task list to poll on
 	 *
 	 * @access private
@@ -107,49 +75,13 @@ class DeciderWorker extends Worker
 	 * @param \SimpleWorkflow $swf
 	 * @param array $workflowType
 	 * @param string $name Workflow name used for registration
-	 * @param string $workflowVersion Workflow version used for egistration and finding decider related classes.
-	 * @param string $activityVersion Activity version used for activity registration and finding activity related classes.
 	 * @param string $taskList Task list to poll on
 	 */
-	final public function __construct(SimpleWorkflow $swf, $name, $workflowVersion, $activityVersion, $taskList) {
+	final public function __construct(SimpleWorkflow $swf, $name, $taskList) {
 		parent::__construct($swf);
 
-		$cfg = $swf->getConfig()->get('simpleworkflow');
-
-		// did we find a match in config
-		$match = false;
-
-		if (isset($cfg['domains'])) {
-			foreach ($cfg['domains'] as $dk => $dv) {
-				if ($dk == $this->domain) {
-					if (!isset($dv['workflows'])) {
-						continue;
-					}
-
-					foreach ($dv['workflows'] as $w) {
-						if ($w['name'] == $name && $w['version'] == $workflowVersion) {
-							$match = true;
-
-							$this->name = $name;
-							$this->taskList = $taskList;
-							$this->defaultChildPolicy = $w['default_child_policy'];;
-							$this->defaultTaskList = $w['default_task_list'];
-							$this->defaultTaskStartToCloseTimeout = isset($w['default_task_timeout']) ? $w['default_task_timeout'] : null;
-							$this->defaultExecutionStartToCloseTimeout = isset($w['default_execution_timeout']) ? $w['default_execution_timeout'] : null;
-							$this->eventNamespace = $w['history_event_namespace'];
-							$this->activityNamespace = $w['history_activity_event_namespace'];
-						}
-					}
-				}
-			}
-		}
-
-		if (!$match) {
-			throw new \Exception("Decider is not configured [domain: {$this->domain}, workflow type: $name, version: $version]");
-		}
-
-		$this->registerWorkflow($workflowVersion);
-		$this->registerActivities($activityVersion);
+		$this->name = $name;
+		$this->taskList = $taskList;
 	}
 
 	/**
@@ -214,7 +146,7 @@ class DeciderWorker extends Worker
 
 						try {
 							// start main decision logic
-							$decision = $this->decide(new HistoryEventIterator($this->getAmazonClass(), $pollRequest, $this->response));
+							$decision = $this->decide(new HistoryEventIterator($this->getAmazonObject(), $pollRequest, $this->response));
 						} catch (\Exception $e) {
 							$this->log(
 								'critical',
@@ -426,140 +358,6 @@ class DeciderWorker extends Worker
 			);
 		}
 		return $ret;
-	}
-
-	/**
-	 * Registers the workflow.
-	 *
-	 * @final
-	 * @access public
-	 * @param string $version The version of activities to register
-	 * @return mixed
-	 * @throws InvalidConfigurationException
-	 *
-	 * @todo registration should be decoupled methods of the code that this code calls.
-	 */
-	final public function registerWorkflow($version)
-	{
-		// TODO allow for all options at http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html
-		$registerRequest = array(
-			'domain' => $this->domain,
-			'name' => $this->name,
-			'version' => (string)$version
-		);
-
-		if ($this->defaultChildPolicy) {
-			$registerRequest['defaultChildPolicy'] = $this->defaultChildPolicy;
-		}
-
-		if ($this->defaultTaskList) {
-			$registerRequest['defaultTaskList'] = array('name' => $this->defaultTaskList);
-		}
-
-		if ($this->defaultTaskStartToCloseTimeout) {
-			$registerRequest['defaultTaskStartToCloseTimeout'] = (string)$this->defaultTaskStartToCloseTimeout;
-		}
-
-		if ($this->defaultExecutionStartToCloseTimeout) {
-			$registerRequest['defaultExecutionStartToCloseTimeout'] = (string)$this->defaultExecutionStartToCloseTimeout;
-		}
-
-
-		$response = $this->getSWFObject()->registerWorkflowType($registerRequest);
-
-		$this->log(
-			'info',
-			'Registering workflow',
-			array(
-				'request' => $registerRequest,
-				'response' => json_decode(json_encode($response), true)
-			)
-		);
-
-		if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
-			$this->log(
-				'alert',
-				'Could not register workflow'
-			);
-
-			exit;
-		}
-
-		return $this->getSWFObject()->describeWorkflowType($registerRequest);
-	}
-
-	/**
-	 * Registers activities in this workflow
-	 *
-	 * @access protected
-	 * @param string $version The version of activities to register
-	 * @todo TODO check for existing activities and don't make the call unless not registered.
-	 */
-	protected function registerActivities($version)
-	{
-		$activities = $this->getActivityConfig(null, $version);
-
-		if (empty($activities)) {
-			$this->log(
-				'info',
-				'Attempting to register activities but no activities in config'
-			);
-
-			return;
-		}
-
-		foreach ($activities as $a) {
-			$this->log(
-				'debug',
-				'Attempting to register activity \''.$a['class'].'\''
-			);
-
-			if (!class_exists($a['class'])) {
-				throw new InvalidConfigurationException('Cannot find activity class to register @ '.$a['class']);
-			}
-
-			$obj = new $a['class'];
-
-			if (!($obj instanceof AbstractActivity)) {
-				throw new InvalidClassException('Found activity '.$a['class'].' but it is not an instance of AbstractActivity');
-			}
-
-			$request = array(
-				'domain' => $this->domain,
-				'name' => $a['name'],
-				'version' => (string)$a['version']
-			);
-
-			if ($a['default_task_list']) {
-				$request['defaultTaskList'] = array('name' => $a['default_task_list']);
-			}
-
-			// TODO add other registration key/value pairs here
-
-			// register type (ignoring "already exists" fault for now)
-			$response = $this->getSWFObject()->registerActivityType($request);
-
-			$this->log(
-				'debug',
-				'RegisterActivityType',
-				array(
-					'request' => $request,
-					'response' => $response
-				)
-			);
-
-			if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#TypeAlreadyExistsFault') {
-				$this->log(
-					'alert',
-					'Could not register activity',
-					array(
-						'trace' => debug_backtrace()
-					)
-				);
-
-				exit;
-			}
-		}
 	}
 
 	/**

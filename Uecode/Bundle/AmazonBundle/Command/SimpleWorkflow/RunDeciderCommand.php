@@ -55,23 +55,18 @@ class RunDeciderCommand extends ContainerAwareCommand
 				'[Required] The SWF workflow name. Used for registration. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_RegisterWorkflowType.html#SWF-RegisterWorkflowType-request-name.'
 			)
 			->addOption(
-				'workflow_version',
-				'y',
-				InputOption::VALUE_REQUIRED,
-				'[Required] The version of the workflow type that we should register. See config value at uecode.amazon.simpleworkflow.domain.[domain].workflows.[workflow_version]'
-			)
-			->addOption(
-				'activity_version',
-				'z',
-				InputOption::VALUE_REQUIRED,
-				'[Required] The version of the activities that wwill be registered. See config value at uecode.amazon.simpleworkflow.domain.[domain].workflows.[].version'
-			)
-			->addOption(
 				'tasklist',
 				't',
 				InputOption::VALUE_REQUIRED,
 				'[Required] The SWF taskList to poll on. See http://docs.aws.amazon.com/amazonswf/latest/apireference/API_PollForDecisionTask.html#SWF-PollForDecisionTask-request-taskList.'
-			);
+			)
+			->addOption(
+				'register',
+				'r',
+				null,
+				'Register all workflows and activities you have specified in your config before we make a poll request.'
+			)
+			;
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
@@ -80,10 +75,9 @@ class RunDeciderCommand extends ContainerAwareCommand
 		$domain = $input->getOption('domain');
 		$name = $input->getOption('workflow_name');
 		$taskList = $input->getOption('tasklist');
-		$workflowVersion = $input->getOption('workflow_version');
-		$activityVersion = $input->getOption('activity_version');
+		$register = $input->getOption('register');
 
-		if (empty($domain) || empty($name) || empty($taskList) || empty($workflowVersion) || empty($activityVersion)) {
+		if (empty($domain) || empty($name) || empty($taskList)) {
 			throw new \Exception('--domain, --workflow_name, --workflow_version, activity_version, and --tasklist are requried options.');
 		}
 
@@ -96,21 +90,25 @@ class RunDeciderCommand extends ContainerAwareCommand
 				array(
 					'domain' => $domain,
 					'name' => $name,
-					'workflow_version' => $workflowVersion,
-					'activity_version' => $activityVersion,
 					'task_list' => $taskList,
 				)
 			);
 
+			$swf = $container->get('uecode.amazon')
+			                 ->getAmazonService('SimpleWorkflow', 'ue', array('domain' => $domain));
+
+			if ($register) {
+				$swf->registerWorkflow($domain);
+				$swf->registerActivities($domain);
+			}
+
 			// this will sit in an infinite loop (only while code conditions stay true).
 			// it is best to send this a SIGHUP, SIGINT, or SIGTERM so it ends nicely.
-			$container->get('uecode.amazon')
-			          ->getAmazonService('SimpleWorkflow', 'ue', array('domain' => $domain))
-			          ->runDecider($name, $workflowVersion, $activityVersion, $taskList);
+			$swf->runDecider($name, $taskList);
 
 			$output->writeln('exiting');
 
-			$decider->log(
+			$logger->log(
 				'info',
 				'Decider worker ended'
 			);

@@ -136,7 +136,7 @@ class Worker
 	 * @param mixed $context Additional log info
 	 */
 	public function log($level, $message, $context = null) {
-		$this->getLogger()->log($level, $message, $this->getLogContext($context));
+		$this->getSWFObject()->log($level, $message, $this->getLogContext($context));
 	}
 
 	/**
@@ -301,8 +301,11 @@ class Worker
 	/**
 	 * Get a workflow array from config
 	 *
+	 * This is here for backwards compatibility.
+	 * 
 	 * You can pass any (or no) combination of name and version to find that set.
 	 *
+	 * @todo The callers should be changed to call SimpleWorkflow::getWorkflowConfig()
 	 * @final
 	 * @access protected
 	 * @param string $name The workflowType name
@@ -311,36 +314,18 @@ class Worker
 	 */
 	final public function getWorkflowConfig($name = null, $version = null)
 	{
-		$ret = array();
-
-		$wf = $this->getSWFObject()->getConfig()->get('simpleworkflow');
-
-		foreach ($wf['domains'] as $dk => $dv) {
-			if ($this->domain == $dk) {
-				if (!$name && !$version) {
-					$ret = $dv['workflows'];
-					continue;
-				}
-
-				foreach ($dv['workflows'] as $a) {
-					if (($name && $version && $name == $a['name'] && $version == $a['version'])
-					 || ($name && !$version && $name == $a['name'])
-					 || (!$name && $version && $version == $a['version'])) {
-						$ret[] = $a;
-					}
-				}
-			}
-		}
-
-		return $ret;
+		return $this->getSWFObject()->getWorkflowConfig($this->domain, $name, $version);
 	}
 
 
 	/**
 	 * Get activity array out of config
 	 *
+	 * This is here for backwards compatibility.
+	 *
 	 * You can pass any (or no) combination of name and version to find that set.
 	 *
+	 * @todo The callers should be changed to call SimpleWorkflow::getActivityConfig()
 	 * @final
 	 * @access protected
 	 * @param string $name The activityType name
@@ -349,33 +334,15 @@ class Worker
 	 */
 	final public function getActivityConfig($name = null, $version = null)
 	{
-		$ret = array();
-
-		$wf = $this->getSWFObject()->getConfig()->get('simpleworkflow');
-
-		foreach ($wf['domains'] as $dk => $dv) {
-			if ($this->domain == $dk) {
-				if (!$name && !$version) {
-					$ret = $dv['activities'];
-					continue;
-				}
-
-				foreach ($dv['activities'] as $a) {
-					if (($name && $version && $name == $a['name'] && $version == $a['version'])
-					 || ($name && !$version && $name == $a['name'])
-					 || (!$name && $version && $version == $a['version'])) {
-						$ret[] = $a;
-					}
-				}
-			}
-		}
-
-		return $ret;
+		return $this->getSWFObject()->getActivityConfig($this->domain, $name, $version);
 	}
 
 	/**
 	 * Find event namespace from workflow config section
 	 *
+	 * This is here for backwards compatibility.
+	 *
+	 * @todo The callers should be changed to call SimpleWorkflow::getEventNamespace()
 	 * @final
 	 * @access protected
 	 * @param string $name The workfloeType name
@@ -383,17 +350,15 @@ class Worker
 	 * @return string
 	 */
 	final public function getEventNamespace($name, $version) {
-		$cfg = $this->getWorkflowConfig($name, $version);
-		if (count($cfg) != 1 || !isset($cfg[0]['history_event_namespace'])) {
-			return;
-		}
-
-		return $cfg[0]['history_event_namespace'];
+		return $this->getSWFObject()->getEventNamespace($this->domain, $name, $version);
 	}
 
 	/**
 	 * Find activity event namespace from workflow config section 
 	 *
+	 * This is here for backwards compatibility.
+	 *
+	 * @todo The callers should be changed to call SimpleWorkflow::getActivityEventNamespace()
 	 * @final
 	 * @access protected
 	 * @param string $name The workfloeType name
@@ -401,17 +366,15 @@ class Worker
 	 * @return string
 	 */
 	final public function getActivityEventNamespace($name, $version) {
-		$cfg = $this->getWorkflowConfig($name, $version);
-		if (count($cfg) != 1 || !isset($cfg[0]['history_activity_event_namespace'])) {
-			return;
-		}
-
-		return $cfg[0]['history_activity_event_namespace'];
+		return $this->getSWFObject()->getActivityEventNamespace($this->domain, $name, $version);
 	}
 
 	/**
 	 * Get activity namespace from activity config section
 	 *
+	 * This is here for backwards compatibility.
+	 *
+	 * @todo The callers should be changed to use SimpleWorkflow::getActivityClass()
 	 * @final
 	 * @param string $name activityType name
 	 * @param mixed $version activitytype version
@@ -420,16 +383,14 @@ class Worker
 	 */
 	final public function getActivityClass($name, $version)
 	{
-		$cfg = $this->getActivityConfig($name, $version);
-		if (count($cfg) != 1 || !isset($cfg[0]['class'])) {
-			return;
-		}
-
-		return $cfg[0]['class'];
+		return $this->getSWFObject()->getActivityClass($this->domain, $name, $version);
 	}
 
 	/**
 	 * Get the response the worker is currently working w/
+	 *
+	 * It is each individual workers job to set this null if they have sent
+	 * a new request and are awaiting a response.
 	 */
 	public function getResponse()
 	{
