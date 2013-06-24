@@ -72,7 +72,8 @@ class SimpleWorkflow extends AbstractAmazonComponent
 			'RegisterActivityType' => 'register_activity_type',
 			'ListOpenWorkflowExecutions' => 'list_open_workflow_executions',
 			'CountOpenWorkflowExecutions' => 'count_open_workflow_executions',
-			'TerminateWorkflowExecution' => 'terminate_workflow_executions'
+			'TerminateWorkflowExecution' => 'terminate_workflow_executions',
+			'RegisterDomain' => 'register_domain'
 		);
 
 		if (!isset($map[$command])) {
@@ -136,7 +137,77 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
-	 * Registers a workflow.
+	 * Registers everything
+	 *
+	 * @final
+	 * @access public
+	 * @param string $domain Workflow domain
+	 */
+	final public function registerAll()
+	{
+		// this is terribly innefficient looping through these configs like these calls
+		// will do but it's only a problem during registration calls which are
+		// not important to the core functionality of this framework.
+		// That said, it should be fixed.
+		foreach ($this->getDomainConfig() as $d) {
+			$this->registerDomains($d['name']);
+			$this->registerWorkflows($d['name']);
+			$this->registerActivities($d['name']);
+		}
+	}
+
+	/**
+	 * Registers domain(s)
+	 *
+	 * @final
+	 * @access public
+	 * @param string $domain Workflow domain
+	 */
+	final public function registerDomains($domain = null)
+	{
+		$cfg = $this->getDomainConfig($domain);
+
+		if (empty($cfg)) {
+			$this->log(
+				'warning',
+				'Attempting to register domains but nothing found',
+				array(
+					'domain' => $domain,
+				)
+			);
+
+			return;
+		}
+
+		foreach ($cfg as $d) {
+			$registerRequest = array(
+				'name' => $d['name'],
+				'workflowExecutionRetentionPeriodInDays' => (string)$d['workflow_execution_retention_period']
+			);
+
+			if (isset($d['description'])) {
+				$registerRequest['description'] = $d['description'];
+			}
+
+			$response = $this->callSDK('RegisterDomain', $registerRequest);
+
+			$this->log(
+				'info',
+				'Registering domain',
+				array(
+					'request' => $registerRequest,
+					'response' => json_decode(json_encode($response), true)
+				)
+			);
+
+			if (!$response->isOK() && $response->body->__type != 'com.amazonaws.swf.base.model#DomainAlreadyExistsFault') {
+				throw new \Exception('Could not register domain');
+			}
+		}
+	}
+
+	/**
+	 * Registers workflow(s)
 	 *
 	 * You can pass any variation of $name and $version to find matches.
 	 *
@@ -146,12 +217,22 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	 * @param string $name Workflow name
 	 * @param string $version Workflow version
 	 */
-	final public function registerWorkflow($domain, $name = null, $version = null)
+	final public function registerWorkflows($domain, $name = null, $version = null)
 	{
 		$cfg = $this->getWorkflowConfig($domain, $name, $version);
 
 		if (empty($cfg)) {
-			throw new \Exception("Workflow is not configured [domain: $domain, workflow type: $name, version: $version]");
+			$this->log(
+				'warning',
+				'Attempting to register workflows but no workflows in config',
+				array(
+					'domain' => $domain,
+					'name' => $name,
+					'version' => $version
+				)
+			);
+
+			return;
 		}
 
 		foreach ($cfg as $c) {
@@ -195,6 +276,13 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
+	 * @see self::registerWorkflows()
+	 */
+	final public function registerWorkflow($domain, $name = null, $version = null) {
+		return $this->registerWorkflows($domain, $name, $version);
+	}
+
+	/**
 	 * Registers activities
 	 *
 	 * You can pass any variation of $name and $version to find matches.
@@ -211,8 +299,13 @@ class SimpleWorkflow extends AbstractAmazonComponent
 
 		if (empty($cfg)) {
 			$this->log(
-				'info',
-				'Attempting to register activities but no activities in config'
+				'warning',
+				'Attempting to register activities but no activities in config',
+				array(
+					'domain' => $domain,
+					'name' => $name,
+					'version' => $version
+				)
 			);
 
 			return;
@@ -273,6 +366,20 @@ class SimpleWorkflow extends AbstractAmazonComponent
 		}
 	}
 
+	final public function getDomainConfig($domain = null)
+	{
+		$ret = array();
+
+		foreach ($this->getConfig()->get('simpleworkflow')['domains'] as $dk => $dv) {
+			if ($domain == $dk || !$domain) {
+				$dv['name'] = $dk;
+				$ret[] = $dv;
+			}
+		}
+
+		return $ret;
+	}
+
 	/**
 	 * Get a workflow array from config
 	 *
@@ -292,9 +399,9 @@ class SimpleWorkflow extends AbstractAmazonComponent
 		$wf = $this->getConfig()->get('simpleworkflow');
 
 		foreach ($wf['domains'] as $dk => $dv) {
-			if ($domain == $dk) {
+			if (isset($dv['workflows']) && !empty($dv['workflows']) && ($domain == $dk || !$domain)) {
 				if (!$name && !$version) {
-					$ret = $dv['workflows'];
+					$ret = array_merge($ret, $dv['workflows']);
 					continue;
 				}
 
@@ -331,7 +438,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 		$wf = $this->getConfig()->get('simpleworkflow');
 
 		foreach ($wf['domains'] as $dk => $dv) {
-			if ($domain == $dk) {
+			if ($domain == $dk || !$domain) {
 				if (!$name && !$version) {
 					$ret = $dv['activities'];
 					continue;
