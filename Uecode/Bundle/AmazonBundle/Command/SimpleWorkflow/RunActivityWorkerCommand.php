@@ -94,7 +94,7 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 
 			$output->writeln('exiting');
 
-			$activity->log(
+			$logger->log(
 				'info',
 				'Activity worker ended'
 			);
