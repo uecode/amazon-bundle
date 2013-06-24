@@ -207,6 +207,13 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
+	 * @see self::registerDomains()
+	 */
+	final public function registerDomain($domain = null) {
+		return $this->registerDomains($domain);
+	}
+
+	/**
 	 * Registers workflow(s)
 	 *
 	 * You can pass any variation of $name and $version to find matches.
