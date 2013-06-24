@@ -185,7 +185,7 @@ class Worker
 		return array(
 			'worker' => true,
 			'workerType' => ($workerType == 'd' || $workerType == 'a') ? $workerType : 'unknown',
-			'host' => gethostname(),
+			'host' => gethostbyname(gethostname()),
 			'processId' => $processId,
 			'executionId' => $executionId,
 			'runId' => $amazonRunId,
