@@ -105,7 +105,7 @@ class ActivityWorker extends Worker
 					'identity' => $this->identity
 				);
 
-				$this->response = $this->getSWFObject()->pollForActivityTask($pollRequest);
+				$this->response = $this->getSWFObject()->callSDK('PollForActivityTask', $pollRequest);
 
 				$this->log(
 					'debug',
@@ -193,10 +193,10 @@ class ActivityWorker extends Worker
 				$request->taskToken = $request->taskToken ?: $token;
 
 				// use basename on the classname that came from object above.
-				// this is our response type.
-				$method = 'respondActivityTask'.ucFirst(strtolower(str_replace('ActivityTask', '', basename(str_replace('\\', '/', get_class($request))))));
+				// this is our activity response type, our sdk call.
+				$method = 'RespondActivityTask'.ucfirst(strtolower(str_replace('ActivityTask', '', basename(str_replace('\\', '/', get_class($request))))));
 
-				$this->response = $this->getSWFObject()->{$method}((array)$request);
+				$this->response = $this->getSWFObject()->callSDK($method, (array)$request);
 
 				if ($this->response->isOK()) {
 					$this->log(

@@ -71,7 +71,7 @@ class DeciderWorker extends Worker
 	 *
 	 * @final
 	 * @access public
-	 * @param \SimpleWorkflow $swf
+	 * @param SimpleWorkflow $swf
 	 * @param array $workflowType
 	 * @param string $name Workflow name to poll on
 	 * @param string $taskList Task list to poll on
@@ -119,7 +119,7 @@ class DeciderWorker extends Worker
 					'taskList' => array('name' => $this->taskList)
 				);
 
-				$this->response = $this->getSWFObject()->pollForDecisionTask($pollRequest);
+				$this->response = $this->getSWFObject()->callSDK('PollForDecisionTask', $pollRequest);
 
 				$this->log(
 					'debug',
@@ -165,7 +165,7 @@ class DeciderWorker extends Worker
 							'decisions' => $this->createSWFDecisionArray($decision)
 						);
 
-						$completeResponse = $this->getSWFObject()->respondDecisionTaskCompleted($decisionArray);
+						$completeResponse = $this->getSWFObject()->callSDK('RespondDecisionTaskCompleted', $decisionArray);
 
 						if ($completeResponse->isOK()) {
 							$this->log(

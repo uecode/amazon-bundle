@@ -50,6 +50,39 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
+	 * Call SDK method
+	 *
+	 * Currently working w/ v1 of SDK
+	 *
+	 * @access public
+	 * @param string $command SDK command
+	 * @param array $options SDK command options
+	 */
+	public function callSDK($command, array $options)
+	{
+		$map = array(
+			'PollForDecisionTask' => 'poll_for_decision_task',
+			'RespondDecisionTaskCompleted' => 'respond_decision_task_completed',
+			'PollForActivityTask' => 'poll_for_activity_task',
+			'RespondActivityTaskCompleted' => 'respond_activity_task_completed',
+			'RespondActivityTaskCanceled' => 'respond_activity_task_canceled',
+			'RespondActivityTaskFailed' => 'respond_activity_task_failed',
+			'RegisterWorkflowType' => 'register_workflow_type',
+			'DescribeWorkflowType' => 'describe_workflow_type',
+			'RegisterActivityType' => 'register_activity_type',
+			'ListOpenWorkflowExecutions' => 'list_open_workflow_executions',
+			'CountOpenWorkflowExecutions' => 'count_open_workflow_executions',
+			'TerminateWorkflowExecution' => 'terminate_workflow_executions'
+		);
+
+		if (!isset($map[$command])) {
+			throw new \Exception("Cannot find SDK method for '$command'.");
+		}
+
+		return $this->getAmazonObject()->{$map[$command]}($options);
+	}
+
+	/**
 	 * Build a decider
 	 *
 	 * @access public
@@ -144,7 +177,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 				$registerRequest['defaultExecutionStartToCloseTimeout'] = (string)$c['defaultExecutionStartToCloseTimeout'];
 			}
 
-			$response = $this->registerWorkflowType($registerRequest);
+			$response = $this->callSDK('RegisterWorkflowType', $registerRequest);
 
 			$this->log(
 				'info',
@@ -215,7 +248,7 @@ class SimpleWorkflow extends AbstractAmazonComponent
 			// TODO add other registration key/value pairs here
 
 			// register type (ignoring "already exists" fault for now)
-			$response = $this->registerActivityType($registerRequest);
+			$response = $this->callSDK('RegisterActivityType', $registerRequest);
 
 			$this->log(
 				'debug',
@@ -382,153 +415,5 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	 */
 	public function log($level, $message, $context = array()) {
 		$this->getLogger()->log($level, $message, $context);
-	}
-
-	#########################################
-	## SDK ABSTRACTIONS #####################
-	#########################################
-
-	/**
-	 * Wrapper for SDK PollForDecisionTask
-	 *
-	 * @param array $options
-	 * @return CFResponse
-	 * @throws \Exception (TODO what is actual exception, lazy?)
-	 */
-	public function pollForDecisionTask(array $options = array())
-	{
-		return $this->getAmazonObject()->poll_for_decision_task($options);
-	}
-
-	/**
-	 * Wrapper for SDK RespondDecisionTaskCompleted
-	 *
-	 * @param array $options
-	 * @return CFResponse
-	 * @throws \Exception (TODO what is actual exception, lazy?)
-	 */
-	public function respondDecisionTaskCompleted(array $options = array())
-	{
-		return $this->getAmazonObject()->respond_decision_task_completed($options);
-	}
-
-	/**
-	 * Wrapper for SDK PollForActivityTask
-	 *
-	 * @param array $options
-	 * @return CFResponse
-	 * @throws \Exception (TODO what is actual exception, lazy?)
-	 */
-	public function pollForActivityTask(array $options = array())
-	{
-		return $this->getAmazonObject()->poll_for_activity_task($options);
-	}
-
-	/**
-	 * Wrapper for SDK RespondActivityTaskCompleted
-	 *
-	 * @param array $options
-	 * @return CFResponse
-	 * @throws \Exception (TODO what is actual exception, lazy?)
-	 */
-	public function respondActivityTaskCompleted(array $options = array())
-	{
-		return $this->getAmazonObject()->respond_activity_task_completed($options);
-	}
-
-	/**
-	 * Wrapper for SDK RespondActivityTaskCanceled
-	 *
-	 * @param array $options
-	 * @return CFResponse
-	 * @throws \Exception (TODO what is actual exception, lazy?)
-	 */
-	public function respondActivityTaskCanceled(array $options = array())
-	{
-		return $this->getAmazonObject()->respond_activity_task_canceled($options);
-	}
-
-	/**
-	 * Wrapper for SDK RespondActivityTaskFailed
-	 *
-	 * @param array $options
-	 * @return CFResponse
-	 * @throws \Exception (TODO what is actual exception, lazy?)
-	 */
-	public function respondActivityTaskFailed(array $options = array())
-	{
-		return $this->getAmazonObject()->respond_activity_task_failed($options);
-	}
-
-	/**
-	 * Wrapper for SDK RegisterWorkflowType
-	 *
-	 * @param array $options
-	 * @return CFResponse
-	 * @throws \Exception (TODO what is actual exception, lazy?)
-	 */
-	public function registerWorkflowType(array $options = array())
-	{
-		return $this->getAmazonObject()->register_workflow_type($options);
-	}
-
-	/**
-	 * Wrapper for SDK DescribeWorkflowType
-	 *
-	 * @param array $options
-	 * @return CFResponse
-	 * @throws \Exception (TODO what is actual exception, lazy?)
-	 */
-	public function describeWorkflowType(array $options = array())
-	{
-		return $this->getAmazonObject()->describe_workflow_type($options);
-	}
-
-	/**
-	 * Wrapper for SDK RegisterActivityType
-	 *
-	 * @param array $options
-	 * @return CFResponse
-	 * @throws \Exception (TODO what is actual exception, lazy?)
-	 */
-	public function registerActivityType(array $options = array())
-	{
-		return $this->getAmazonObject()->register_activity_type($options);
-	}
-
-	/**
-	 * Wrapper for SDK ListOpenWorkflowExecutions
-	 *
-	 * @param array $options
-	 * @return CFResponse
-	 * @throws \Exception (TODO what is actual exception, lazy?)
-	 */
-	public function listOpenWorkflowExecutions(array $options = array())
-	{
-		return $this->getAmazonObject()->list_open_workflow_executions($options);
-	}
-
-	/**
-	 * Wrapper for SDK CountOpenWorkflowExecutions
-	 *
-	 * @param array $options
-	 * @return CFResponse
-	 * @throws \Exception (TODO what is actual exception, lazy?)
-	 */
-	public function countOpenWorkflowExecutions(array $options = array())
-	{
-		return $this->getAmazonObject()->count_open_workflow_executions($options);
-	}
-
-	/**
-	 * Wrapper for SDK TerminateWorkflowExecution
-	 *
-	 * @param array $options
-	 * @return CFResponse
-	 * @throws \Exception (TODO what is actual exception, lazy?)
-	 */
-	public function terminateWorkflowExecution(array $options = array())
-	{
-		return $this->getAmazonObject()->terminate_workflow_executions($options);
 	}
 }

@@ -48,7 +48,7 @@ class CountOpenWorkflowExecutionsCommand extends ListOpenWorkflowExecutionsComma
 	 *
 	 * @access protected
 	 */
-	protected $command = 'countOpenWorkflowExecutions';
+	protected $command = 'CountOpenWorkflowExecutions';
 
 	/**
 	 * @var string command name
