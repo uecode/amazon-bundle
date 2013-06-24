@@ -45,18 +45,19 @@ class Worker
 	protected $swf;
 
 	/**
+	 * @var string The SWF domain this worker is working in.
+	 *
+	 *  @access protected
+	 */
+	protected $domain;
+
+	/**
 	 * @var \CFResponse A response from either PollForDecisionTask or PollForActivityTask (depends on context)
 	 *
 	 * @access protected
 	 */
 	protected $response;
 
-	/**
-	 * @var string The SWF domain this worker is working in.
-	 *
-	 *  @access protected
-	 */
-	protected $domain;
 
 	/**
 	 * @var int This workers process id.
@@ -110,7 +111,6 @@ class Worker
 	{
 		$this->registerSignalHandlers();
 		$this->setSWFObject($swf);
-		$this->domain = $swf->getConfig()->get('aws_options')['domain'];
 
 		// TODO this should be reset each worker loop
 		$this->executionId = Util::generateUUID();

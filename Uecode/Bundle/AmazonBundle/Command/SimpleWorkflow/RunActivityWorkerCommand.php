@@ -73,7 +73,7 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 			$identity = $input->getOption('identity');
 
 			if (!$domain || !$taskList) {
-				throw new \Exception('Must define --domain, --tasklist, and --activity_version');
+				throw new \Exception('Must define --domain and --tasklist.');
 			}
 
 			$logger->log(
@@ -82,15 +82,14 @@ class RunActivityWorkerCommand extends ContainerAwareCommand
 				array(
 					'domain' => $domain,
 					'taskList' => $taskList,
-					'identity' => $identity,
 				)
 			);
 
 			// this will sit in an infinite loop (only while code conditions stay true).
 			// it is best to send this a SIGHUP, SIGINT, or SIGTERM so it ends nicely.
 			$container->get('uecode.amazon')
-			          ->getAmazonService('SimpleWorkflow', 'ue', array('domain' => $domain))
-			          ->runActivityWorker($taskList, $identity);
+			          ->getAmazonService('SimpleWorkflow', 'ue')
+			          ->runActivityWorker($domain, $taskList);
 
 			$output->writeln('exiting');
 

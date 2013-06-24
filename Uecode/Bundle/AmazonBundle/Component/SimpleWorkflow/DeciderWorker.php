@@ -31,7 +31,6 @@ use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\State\DeciderWorkerStat
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Worker;
 
 // Amazon Exceptions
-use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
 
 // Events
@@ -74,12 +73,13 @@ class DeciderWorker extends Worker
 	 * @access public
 	 * @param \SimpleWorkflow $swf
 	 * @param array $workflowType
-	 * @param string $name Workflow name used for registration
+	 * @param string $name Workflow name to poll on
 	 * @param string $taskList Task list to poll on
 	 */
-	final public function __construct(SimpleWorkflow $swf, $name, $taskList) {
+	final public function __construct(SimpleWorkflow $swf, $domain, $name, $taskList) {
 		parent::__construct($swf);
 
+		$this->domain = $domain;
 		$this->name = $name;
 		$this->taskList = $taskList;
 	}

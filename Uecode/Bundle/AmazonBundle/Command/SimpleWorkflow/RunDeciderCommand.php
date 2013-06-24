@@ -94,8 +94,7 @@ class RunDeciderCommand extends ContainerAwareCommand
 				)
 			);
 
-			$swf = $container->get('uecode.amazon')
-			                 ->getAmazonService('SimpleWorkflow', 'ue', array('domain' => $domain));
+			$swf = $container->get('uecode.amazon')->getAmazonService('SimpleWorkflow', 'ue');
 
 			if ($register) {
 				$swf->registerWorkflow($domain);
@@ -104,7 +103,7 @@ class RunDeciderCommand extends ContainerAwareCommand
 
 			// this will sit in an infinite loop (only while code conditions stay true).
 			// it is best to send this a SIGHUP, SIGINT, or SIGTERM so it ends nicely.
-			$swf->runDecider($name, $taskList);
+			$swf->runDecider($domain, $name, $taskList);
 
 			$output->writeln('exiting');
 

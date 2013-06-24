@@ -58,16 +58,15 @@ class ActivityWorker extends Worker
 	 *
 	 * @access protected
 	 * @param SimpleWorkflow $swf Simple workflow object
-	 * @param string The SWF domain this worker is working in
-	 * @param string $taskList
-	 * @param string $identity
+	 * @param string $domain The domain to poll on.
+	 * @param string $taskList Tasklist to poll on.
 	 */
-	public function __construct(SimpleWorkflow $swf, $taskList, $identity = null)
+	public function __construct(SimpleWorkflow $swf, $domain, $taskList)
 	{
 		parent::__construct($swf);
 
+		$this->domain = $domain;
 		$this->taskList = $taskList;
-		$this->identity = $identity;
 	}
 
 	/**

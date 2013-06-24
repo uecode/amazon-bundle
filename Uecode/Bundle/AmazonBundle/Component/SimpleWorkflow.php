@@ -49,8 +49,65 @@ class SimpleWorkflow extends AbstractAmazonComponent
 		return new \AmazonSWF($options);
 	}
 
+
+
 	/**
-	 * Registers the workflow.
+	 * Build a decider
+	 *
+	 * @access public
+	 * @param string $domain Domain to poll on
+	 * @param string $name Workflow type to poll on
+	 * @param string $taskList Tasklist to poll on
+	 * @return DeciderWorker
+	 */
+	public function buildDecider($domain, $name, $taskList)
+	{
+		return new DeciderWorker($this, $domain, $name, $taskList);
+	}
+
+	/**
+	 * Build and run a decider
+	 *
+	 * @access public
+	 * @param string $name Workflow name used for registration
+	 * @param string $taskList Task list to poll on
+	 */
+	public function runDecider($domain, $name, $taskList)
+	{
+		$b = $this->buildDecider($domain, $name, $taskList);
+		$b->run();
+	}
+
+	/**
+	 * Build an activity worker
+	 *
+	 * @access public
+	 * @param string $domain Domain to poll on
+	 * @param string $taskList Task list to poll on
+	 * @return ActivityWorker
+	 */
+	public function buildActivityWorker($domain, $taskList)
+	{
+		return new ActivityWorker($this, $domain, $taskList);
+	}
+
+	/**
+	 * Build and run activity worker
+	 *
+	 * @access public
+	 * @param string $domain Domain to poll on
+	 * @param string $taskList Tasklist to poll on
+	 */
+	public function runActivityWorker($domain, $taskList)
+	{
+		$b = $this->buildActivityWorker($domain, $taskList);
+		$b->run();
+	}
+
+	/**
+	 * Registers a workflow.
+	 *
+	 * You can pass any variation of $name and $version to find matches.
 	 *
 	 * @final
 	 * @access public
@@ -107,7 +164,9 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
-	 * Registers activities in this workflow
+	 * Registers activities
+	 *
+	 * You can pass any variation of $name and $version to find matches.
 	 *
 	 * @final
 	 * @access public
@@ -181,58 +240,6 @@ class SimpleWorkflow extends AbstractAmazonComponent
 				exit;
 			}
 		}
-	}
-
-
-	/**
-	 * Build a decider
-	 *
-	 * @access public
-	 * @param string $name Workflow name used for registration
-	 * @param string $taskList Task list to poll on
-	 * @return DeciderWorker
-	 */
-	public function buildDecider($name, $taskList)
-	{
-		return new DeciderWorker($this, $name, $taskList);
-	}
-
-	/**
-	 * Build and run a decider
-	 *
-	 * @access public
-	 * @param string $name Workflow name used for registration
-	 * @param string $taskList Task list to poll on
-	 */
-	public function runDecider($name, $taskList)
-	{
-		$b = $this->buildDecider($name, $taskList);
-		$b->run();
-	}
-
-	/**
-	 * Build an activity worker
-	 *
-	 * @access public
-	 * @param string $taskList Task list to poll on
-	 * @return ActivityWorker
-	 */
-	public function buildActivityWorker($taskList)
-	{
-		return new ActivityWorker($this, $taskList);
-	}
-
-	/**
-	 * Build and run activity worker
-	 *
-	 * @access public
-	 * @param string $taskList Task list to poll on
-	 * @param string $identity Identity of this activity worker (recorded in ActivityTaskStarted event)
-	 */
-	public function runActivityWorker($taskList, $identity = null)
-	{
-		$b = $this->buildActivityWorker($taskList, $identity);
-		$b->run();
 	}
 
 	/**
