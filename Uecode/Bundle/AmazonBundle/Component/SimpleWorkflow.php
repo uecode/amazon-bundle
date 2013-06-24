@@ -49,8 +49,6 @@ class SimpleWorkflow extends AbstractAmazonComponent
 		return new \AmazonSWF($options);
 	}
 
-
-
 	/**
 	 * Build a decider
 	 *
