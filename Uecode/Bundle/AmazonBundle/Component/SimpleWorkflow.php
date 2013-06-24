@@ -73,7 +73,8 @@ class SimpleWorkflow extends AbstractAmazonComponent
 			'ListOpenWorkflowExecutions' => 'list_open_workflow_executions',
 			'CountOpenWorkflowExecutions' => 'count_open_workflow_executions',
 			'TerminateWorkflowExecution' => 'terminate_workflow_executions',
-			'RegisterDomain' => 'register_domain'
+			'RegisterDomain' => 'register_domain',
+			'DeprecateDomain' => 'deprecate_domain'
 		);
 
 		if (!isset($map[$command])) {
