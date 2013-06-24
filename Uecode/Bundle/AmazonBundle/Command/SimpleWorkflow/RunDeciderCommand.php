@@ -78,7 +78,7 @@ class RunDeciderCommand extends ContainerAwareCommand
 		$register = $input->getOption('register');
 
 		if (empty($domain) || empty($name) || empty($taskList)) {
-			throw new \Exception('--domain, --workflow_name, --workflow_version, activity_version, and --tasklist are requried options.');
+			throw new \Exception('--domain, --workflow_name, and --tasklist are requried options.');
 		}
 
 		$logger = $container->get('logger');
@@ -97,8 +97,9 @@ class RunDeciderCommand extends ContainerAwareCommand
 			$swf = $container->get('uecode.amazon')->getAmazonService('SimpleWorkflow', 'ue');
 
 			if ($register) {
-				$swf->registerWorkflow($domain);
-				$swf->registerActivities($domain);
+				$this->registerDomain($domain);
+				$this->registerWorkflow($domain);
+				$this->registerActivities($domain);
 			}
 
 			// this will sit in an infinite loop (only while code conditions stay true).
