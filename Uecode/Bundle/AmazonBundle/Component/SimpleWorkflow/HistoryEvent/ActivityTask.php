@@ -47,14 +47,15 @@ use Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DecisionEvent\ScheduleAc
  */
 class ActivityTask extends AbstractHistoryEvent
 {
-	/**
+	/*
+	 * @inherit
+	 *
 	 * Handle event logic for an activity task event in history.
 	 *
 	 * This works by handling all of the ActivityTask* events in history, grabbing
 	 * the activity task name that they are referring to, then calling the 
 	 * activity event class' activityType* method.
 	 *
-	 * @see AbstractHistoryEvent::eventLogic()
 	 */
 	protected function event(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId)
 	{
