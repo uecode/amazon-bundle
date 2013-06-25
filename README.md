@@ -51,13 +51,14 @@ In your code, after doing the above, you should be able to get the amazon factor
 $container = $container->get('uecode.amazon');
 
 // Example to get a particular AWS object
-// <config key> is relative to uecode.amazon.accounts.connections (e.g., "main")
+// 'connection config key' is a config value relative to uecode.amazon.accounts.connections (e.g., "main").
+// 'AmazonClass' is a wrapper for an Amazon service which would be located in Component/.
 $obj = $container->getAmazonService('AmazonClass', '<connection config key>', array(<service options>));
 
-At present, this lib only has support for Amazon SWF.
-```
+// At present, this lib only has support for Amazon SWF.
 $swf = $container->get('uecode.amazon')
-                 ->getAmazonService('SimpleWorkflow', '<connection config key>', array(<service options>))
+                 ->getAmazonService('SimpleWorkflow', '<connection config key>', array(<service options>));
+```
 
 This project is still in the making as are its docs but we should have some docs on
 creating SWF workflows soon.
