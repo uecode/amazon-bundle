@@ -40,13 +40,13 @@ class Configuration implements ConfigurationInterface
 	 */
 	public function appendTo( ArrayNodeDefinition &$rootNode )
 	{
-		$rootNode->append( $this->addAccountNode() );
+		$rootNode->append( $this->addAmazonNode() );
 	}
 
 	/**
 	 * @return \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition|\Symfony\Component\Config\Definition\Builder\NodeDefinition
 	 */
-	private function addAccountNode()
+	private function addAmazonNode()
 	{
 		$treeBuilder = new TreeBuilder();
 		$rootNode    = $treeBuilder->root('amazon');
@@ -54,22 +54,6 @@ class Configuration implements ConfigurationInterface
 		$rootNode->append($this->addAccount());
 		$rootNode->append($this->addClasses());
 		$rootNode->append($this->addSimpleWorkflow());
-
-		return $rootNode;
-	}
-
-	private function addClasses()
-	{
-		$treeBuilder = new TreeBuilder();
-		$rootNode    = $treeBuilder->root('classes');
-
-		$rootNode
-			->addDefaultsIfNotSet()
-			->children()
-				->scalarNode('SimpleWorkflow')
-					->defaultValue('\Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow')
-				->end()
-			->end();
 
 		return $rootNode;
 	}
@@ -100,6 +84,23 @@ class Configuration implements ConfigurationInterface
 
 		return $rootNode;
 	}
+
+	private function addClasses()
+	{
+		$treeBuilder = new TreeBuilder();
+		$rootNode    = $treeBuilder->root('classes');
+
+		$rootNode
+			->addDefaultsIfNotSet()
+			->children()
+				->scalarNode('SimpleWorkflow')
+					->defaultValue('\Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow')
+				->end()
+			->end();
+
+		return $rootNode;
+	}
+
 
 	private function addSimpleWorkflow()
 	{
