@@ -47,16 +47,17 @@ See LICENSE-2.0.txt.
 In your code, after doing the above, you should be able to get the amazon factory with:
 
 ```php
-$amazonFactory = $container->get( 'uecode.amazon' )->getFactory('ue');
+// get container
+$container = $container->get('uecode.amazon');
 
 // Example to get a particular AWS object
-$obj = $amazonFactory->build('AmazonClass', array(), $container);
-```
+// <config key> is relative to uecode.amazon.accounts.connections (e.g., "main")
+$obj = $container->getAmazonService('AmazonClass', '<connection config key>', array(<service options>));
 
 At present, this lib only has support for Amazon SWF.
 ```
-$swf = $amazonFactory->build( 'AmazonSWF', array(), $container);
-```
+$swf = $container->get('uecode.amazon')
+                 ->getAmazonService('SimpleWorkflow', '<connection config key>', array(<service options>))
 
 This project is still in the making as are its docs but we should have some docs on
 creating SWF workflows soon.
