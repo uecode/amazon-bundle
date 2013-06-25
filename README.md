@@ -44,7 +44,7 @@ See LICENSE-2.0.txt.
 
 ## Usage
 
-In your code, after doing the above, you should be able to get the amazon factory with:
+In your code, after doing the above, you should be able to get an amazon service with:
 
 ```php
 // get container
