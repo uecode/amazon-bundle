@@ -42,23 +42,23 @@ abstract class AbstractActivity
 	 *
 	 * @abstract
 	 * @access protected
-	 * @param string $taskToken The unique token id that amazon provided us for this job.
 	 * @param AbstractActivity $activity
+	 * @param string $taskToken The unique token id that amazon provided us for this job.
 	 * @return ActivityTaskResponse
 	 */
-	abstract protected function activityLogic($taskToken, ActivityWorker $activity);
+	abstract protected function activity(ActivityWorker $activity, $taskToken);
 
 	/**
 	 * Run activity logic
 	 *
 	 * @access public
-	 * @param string $taskToken The unique token id that amazon provided us for this job.
 	 * @param AbstractActivity $activity
+	 * @param string $taskToken The unique token id that amazon provided us for this job.
 	 * @return ActivityTaskResponse
 	 */
-	public function run($taskToken, ActivityWorker $activity)
+	public function run(ActivityWorker $activity, $taskToken)
 	{
-		$resp = $this->activityLogic($taskToken, $activity);
+		$resp = $this->activity($activity, $taskToken);
 
 		if (!($resp instanceof ActivityTaskResponse)) {
 			throw new InvalidClassException('Activity::activityLogic() must return ActivityTaskResponse ['.get_class($this).']');

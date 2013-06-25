@@ -189,7 +189,7 @@ class ActivityWorker extends Worker
 					throw new InvalidClassException('Activity class "'.$class.'" must extend AbstractActivity.');
 				}
 
-				$request = $obj->run($token, $this);
+				$request = $obj->run($this, $token);
 				$request->taskToken = $request->taskToken ?: $token;
 
 				// use basename on the classname that came from object above.

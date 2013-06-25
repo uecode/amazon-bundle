@@ -39,7 +39,7 @@ interface HistoryActivityEventInterface
 	 * @param array $event The event in history we're dealing with.
 	 * @param int $maxEventId The max event id.
 	 */
-	public function activityEventStartedLogic(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
+	public function activityEventStarted(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
 
 	/**
 	 * Logic that gets run when the activity had an ActivityTaskCompleted
@@ -53,7 +53,7 @@ interface HistoryActivityEventInterface
 	 * @param array $event The event in history we're dealing with.
 	 * @param int $maxEventId The max event id.
 	 */
-	public function activityEventCompletedLogic(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
+	public function activityEventCompleted(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
 
 	/**
 	 * Logic that gets run when the activity had an ActivityTaskFailed
@@ -67,7 +67,7 @@ interface HistoryActivityEventInterface
 	 * @param array $event The event in history we're dealing with.
 	 * @param int $maxEventId The max event id.
 	 */
-	public function activityEventFailedLogic(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
+	public function activityEventFailed(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
 
 	/**
 	 * Logic that gets run when the activity had an ActivityTaskTimedOut
@@ -81,7 +81,7 @@ interface HistoryActivityEventInterface
 	 * @param array $event The event in history we're dealing with.
 	 * @param int $maxEventId The max event id.
 	 */
-	public function activityEventTimedOutLogic(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
+	public function activityEventTimedOut(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
 
 	/**
 	 * Logic that gets run when the activity had an ActivityTaskCanceled
@@ -95,5 +95,5 @@ interface HistoryActivityEventInterface
 	 * @param array $event The event in history we're dealing with.
 	 * @param int $maxEventId The max event id.
 	 */
-	public function activityEventCanceledLogic(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
+	public function activityEventCanceled(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
 }

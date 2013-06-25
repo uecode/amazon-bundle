@@ -56,7 +56,7 @@ class ActivityTask extends AbstractHistoryEvent
 	 *
 	 * @see AbstractHistoryEvent::eventLogic()
 	 */
-	protected function eventLogic(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId)
+	protected function event(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId)
 	{
 		// this event title
 		$eventType = $this->getEventType();
@@ -72,7 +72,7 @@ class ActivityTask extends AbstractHistoryEvent
 			$version = $decider->getResponse()->body->workflowType->version;
 
 			$class = $decider->getActivityEventNamespace($name, $version).'\\'.$eventName;
-			$method = str_replace('ActivityTask', 'activityEvent', $eventType).'Logic';
+			$method = str_replace('ActivityTask', 'activityEvent', $eventType);
 
 			$obj = new $class;
 

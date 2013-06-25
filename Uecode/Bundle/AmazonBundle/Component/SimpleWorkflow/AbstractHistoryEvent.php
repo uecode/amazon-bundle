@@ -43,11 +43,6 @@ abstract class AbstractHistoryEvent
 	protected $eventType;
 
 	/**
-	 * @var callable
-	 */
-	protected $eventLogic;
-
-	/**
 	 * Logic that gets run when this event occurs in history.
 	 * 
 	 * The goal of your event's implementation is to modify the Decision object.
@@ -59,7 +54,7 @@ abstract class AbstractHistoryEvent
 	 * @param int $maxEventId
 	 * @return void
 	 */
-	abstract protected function eventLogic(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
+	abstract protected function event(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId);
 
 	/**
 	 * Run logic for the event. At the moment this serves as an abstraction between client and self::eventLogic().
@@ -73,7 +68,7 @@ abstract class AbstractHistoryEvent
 	 */
 	final public function run(DeciderWorker $decider, Decision &$decision, $event, &$maxEventId)
 	{
-		$this->eventLogic($decider, $decision, $event, $maxEventId);
+		$this->event($decider, $decision, $event, $maxEventId);
 	}
 
 	/**
