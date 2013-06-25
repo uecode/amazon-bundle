@@ -48,13 +48,6 @@ class AmazonService
 	private $config;
 
 	/**
-	 * @var array Where amazon service class locations are defined
-	 *
-	 * @access private
-	 */
-	private $classConfig;
-
-	/**
 	 * @var Logger
 	 *
 	 * @access private
@@ -71,9 +64,6 @@ class AmazonService
 	{
 		$this->config = new Config($config);
 		$this->logger = $logger;
-
-		$file = __DIR__ . '/../Resources/config/classes.yml';
-		$this->classConfig = new Config((array)Yaml::parse($file));
 	}
 
 	/**
@@ -115,7 +105,7 @@ class AmazonService
 	 */
 	private function getAmazonClass($className)
 	{
-		foreach ($this->classConfig->all()['classes'] as $cName => $class) {
+		foreach ($this->config->all()['classes'] as $cName => $class) {
 			if ($className === $cName) {
 				return $class;
 			}
