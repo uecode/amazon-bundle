@@ -243,9 +243,11 @@ class DeciderWorker extends Worker
 			// log the actual event that failed
 			$this->log(
 				'critical',
-				'Exception while processing event: '.get_class($e).' - '.$e->getMessage(),
+				'Exception while processing event',
 				array(
-					'event' => $event,
+					'event' => json_decode(json_encode($event), true),
+					'saved_events' => $this->events,
+					'exception' => get_class($e).' - '.$e->getMessage(),
 					'trace' => $e->getTrace()
 				)
 			);
@@ -260,10 +262,12 @@ class DeciderWorker extends Worker
 	/**
 	 * Process a given history event.
 	 *
-	 * This will look for a class having a name matching that of the passed $event.
-	 * If it finds one (and the class extends AbstractHistoryEvent), the class will
-	 * be passed our Decision object. That event class has the opportunity to change
-	 * the Decision object.
+	 * This will pass the decision object to a decider to process to this particular event.
+	 * There are 2 kinds of deciders this decision object can be passed to, a Decider object or an
+	 * Activity Task. Which one is chosen is based on the type of this history event. If it 
+	 * is of a type related to a specific activity, it will use a specific ActivityTask you've
+	 * configured in your activities section in the config, otherwise this will just use the decider
+	 * you configured in your workflow.
 	 *
 	 * @access private
 	 * @final
@@ -271,72 +275,104 @@ class DeciderWorker extends Worker
 	 * @param Decision $decision
 	 * @param int $maxEventId
 	 */
-	final private function processEvent(Decision $decision, $event, &$maxEventId)
+	final private function processEvent(Decision &$decision, $event, &$maxEventId)
 	{
 		$maxEventId = max($maxEventId, intval($event->eventId));
+
+		// this history event basic info
 		$eventType = (string)$event->eventType;
 		$eventId = (int)$event->eventId;
 
-		// save the events for later lookups
+		// save the events for later lookups.
 		$this->events[$eventId] = array(
 			'event_type' => $eventType,
-			'activity_type' => ($eventType == 'ActivityTaskScheduled' ? (string)$event->activityTaskScheduledEventAttributes->activityType->name : null)
+			'activity_type' => ($eventType == 'ActivityTaskScheduled' ? (string)$event->activityTaskScheduledEventAttributes->activityType->name : null),
+			'activity_type_version' => ($eventType == 'ActivityTaskScheduled' ? (string)$event->activityTaskScheduledEventAttributes->activityType->version : null)
 		);
 
-		$name = $this->response->body->workflowType->name;
-		$version = $this->response->body->workflowType->version;
-		$userClass = $this->getEventNamespace($name, $version).'\\'.$eventType;
-		$defaultClass = 'Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\HistoryEvent\\'.$eventType;
+		// get the name and version of the workflow type
+		$workflowName = $this->response->body->workflowType->name;
+		$workflowVersion = $this->response->body->workflowType->version;
 
-		if (class_exists($userClass)) {
-			$this->log(
-				'debug',
-				"Processing decision event - user class found",
-				array(
-					'user class' => $userClass,
-					'default class' => $defaultClass,
-					'event' => json_encode($event)
-				)
-			);
+		// now we find a certain decider object based on this event type.
+		// If this eventType is of a type matching *activityTask* then we use
+		// an ActivityTask to handle this event's part in the decision.
+		switch ($eventType) {
+			// activity related types
+			case 'ActivityTaskScheduled':
+			case 'ScheduleActivityTaskFailed':
+			case 'ActivityTaskStarted':
+			case 'ActivityTaskCompleted':
+			case 'ActivityTaskFailed':
+			case 'ActivityTaskTimedout':
+			case 'ActivityTaskCanceled':
+			case 'ActivityTaskCancelRequested':
+			case 'RequestCancelActivityTaskFailed':
+				// grab the activity task name that this activity event is referencing
+				$attrKey = lcfirst($eventType).'EventAttributes';
+				$events = $this->getEvents();
+				$scheduledId = $eventType == 'ActivityTaskScheduled' ? $eventId : (int)$event->{$attrKey}->scheduledEventId;
+				$activityType = $events[$scheduledId]['activity_type'];
+				$activityVersion = $events[$scheduledId]['activity_type_version'];
 
-			$obj = new $userClass;
+				if (!$activityType || !$activityVersion) {
+					throw new \Exception("Couldn't find referenced activity type in saved events");
+				}
 
-			if (!($obj instanceof AbstractHistoryEvent)) {
-				throw new InvalidClassException($userClass.' must extend AbstractHistoryEvent'); 
-			}
+				$class = $this->getActivityClass($activityType, $activityVersion);
 
-			$obj->run($this, $decision, $event, $maxEventId);
+				if (!class_exists($class)) {
+					throw new InvalidClassException('Cannot find activity class to process this event.');
+				}
 
-		} elseif (class_exists($defaultClass)) {
-			$this->log(
-				'debug',
-				"Processing decision event - default class found",
-				array(
-					'user class' => $userClass,
-					'default class' => $defaultClass,
-					'event' => json_encode($event)
-				)
-			);
+				$obj = new $class;
 
-			$obj = new $defaultClass;
+				if (!($obj instanceof DeciderActivityTaskInterface)) {
+					throw new InvalidClassException("Activity class '$class' must implement 'DeciderActivityTaskInterface'.");
+				}
 
-			if (!($obj instanceof AbstractHistoryEvent)) {
-				throw new InvalidClassException($userClass.' must extend AbstractHistoryEvent'); 
-			}
+				$this->log(
+					'debug',
+					"Processing decision event with activity task decider",
+					array(
+						'class' => $class,
+						'event' => json_decode(json_encode($event, true))
+					)
+				);
 
-			$obj->run($this, $decision, $event, $maxEventId);
+				break;
+			// all other event types use your normal decider
+			default:
+				$class = $this->getDeciderClass($workflowName, $workflowVersion);
 
-		} else {
-			$this->log(
-				'debug',
-				"Processing decision event - no class",
-				array(
-					'user class' => $userClass,
-					'default class' => $defaultClass,
-					'event' => json_encode($event)
-				)
-			);
+				if (!class_exists($class)) {
+					throw new InvalidClassException('Cannot find activity class to process this event.');
+				}
+
+				$obj = new $class;
+
+				if (!($obj instanceof DeciderInterface)) {
+					throw new InvalidClassException("Decider class '$class' must implement 'DeciderInterface'.");
+				}
+
+				$this->log(
+					'debug',
+					"Processing decision event with normal decider",
+					array(
+						'class' => $class,
+						'event' => json_decode(json_encode($event, true))
+					)
+				);
+
+				break;
 		}
+
+		// if decider object has properly impemented appropriate interface, it will have
+		// this method defined.
+		$method = lcfirst($eventType);
+
+		// let this event play it's part in the decision making.
+		$obj->{$method}($this, $decision, $event, $maxEventId);
 	}
 
 	/**

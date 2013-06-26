@@ -25,7 +25,7 @@
 
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityTaskResponse;
 
-use Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityTaskResponse;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityTaskResponse;
 
 class ActivityTaskCompleted extends ActivityTaskResponse
 {

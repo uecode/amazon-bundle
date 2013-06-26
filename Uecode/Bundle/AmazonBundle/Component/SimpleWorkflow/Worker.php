@@ -338,35 +338,35 @@ class Worker
 	}
 
 	/**
-	 * Find event namespace from workflow config section
+	 * Find decider class for a workflow.
 	 *
 	 * This is here for backwards compatibility.
 	 *
-	 * @todo The callers should be changed to call SimpleWorkflow::getEventNamespace()
+	 * @todo The callers should be changed to call SimpleWorkflow::getDeciderClass()
 	 * @final
 	 * @access protected
 	 * @param string $name The workfloeType name
 	 * @param mixed $version The workflowType version
 	 * @return string
 	 */
-	final public function getEventNamespace($name, $version) {
-		return $this->getSWFObject()->getEventNamespace($this->domain, $name, $version);
+	final public function getDeciderClass($name, $version) {
+		return $this->getSWFObject()->getDeciderClass($this->domain, $name, $version);
 	}
 
 	/**
-	 * Find activity event namespace from workflow config section 
+	 * Find decider class for a workflow.
 	 *
 	 * This is here for backwards compatibility.
 	 *
-	 * @todo The callers should be changed to call SimpleWorkflow::getActivityEventNamespace()
+	 * @todo The callers should be changed to call SimpleWorkflow::getDeciderClass()
 	 * @final
 	 * @access protected
 	 * @param string $name The workfloeType name
 	 * @param mixed $version The workflowType version
 	 * @return string
 	 */
-	final public function getActivityEventNamespace($name, $version) {
-		return $this->getSWFObject()->getActivityEventNamespace($this->domain, $name, $version);
+	final public function getWorkflowClass($name, $version) {
+		return $this->getSWFObject()->getWorkflowClass($this->domain, $name, $version);
 	}
 
 	/**

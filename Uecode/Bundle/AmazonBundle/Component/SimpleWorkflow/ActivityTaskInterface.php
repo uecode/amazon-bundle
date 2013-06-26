@@ -26,44 +26,25 @@ namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
 // amazon bundle
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
-use Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityWorker;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityWorker;
 
 // amazon
 use \CFResponse;
 
-abstract class AbstractActivity
+/**
+ * Interface for activity tasks
+ *
+ * @author John Pancoast
+ */
+interface ActivityTaskInterface
 {
 	/**
-	 * Activity logic that gets executed when an activity worker assigns work
-	 *
-	 * Note that the activity is considered successful unless you explicitly return false.
-	 * The string you return from the method is sent as the "result" field in the 
-	 * RespondActivityTaskCompleted request.
-	 *
-	 * @abstract
-	 * @access protected
-	 * @param AbstractActivity $activity
-	 * @param string $taskToken The unique token id that amazon provided us for this job.
-	 * @return ActivityTaskResponse
-	 */
-	abstract protected function activity(ActivityWorker $activity, $taskToken);
-
-	/**
-	 * Run activity logic
+	 * Activity logic that gets executed when an activity worker receives an activity task for this specific task.
 	 *
 	 * @access public
 	 * @param AbstractActivity $activity
 	 * @param string $taskToken The unique token id that amazon provided us for this job.
 	 * @return ActivityTaskResponse
 	 */
-	public function run(ActivityWorker $activity, $taskToken)
-	{
-		$resp = $this->activity($activity, $taskToken);
-
-		if (!($resp instanceof ActivityTaskResponse)) {
-			throw new InvalidClassException('Activity::activityLogic() must return ActivityTaskResponse ['.get_class($this).']');
-		}
-
-		return $resp;
-	}
+	public function activity(ActivityWorker $activity, $taskToken);
 }

@@ -30,8 +30,9 @@ namespace Uecode\Bundle\AmazonBundle\Component;
 use \Uecode\Bundle\AmazonBundle\Component\AbstractAmazonComponent;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DeciderWorker;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityWorker;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\AbstractActivity;
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityTaskInterface;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DeciderActivityTaskInterface;
 
 /**
  * For working w/ Amazon SWF
@@ -332,8 +333,12 @@ class SimpleWorkflow extends AbstractAmazonComponent
 
 			$obj = new $a['class'];
 
-			if (!($obj instanceof AbstractActivity)) {
-				throw new InvalidClassException('Found activity '.$a['class'].' but it is not an instance of AbstractActivity');
+			if (!($obj instanceof ActivityTaskInterface)) {
+				throw new InvalidClassException('Found activity '.$a['class'].' but it must implement ActivityTaskInterface');
+			}
+
+			if (!($obj instanceof DeciderActivityTaskInterface)) {
+				throw new InvalidClassException('Found activity '.$a['class'].' but it must implement DeciderActivityTaskInterface');
 			}
 
 			$registerRequest = array(
@@ -466,39 +471,36 @@ class SimpleWorkflow extends AbstractAmazonComponent
 	}
 
 	/**
-	 * Find event namespace from workflow config section
+	 * Find class for the decider of this workflow
 	 *
 	 * @final
 	 * @access protected
+	 * @param string $domain The domain
 	 * @param string $name The workfloeType name
 	 * @param mixed $version The workflowType version
 	 * @return string
 	 */
-	final public function getEventNamespace($domain, $name, $version) {
+	final public function getDeciderClass($domain, $name, $version) {
 		$cfg = $this->getWorkflowConfig($domain, $name, $version);
-		if (count($cfg) != 1 || !isset($cfg[0]['history_event_namespace'])) {
+		if (count($cfg) != 1 || !isset($cfg[0]['class'])) {
 			return;
 		}
 
-		return $cfg[0]['history_event_namespace'];
+		return $cfg[0]['class'];
 	}
 
 	/**
-	 * Find activity event namespace from workflow config section 
+	 * Alias of {@see self::getDeciderClass()}
 	 *
 	 * @final
 	 * @access protected
+	 * @param string $domain The domain
 	 * @param string $name The workfloeType name
 	 * @param mixed $version The workflowType version
 	 * @return string
 	 */
-	final public function getActivityEventNamespace($domain, $name, $version) {
-		$cfg = $this->getWorkflowConfig($domain, $name, $version);
-		if (count($cfg) != 1 || !isset($cfg[0]['history_activity_event_namespace'])) {
-			return;
-		}
-
-		return $cfg[0]['history_activity_event_namespace'];
+	final public function getWorkflowClass($domain, $name, $version) {
+		return $this->getDeciderClass($domain, $name, $version);
 	}
 
 	/**

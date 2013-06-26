@@ -174,64 +174,68 @@ class ActivityWorker extends Worker
 			$token = (string)$this->response->body->taskToken;
 			$class = $this->getActivityClass($name, $version);
 
-			if (class_exists($class)) {
+			if (!class_exists($class)) {
 				$this->log(
-					'info',
-					'Activity task class found',
-					array(
-						'class' => $class
-					)
-				);
-
-				$obj = new $class;
-
-				if (!($obj instanceof AbstractActivity)) {
-					throw new InvalidClassException('Activity class "'.$class.'" must extend AbstractActivity.');
-				}
-
-				$request = $obj->run($this, $token);
-				$request->taskToken = $request->taskToken ?: $token;
-
-				// use basename on the classname that came from object above.
-				// this is our activity response type, our sdk call.
-				$method = 'RespondActivityTask'.ucfirst(strtolower(str_replace('ActivityTask', '', basename(str_replace('\\', '/', get_class($request))))));
-
-				$this->response = $this->getSWFObject()->callSDK($method, (array)$request);
-
-				if ($this->response->isOK()) {
-					$this->log(
-						'info',
-						'Activity completed (RespondActivityTaskCompleted successful)',
-						array(
-							'request' => (array)$request,
-							'response' => (array)$this->response
-						)
-					);
-				} else {
-					$this->log(
-						'critical',
-						'Activity failed (RespondActivityTaskCompleted failed)',
-						array(
-							'request' => $request,
-							'response' => $this->response
-						)
-					);
-				}
-			} else {
-				$this->log(
-					'warning',
+					'error',
 					'Activity task class not found',
 					array(
 						'class' => $class
 					)
 				);
 			}
+
+			$this->log(
+				'debug',
+				'Activity task class found',
+				array(
+					'class' => $class
+				)
+			);
+
+			$obj = new $class;
+
+			if (!($obj instanceof ActivityTaskInterface)) {
+				throw new InvalidClassException('Activity class "'.$class.'" must implement ActivityTaskInterface.');
+			}
+
+			$request = $obj->activity($this, $token);
+			$request->taskToken = $request->taskToken ?: $token;
+
+			// use basename on the classname that came from object above.
+			// this is our activity response type, our sdk call.
+			$method = 'RespondActivityTask'.ucfirst(strtolower(str_replace('ActivityTask', '', basename(str_replace('\\', '/', get_class($request))))));
+
+			$this->response = $this->getSWFObject()->callSDK($method, (array)$request);
+
+			if ($this->response->isOK()) {
+				$this->log(
+					'info',
+					'Activity completed (RespondActivityTaskCompleted successful)',
+					array(
+						'task' => $name,
+						'request' => (array)$request,
+						'response' => (array)$this->response
+					)
+				);
+			} else {
+				$this->log(
+					'critical',
+					'Activity failed (RespondActivityTaskCompleted failed)',
+					array(
+						'task' => $name,
+						'request' => $request,
+						'response' => $this->response
+					)
+				);
+			}
 		} catch (\Exception $e) {
 			$this->log(
 				'critical',
-				'Exception in activity worker: '.get_class($e).' - '.$e->getMessage(),
+				'Exception in activity worker',
 				array(
-					'trace' => $e->getTrace()
+					'task' => $name,
+					'trace' => $e->getTrace(),
+					'exception' => get_class($e).' - '.$e->getMessage(),
 				)
 			);
 		}
