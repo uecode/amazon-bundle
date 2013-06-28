@@ -23,8 +23,17 @@
 
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
-class Util {
+/**
+ * Common utility methods
+ *
+ * @static
+ */
+class Util
+{
+	/**
+	 * Generate a (good enough) UUID
+	 */
 	public static function generateUUID() {
-		return sha1(uniqid(mt_rand(), true));
+		return uniqid(sha1(mt_rand()), true);
 	}
 }
