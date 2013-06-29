@@ -26,15 +26,13 @@ namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
 // Amazon Components
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Decider;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\HistoryEventIterator;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\State\DeciderWorkerState;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Worker;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\AbstractHistoryEvent;
 
 // Amazon Exceptions
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
-
-// Events
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\AbstractHistoryEvent;
 
 // Amazon Classes
 use \AmazonSWF;
@@ -308,7 +306,10 @@ class DeciderWorker extends Worker
 			case 'ActivityTaskCanceled':
 			case 'ActivityTaskCancelRequested':
 			case 'RequestCancelActivityTaskFailed':
-				// grab the activity task name that this activity event is referencing
+				// grab the activity task name that this activity event is referencing.
+				// the name is stored in the event that scheduled
+				// the event so we must grab it out
+				// this is main reason for {@see self::events}
 				$attrKey = lcfirst($eventType).'EventAttributes';
 				$events = $this->getEvents();
 				$scheduledId = $eventType == 'ActivityTaskScheduled' ? $eventId : (int)$event->{$attrKey}->scheduledEventId;
@@ -327,8 +328,8 @@ class DeciderWorker extends Worker
 
 				$obj = new $class;
 
-				if (!($obj instanceof DeciderActivityTaskInterface)) {
-					throw new InvalidClassException("Activity class '$class' must implement 'DeciderActivityTaskInterface'.");
+				if (!($obj instanceof AbstractActivityTask)) {
+					throw new InvalidClassException("Activity class '$class' must extend 'AbstractActivityTask'.");
 				}
 
 				$this->log(
@@ -351,8 +352,8 @@ class DeciderWorker extends Worker
 
 				$obj = new $class;
 
-				if (!($obj instanceof DeciderInterface)) {
-					throw new InvalidClassException("Decider class '$class' must implement 'DeciderInterface'.");
+				if (!($obj instanceof Decider)) {
+					throw new InvalidClassException("Decider class '$class' must extend 'Decider'.");
 				}
 
 				$this->log(

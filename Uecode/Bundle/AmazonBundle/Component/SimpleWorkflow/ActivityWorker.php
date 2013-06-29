@@ -25,6 +25,7 @@
 namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 
 // Amazon Components
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\AbstractActivityTask;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\Worker;
 
@@ -132,7 +133,7 @@ class ActivityWorker extends Worker
 							)
 						);
 
-						$this->runActivity($this->response);
+						$this->runActivity();
 					} else {
 						$this->log(
 							'debug',
@@ -194,8 +195,8 @@ class ActivityWorker extends Worker
 
 			$obj = new $class;
 
-			if (!($obj instanceof ActivityTaskInterface)) {
-				throw new InvalidClassException('Activity class "'.$class.'" must implement ActivityTaskInterface.');
+			if (!($obj instanceof AbstractActivityTask)) {
+				throw new InvalidClassException('Activity class "'.$class.'" must extend AbstractActivityTask.');
 			}
 
 			$request = $obj->activity($this, $token);
