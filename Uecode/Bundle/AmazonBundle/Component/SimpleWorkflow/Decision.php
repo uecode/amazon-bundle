@@ -36,6 +36,13 @@ class Decision
 	private $eventCollection;
 
 	/**
+	 * @var DecisionEventCollection A collection of persistent decision events.
+	 *
+	 * @access private
+	 */
+	private $persistentEventCollection;
+
+	/**
 	 * constructor
 	 *
 	 * @access public
@@ -43,6 +50,7 @@ class Decision
 	public function __construct()
 	{
 		$this->eventCollection = new DecisionEventCollection;
+		$this->persistentEventCollection = new DecisionEventCollection;
 	}
 
 	/**
@@ -59,6 +67,18 @@ class Decision
 	}
 
 	/**
+	 * Add a persistent decision event to the collection
+	 *
+	 * @param DecisionEvent $decision The decision event object
+	 * @param string $title The unique title for this decision event.
+	 * @access public
+	 */
+	public function addPersistentDecisionEvent(DecisionEvent $decision, $title = null)
+	{
+		$this->persistentEventCollection->addDecisionEvent($decision, false, $title);
+	}
+
+	/**
 	 * Sets the decision event collection (replacing the old collection)
 	 *
 	 * @param DecisionEventCollection $eventCollection The collection
@@ -70,24 +90,81 @@ class Decision
 	}
 
 	/**
+	 * Sets the persistent decision event collection (replacing the old collection)
+	 *
+	 * @param DecisionEventCollection $eventCollection The collection
+	 * @access public
+	 */
+	public function setPersistentDecisionEvents(DecisionEventCollection $eventCollection)
+	{
+		$this->persistentEventCollection->setDecisionEvents($eventCollection);
+	}
+
+	/**
 	 * Clear the decision event collection
 	 *
 	 * @access public
-	 * @todo This should take into account events that have been set to persist
+	 * @param bool $clearPersistent Do we clear persistent decision. Set to false since they're supposed to persist =)
 	 */
-	public function clearDecisionEvents()
+	public function clearDecisionEvents($clearPersistent = false)
 	{
 		$this->eventCollection->clearDecisionEvents();
+
+		if ($clearPersistent) {
+			$this->clearPersistentDecisionEvents();
+		}
+	}
+
+	/**
+	 * Clear the persistent decision event collection
+	 *
+	 * @access public
+	 * @param bool $clearPersistent Do we clear persistent decision. Set to false since they're supposed to persist =)
+	 */
+	public function clearPersistentDecisionEvents($clearPersistent = false)
+	{
+		$this->persistentEventCollection->clearDecisionEvents();
 	}
 
 	/**
 	 * Get the decision event collection
 	 *
 	 * @access public
+	 * @param bool $cast Do we cast event attributes into array
 	 * @return DecisionEventCollection
 	 */
-	public function getDecisionEvents()
+	public function getDecisionEvents($cast = false)
 	{
-		return $this->eventCollection;
+		return $this->eventCollection->getDecisionEvents($cast);
+	}
+
+	/**
+	 * Get the decision event collection
+	 *
+	 * @access public
+	 * @param bool $cast Do we cast event attributes into array
+	 * @return DecisionEventCollection
+	 */
+	public function getPersistentDecisionEvents($cast = false)
+	{
+		return $this->persistentEventCollection->getDecisionEvents($cast);
+	}
+
+	/**
+	 * Get the decision events as array
+	 *
+	 * @access public
+	 * @param bool $includePersistent Do we include the persistent events
+	 * @return array
+	 */
+	public function getDecisionArray($includePersistent = true)
+	{
+		$decisions = (array)$this->getDecisionEvents(true);
+
+		if ($includePersistent) {
+			$decisions = array_merge($decisions, (array)$this->getPersistentDecisionEvents(true));
+		}
+
+		return $decisions;
 	}
 }

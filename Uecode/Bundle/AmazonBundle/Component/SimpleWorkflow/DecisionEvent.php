@@ -27,35 +27,6 @@ namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
 class DecisionEvent
 {
 	/**
-	 * @var string Event title.
-	 *
-	 * @access protected
-	 */
-	protected $title;
-
-	/**
-	 * Constructor
-	 *
-	 * @access public
-	 */
-	public function __construct()
-	{
-		// set the title to class name for now
-		$this->setTitle(basename(str_replace('\\', '/', get_class($this))));
-	}
-
-	/**
-	 * Set the event title
-	 *
-	 * @param string $title
-	 * @access public
-	 */
-	public function setTitle($title)
-	{
-		$this->title = $title;
-	}
-
-	/**
 	 * Get the event title
 	 *
 	 * @access public
@@ -63,6 +34,6 @@ class DecisionEvent
 	 */
 	public function getTitle()
 	{
-		return $this->title;
+		return basename(str_replace('\\', '/', get_class($this)));
 	}
 }

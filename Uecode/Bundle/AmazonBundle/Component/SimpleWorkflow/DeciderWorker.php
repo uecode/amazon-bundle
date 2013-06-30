@@ -160,7 +160,7 @@ class DeciderWorker extends Worker
 
 						$decisionArray = array(
 							'taskToken' => $taskToken,
-							'decisions' => $this->createSWFDecisionArray($decision)
+							'decisions' => $decision->getDecisionArray()
 						);
 
 						$completeResponse = $this->getSWFObject()->callSDK('RespondDecisionTaskCompleted', $decisionArray);
@@ -374,27 +374,6 @@ class DeciderWorker extends Worker
 
 		// let this event play it's part in the decision making.
 		$obj->{$method}($this, $decision, $event, $maxEventId);
-	}
-
-	/**
-	 * Given a decision object, create a decision array appropriate for amazon's SDK.
-	 *
-	 * @access public
-	 * @param Decision $decision
-	 * @return array
-	 */
-	public static function createSWFDecisionArray(Decision $decision)
-	{
-		$ret = array();
-		foreach ($decision->getDecisionEvents() as $e)
-		{
-			$title = $e->getTitle();
-			$ret[] = array(
-				'decisionType' => $title,
-				lcfirst($title).'DecisionAttributes' => json_decode(json_encode($e), true)
-			);
-		}
-		return $ret;
 	}
 
 	/**

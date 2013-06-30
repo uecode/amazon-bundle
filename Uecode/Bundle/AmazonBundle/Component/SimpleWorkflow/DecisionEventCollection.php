@@ -32,16 +32,21 @@ class DecisionEventCollection extends \ArrayObject
 	 *
 	 * @param DecisionEvent $decision The decision event object
 	 * @param bool $clearEvents Do we clear events before adding this event.
-	 * @param string $title The unique title for this decision event.
 	 * @access public
 	 *
 	 */
-	public function addDecisionEvent(DecisionEvent $decision, $clearEvents = false, $title = null)
+	public function addDecisionEvent(DecisionEvent $decision, $clearEvents = false)
 	{
 		if ($clearEvents) {
 			$this->clearDecisionEvents();
 		}
-		$this->offsetSet(($title ?: $decision->getTitle()), $decision);
+
+		$title = $decision->getTitle();
+
+		$this->offsetSet(count($this), array(
+			'decisionType' => $title,
+			lcfirst($title).'DecisionAttributes' => $decision
+		));
 	}
 
 	/**
@@ -72,10 +77,30 @@ class DecisionEventCollection extends \ArrayObject
 	 * Get the decision event collection
 	 *
 	 * @access public
+	 * @param bool $cast Do we cast event attributes into array
 	 * @return DecisionEventCollection
 	 */
-	public function getDecisionEvents()
+	public function getDecisionEvents($cast = false)
 	{
-		return $this;
+		if (!$cast) {
+			return $this;
+		}
+
+		// cast the event attrs to an array
+
+		$clone = clone $this;
+
+		for ($i = 0, $c = count($clone); $i < $c; ++$i) {
+			$event = $clone->offsetGet($i);
+			$title = $event['decisionType'];
+			$attr = $event[lcfirst($title).'DecisionAttributes'];
+
+			$clone->offsetSet($i, array(
+				'decisionType' => $title,
+				lcfirst($title).'DecisionAttributes' => (array)$attr
+			));
+		}
+
+		return $clone;
 	}
 }
