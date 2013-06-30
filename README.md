@@ -48,7 +48,7 @@ In your code, after doing the above, you should be able to get an amazon service
 
 ```php
 // get container
-$container = $container->get('uecode.amazon');
+$service = $container->get('uecode.amazon');
 ```
 
 ```php
@@ -56,12 +56,12 @@ $container = $container->get('uecode.amazon');
 // * AmazonClass - A wrapper for an Amazon service which would be located in Component/.
 // * connection config key - A config value relative to
 //   uecode.amazon.accounts.connections (e.g., "main").
-$obj = $container->getAmazonService('AmazonClass', '<connection config key>', array(<service options>));
+$obj = $service->getAmazonService('AmazonClass', '<connection config key>', array(<service options>));
 ```
 
 ```php
 // At present, this lib only has support for Amazon SWF.
-$swf = $container->get('uecode.amazon')
+$swf = $service->get('uecode.amazon')
  ->getAmazonService('SimpleWorkflow', '<connection config key>', array(<service options>));
 ```
 
