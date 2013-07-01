@@ -1,13 +1,9 @@
 <?php
-
 /**
  * CompleteWorkflowExecution decision event
  *
  * @package amazon-bundle
  * @copyright (c) 2013 Underground Elephant
- * @author John Pancoast
- * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_Decision.html
- * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_CompleteWorkflowExecutionDecisionAttributes.html
  *
  * Copyright 2013 Underground Elephant
  *
@@ -28,7 +24,20 @@ namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DecisionEvent;
 
 use Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DecisionEvent;
 
+/**
+ * CompleteWorkflowExecution decision event
+ *
+ * This Will define the required structure for this decision event. Optional properties
+ * will be commented out which your object may or may not define.
+ *
+ * @author John Pancoast
+ * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_Decision.html
+ * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_CompleteWorkflowExecutionDecisionAttributes.html
+ */
 class CompleteWorkflowExecution extends DecisionEvent
 {
-	public $result = '';
+	// optional properties will be commented out.
+	// @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_CompleteWorkflowExecutionDecisionAttributes.html
+
+	//public $result = ''; // optional
 }

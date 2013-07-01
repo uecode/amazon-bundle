@@ -1,6 +1,6 @@
 <?php
 /**
- * ScheduleActivityTask decision event
+ * CancelWorkflowExecution decision event
  *
  * @package amazon-bundle
  * @copyright (c) 2013 Underground Elephant
@@ -25,27 +25,19 @@ namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DecisionEvent;
 use Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DecisionEvent;
 
 /**
- * ScheduleActivityTask decision event
+ * CancelWorkflowExecution decision event
  *
  * This Will define the required structure for this decision event. Optional properties
  * will be commented out which your object may or may not define.
  *
  * @author John Pancoast
  * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_Decision.html
- * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_ScheduleActivityTaskDecisionAttributes.html
+ * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_CancelWorkflowExecutionDecisionAttributes.html
  */
-class ScheduleActivityTask extends DecisionEvent
+class CancelWorkflowExecution extends DecisionEvent
 {
 	// optional properties will be commented out.
-	// @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_ScheduleActivityTaskDecisionAttributes.html
+	// @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_CancelWorkflowExecutionDecisionAttributes.html
 
-	public $activityId = '';
-	public $activityType = array('name' => 'defined by you', 'version' => 'defined by you');;
-	//public $control = ''; // optional
-	//public $heartbeatTimeout = ''; // optional
-	//public $input = ''; // optional
-	//public $scheduleToCloseTimeout = ''; // optional
-	//public $scheduleToStartTimeout = ''; // optional
-	//public $startToCloseTimeout = ''; // optional
-	//public $taskList = ''; // optional
+	//public $details = ''; // optional
 }

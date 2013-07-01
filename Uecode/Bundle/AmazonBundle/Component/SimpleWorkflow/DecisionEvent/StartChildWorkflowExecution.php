@@ -1,6 +1,6 @@
 <?php
 /**
- * ScheduleActivityTask decision event
+ * StartChildWorkflowExecution decision event
  *
  * @package amazon-bundle
  * @copyright (c) 2013 Underground Elephant
@@ -25,27 +25,28 @@ namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DecisionEvent;
 use Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DecisionEvent;
 
 /**
- * ScheduleActivityTask decision event
+ * StartChildWorkflowExecution decision event
  *
  * This Will define the required structure for this decision event. Optional properties
  * will be commented out which your object may or may not define.
  *
  * @author John Pancoast
  * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_Decision.html
- * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_ScheduleActivityTaskDecisionAttributes.html
+ * @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_StartChildWorkflowExecutionDecisionAttributes.html
  */
-class ScheduleActivityTask extends DecisionEvent
+class StartChildWorkflowExecution extends DecisionEvent
 {
 	// optional properties will be commented out.
-	// @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_ScheduleActivityTaskDecisionAttributes.html
+	// @see http://docs.aws.amazon.com/amazonswf/latest/apireference/API_StartChildWorkflowExecutionDecisionAttributes.html
 
-	public $activityId = '';
-	public $activityType = array('name' => 'defined by you', 'version' => 'defined by you');;
+	//public $childPolicy = ''; // optional
 	//public $control = ''; // optional
-	//public $heartbeatTimeout = ''; // optional
+	//public $executionStartToCloseTimeout = ''; // optional
 	//public $input = ''; // optional
-	//public $scheduleToCloseTimeout = ''; // optional
-	//public $scheduleToStartTimeout = ''; // optional
-	//public $startToCloseTimeout = ''; // optional
+	//public $tagList = ''; // optional
 	//public $taskList = ''; // optional
+	//public $taskStartToCloseTimeout = ''; // optional
+	//public $taskStartToCloseTimeout = ''; // optional
+	public $workflowId = '';
+	public $workflowType = array('name' => 'defined by you', 'version' => 'defined by you');
 }
