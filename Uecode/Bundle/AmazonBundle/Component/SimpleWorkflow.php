@@ -22,17 +22,12 @@
 
 namespace Uecode\Bundle\AmazonBundle\Component;
 
-// Exceptions
-//use \Uecode\Bundle\AmazonBundle\Exception\InvalidConfigurationException;
-//use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
-
 // Amazon Bundle Components
 use \Uecode\Bundle\AmazonBundle\Component\AbstractAmazonComponent;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DeciderWorker;
 use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityWorker;
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\ActivityTaskInterface;
-use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\DeciderActivityTaskInterface;
+use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\AbstractActivityTask;
 
 /**
  * For working w/ Amazon SWF
@@ -333,12 +328,8 @@ class SimpleWorkflow extends AbstractAmazonComponent
 
 			$obj = new $a['class'];
 
-			if (!($obj instanceof ActivityTaskInterface)) {
-				throw new InvalidClassException('Found activity '.$a['class'].' but it must implement ActivityTaskInterface');
-			}
-
-			if (!($obj instanceof DeciderActivityTaskInterface)) {
-				throw new InvalidClassException('Found activity '.$a['class'].' but it must implement DeciderActivityTaskInterface');
+			if (!($obj instanceof AbstractActivityTask)) {
+				throw new InvalidClassException('Found activity '.$a['class'].' but it must extend AbstractActivityTask.');
 			}
 
 			$registerRequest = array(
