@@ -70,6 +70,7 @@ class Worker
 	 * @var int An id representing this execution
 	 *
 	 * This id is created locally and remains the same through the entire execution of this file.
+	 * It's here as a way to lookup a specific process' work.
 	 *
 	 * @access  private
 	 */
@@ -112,7 +113,6 @@ class Worker
 		$this->registerSignalHandlers();
 		$this->setSWFObject($swf);
 
-		// TODO this should be reset each worker loop
 		$this->executionId = Util::generateUUID();
 	}
 
