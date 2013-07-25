@@ -96,6 +96,12 @@ class Configuration implements ConfigurationInterface
 				->scalarNode('SimpleWorkflow')
 					->defaultValue('\Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow')
 				->end()
+				->scalarNode('SimpleEmailService')
+					->defaultValue('\Uecode\Bundle\AmazonBundle\Component\SimpleEmailService')
+				->end()
+				->scalarNode('SimpleNotificationService')
+					->defaultValue('\Uecode\Bundle\AmazonBundle\Component\SimpleNotificationService')
+				->end()
 			->end();
 
 		return $rootNode;
