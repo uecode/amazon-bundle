@@ -1,3 +1,5 @@
 classes:
     # class names can be overridden by developer
     SimpleWorkflow: \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow
+    SimpleEmailService: \Uecode\Bundle\AmazonBundle\Component\SimpleEmailService
+    SimpleNotificationService: \Uecode\Bundle\AmazonBundle\Component\SimpleNotificationService
