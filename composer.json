@@ -24,7 +24,7 @@
 	},
 	"require":     {
 		"uecode/uecode-bundle": "dev-master",
-		"aws/aws-sdk-php": "2.1.*",
+		"aws/aws-sdk-php": ">=2.1.*",
 		"amazonwebservices/aws-sdk-for-php": "1.6.*"
 	},
 	"suggest":     {
