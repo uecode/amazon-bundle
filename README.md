@@ -67,3 +67,7 @@ $swf = $service->get('uecode.amazon')
 
 This project is still in the making as are its docs but we should have some docs on
 creating SWF workflows soon.
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/uecode/amazon-bundle/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
