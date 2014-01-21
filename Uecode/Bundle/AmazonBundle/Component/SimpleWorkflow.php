@@ -34,52 +34,8 @@ use \Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow\AbstractActivityTask;
  *
  * @author John Pancoast, Aaron Scherer
  */
-class SimpleWorkflow extends AbstractAmazonComponent
+class SimpleWorkflow extends AmazonComponent
 {
-	/*
-	 * inherit
-	 * @return \AmazonSWF
-	 */
-	public function buildAmazonObject(array $options)
-	{
-		return new \AmazonSWF($options);
-	}
-
-	/**
-	 * Call SDK method
-	 *
-	 * Currently working w/ v1 of SDK
-	 *
-	 * @access public
-	 * @param string $command SDK command
-	 * @param array $options SDK command options
-	 */
-	public function callSDK($command, array $options)
-	{
-		$map = array(
-			'PollForDecisionTask' => 'poll_for_decision_task',
-			'RespondDecisionTaskCompleted' => 'respond_decision_task_completed',
-			'PollForActivityTask' => 'poll_for_activity_task',
-			'RespondActivityTaskCompleted' => 'respond_activity_task_completed',
-			'RespondActivityTaskCanceled' => 'respond_activity_task_canceled',
-			'RespondActivityTaskFailed' => 'respond_activity_task_failed',
-			'RegisterWorkflowType' => 'register_workflow_type',
-			'DescribeWorkflowType' => 'describe_workflow_type',
-			'RegisterActivityType' => 'register_activity_type',
-			'ListOpenWorkflowExecutions' => 'list_open_workflow_executions',
-			'CountOpenWorkflowExecutions' => 'count_open_workflow_executions',
-			'TerminateWorkflowExecution' => 'terminate_workflow_executions',
-			'RegisterDomain' => 'register_domain',
-			'DeprecateDomain' => 'deprecate_domain'
-		);
-
-		if (!isset($map[$command])) {
-			throw new \Exception("Cannot find SDK method for '$command'.");
-		}
-
-		return $this->getAmazonObject()->{$map[$command]}($options);
-	}
-
 	/**
 	 * Build a decider
 	 *

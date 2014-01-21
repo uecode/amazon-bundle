@@ -3,6 +3,7 @@
 /**
  * A symfony command to run Amazon SDK Commands
  *
+ * Note that this currently only supports v1 of the PHP SDK.
  *
  * @package amazon-bundle
  * @author John Pancoast
@@ -24,7 +25,7 @@
  * limitations under the License.
  */
 
-namespace Uecode\Bundle\AmazonBundle\Command\SimpleWorkflow;
+namespace Uecode\Bundle\AmazonBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
@@ -36,43 +37,42 @@ use Symfony\Component\Console\Output\OutputInterface;
 use \AmazonSWF;
 use \CFRuntime;
 
-class SDKCommandCommand extends ContainerAwareCommand
+class AwsCommand extends ContainerAwareCommand
 {
 	protected function configure() {
 		$this
-			->setName('ue:aws:swf:sdkcommand')
-			->setDescription('Call an SWF command.')
+			->setName('ue:aws:command')
+			->setDescription('Call an AWS service.')
 			->addArgument(
-				'sdk_command',
+				'aws_service',
 				InputArgument::REQUIRED,
-				'The amazon SDK command (v2 of SDK)'
+				'The amazon SDK service -  e.g., s3'
+			)
+			->addArgument(
+				'aws_service_command',
+				InputArgument::REQUIRED,
+				'The amazon service command - e.g., listBuckets'
 			)
 			->addArgument(
 				'options',
-				InputArgument::REQUIRED,
-				'The amazon SWF options (as JSON object)'
+				InputArgument::OPTIONAL,
+				'The service command options (as JSON object)'
 			);
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
-		$command = $input->getArgument('sdk_command');
-		$options = $input->getArgument('options');
+		$service = $input->getArgument('aws_service');
+		$command = $input->getArgument('aws_service_command');
+        if ( $input->getArgument('options') )
+            $options = json_decode( $input->getArgument('options'), true);
+        else
+            $options = [ ];
 
-		$options = json_decode($options, true);
-
-		if (!$options || empty($options)) {
-			throw new \Exception('Invalid or empty JSON string');
-		}
-
-		$output->writeln(print_r($this->callSDKCommand($command, $options), true));
-	}
-
-	final protected function callSDKCommand($command, $options) {
 		$container = $this->getApplication()->getKernel()->getContainer();
 
-		$swf = $container->get('uecode.amazon')
-		                 ->getAmazonService('swf');
-
-		return $swf->callSDK($command, $options);
+        $this->service = $swf = $container->get('uecode.amazon')
+                         ->getAmazonService($service, $options);
+        $output->writeln( print_r( $this->service->callSDK( $command, $options ) ) );
 	}
+
 }

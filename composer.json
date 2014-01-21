@@ -24,8 +24,7 @@
 	},
 	"require":     {
 		"uecode/uecode-bundle": "dev-master",
-		"aws/aws-sdk-php": "2.3.4",
-		"amazonwebservices/aws-sdk-for-php": "1.6.*"
+		"aws/aws-sdk-php": "2.*"
 	},
 	"suggest":     {
 		"monolog/monolog": "Allows more advanced logging of the application flow"

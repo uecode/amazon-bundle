@@ -50,9 +50,19 @@ class Configuration implements ConfigurationInterface
 	{
 		$treeBuilder = new TreeBuilder();
 		$rootNode    = $treeBuilder->root('amazon');
+        
+		$rootNode
+            ->children()
+                    ->scalarNode( 'custom_config_file' )->end();
+                    ->scalarNode( 'log_adapter' )->defaultValue( 'MonologLogAdapter' )->end();
+                    ->scalarNode( 'component_namespace' )->defaultValue( '\Uecode\Bundle\AmazonBundle\Component\\' )->end();
+			->end();
 
 		$rootNode->append($this->addAccount());
+
+        /** Adding custom configs this way is deprecated **/
 		$rootNode->append($this->addClasses());
+
 		$rootNode->append($this->addSimpleWorkflow());
 
 		return $rootNode;
@@ -85,6 +95,9 @@ class Configuration implements ConfigurationInterface
 		return $rootNode;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	private function addClasses()
 	{
 		$treeBuilder = new TreeBuilder();

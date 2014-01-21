@@ -22,16 +22,24 @@
 
 namespace Uecode\Bundle\AmazonBundle\Service;
 
+//Guzzle
+use Guzzle\Log;
+use Guzzle\Service\Builder\ServiceBuilder;
+
 // Symfony
 use Monolog\Logger;
 use Symfony\Component\Yaml\Yaml;
 
 // Uecode
 use \Uecode\Bundle\UecodeBundle\Component\Config;
+use \Uecode\Bundle\AmazonBundle\Component\AmazonComponent;
 
 // AmazonBundle Exceptions
 use \Uecode\Bundle\AmazonBundle\Exception\ClassNotFoundException;
 use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
+
+// AWS
+use \Aws\Common\Aws;
 
 /**
  * Service for loading Amazon services
@@ -40,77 +48,79 @@ use \Uecode\Bundle\AmazonBundle\Exception\InvalidClassException;
  */
 class AmazonService
 {
-	/**
-	 * @var Config
-	 *
-	 * @access private
-	 */
-	private $config;
+    /**
+     * @var Config
+     *
+     * @access private
+     */
+    private $config;
 
-	/**
-	 * @var Logger
-	 *
-	 * @access private
-	 */
-	private $logger;
+    /**
+     * @var Logger
+     *
+     * @access private
+     */
+    private $logger;
 
-	/**
-	 * Constructor
-	 *
-	 * @param array  $config
-	 * @param Logger $logger
-	 */
-	public function __construct($config, Logger $logger = null)
-	{
-		$this->config = new Config($config);
-		$this->logger = $logger;
-	}
+    /**
+     * @var ServiceBuilder
+     *
+     * @access private
+     */
+    private $aws_object;
 
-	/**
-	 * Get an amazon servive
-	 *
-	 * @access public
-	 * @param string $awsserviceName The service to load
-	 * @param string $configConnectionKey A config key specifying amazon connection to use (relative to uecode.amazon.accounts.connections)
-	 * @param array $awsServiceOptions Options needed for the service
-	 * @return AbstractAmazonComponent (child of it)
-	 */
-	public function getAmazonService($awsServiceName, $configConnectionKey, array $awsServiceOptions = array())
-	{
-		$class = $this->getAmazonClass($awsServiceName);
+    /**
+     * @var AwsClient
+     *
+     * @access private
+     */
+    private $aws_client;
 
-		if (!$class) {
-			throw new ClassNotFoundException($awsServiceName);
-		}
+    /**
+     * @var LogPlugin
+     *
+     * @access private
+     */
+    private $log_plugin;
 
-		/** @var $config array Merge given configs with account configs */
-		$this->config->setItems(array('aws_options' => $awsServiceOptions));
+    /**
+     * Constructor
+     *
+     * @param array  $config
+     * @param Logger $logger
+     */
+    public function __construct($config, Logger $logger = null)
+    {
+        $this->config = new Config( $config );
+        $this->logger = $logger;
+    }
 
-		$config = $this->config->all();
+    /**
+     * Get an amazon servive
+     *
+     * @access public
+     * @param string $awsserviceName The service to load
+     * @param string $configConnectionKey A config key specifying amazon connection to use (relative to uecode.amazon.accounts.connections)
+     * @param array $awsOptions Global AWS options
+     * @param array $awsServiceOptions Options needed for the service
+     * @return AbstractAmazonComponent (child of it)
+     */
+    public function getAmazonService($awsServiceName, array $awsOptions = array())
+    {
+        $ns = $this->config->get('component_namespace');
+        $class = $ns . $awsServiceName;
 
-		$object = new $class();
-		$object->initialize($this->config)
-		       ->setAmazonObject($object->buildAmazonObject($config['accounts']['connections'][$configConnectionKey]))
-		       ->setLogger($this->logger);
+        if ( !class_exists($class) )
+            $class = $ns . "AmazonComponent";
 
-		return $object;
-	}
+        $object = new $class();
+        $object->initialize( $this->config )
+            ->setAmazonObject( $object->buildAmazonObject( $awsOptions ) )
+            ->setLogger( $this->logger )
+            ->setAmazonServiceObject( $object->buildAmazonServiceObject( $awsServiceName ) ) 
+            ->setLogPlugin( $object->buildLogPlugin() ) 
+            ->getAmazonServiceObject()->addSubscriber( $object->getLogPlugin() );
 
-	/**
-	 * Find amazon class location
-	 *
-	 * @access private
-	 * @param string $className The name of class to locate
-	 * @return mixed string|null
-	 */
-	private function getAmazonClass($className)
-	{
-		foreach ($this->config->all()['classes'] as $cName => $class) {
-			if ($className === $cName) {
-				return $class;
-			}
-		}
-
-		return null;
-	}
+        return $object;
+    }
 }
