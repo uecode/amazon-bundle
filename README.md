@@ -18,7 +18,7 @@ See LICENSE-2.0.txt.
 1. Add to composer.json under `require`
 
 	```
-	"uecode/amazoa-bundle": "dev-master",
+	"uecode/amazon-bundle": "dev-master",
 	```
 
 2. Register in `AppKernel`
@@ -39,6 +39,34 @@ See LICENSE-2.0.txt.
                 custom_config_file: '%kernel.root_dir%/config/aws.json'
                 log_adapter: 'MonologLogAdapter'
 	```
+
+4. yml config for SWF
+
+    ```yml
+        uecode:
+            amazon:
+                #custom config file is optional see http://docs.aws.amazon.com/aws-sdk-php/guide/latest/credentials.html for other configuration options
+                custom_config_file: '%kernel.root_dir%/config/aws.json'
+                log_adapter: 'MonologLogAdapter'
+                simpleworkflow:
+                    domains:
+                        uePoc:
+                            description: "UE's domain for SWF proof of concept."
+                            workflow_execution_retention_period: 8
+                            workflows:
+                                - name: leads
+                                  version: 1.9
+                                  class: Ue\AmazonBundle\Component\SimpleWorkFlow\v1_9\Decider
+                                  default_child_policy: REQUEST_CANCEL
+                                  default_task_list: spool
+                                  default_task_timeout: 600
+                                  default_execution_timeout: 31536000
+                            activities:
+                                - name: InsertLead
+                                  version: 1.9
+                                  class: Ue\AmazonBundle\Component\SimpleWorkFlow\v1_9\Activity\InsertLead
+                                  default_task_list: spool
+    ```
 
 ## Usage
 
