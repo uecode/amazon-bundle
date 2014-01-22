@@ -53,10 +53,9 @@ class Configuration implements ConfigurationInterface
         
 		$rootNode
             ->children()
-                    ->scalarNode( 'custom_config_file' )->end();
-                    ->scalarNode( 'log_adapter' )->defaultValue( 'MonologLogAdapter' )->end();
+                    ->scalarNode( 'custom_config_file' )->defaultValue('')->end()
+                    ->scalarNode( 'log_adapter' )->defaultValue( 'MonologLogAdapter' )->end()
                     ->scalarNode( 'component_namespace' )->defaultValue( '\Uecode\Bundle\AmazonBundle\Component\\' )->end();
-			->end();
 
 		$rootNode->append($this->addAccount());
 
