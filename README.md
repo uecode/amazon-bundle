@@ -79,15 +79,15 @@ $service = $container->get('uecode.amazon');
 
 ```php
 // Example to get a particular AWS object
-//for a list of API commands, see http://docs.aws.amazon.com/aws-sdk-php/latest/
+// for a list of API commands, see http://docs.aws.amazon.com/aws-sdk-php/latest/
 // * AmazonClass - An Amazon service name.  This will either load a wrapper component in AmazonBundle/Component, or AmazonBundle/Component/AmazonComponent
 // * $options - array containing global AWS configs, e.g. to override connection credentials
 $obj = $service->etAmazonService('AmazonClass', $options);
 ```
 
 ```php
-//example to get a list of s3 buckets
-//http://docs.aws.amazon.com/aws-sdk-php/latest/class-Aws.S3.S3Client.html
+// example to get a list of s3 buckets
+// http://docs.aws.amazon.com/aws-sdk-php/latest/class-Aws.S3.S3Client.html
 $s3 = $service->get('uecode.amazon')->getAmazonService('s3', $aws_options);
 $buckets = $s3->callSDK( 'listBuckets', $service_options );
 ```
