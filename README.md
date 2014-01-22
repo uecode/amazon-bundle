@@ -33,13 +33,11 @@ See LICENSE-2.0.txt.
 3. Add Account info to your config.yml
 
 	```yml
-	uecode:
-	    amazon:
-	        accounts:
-	            connections:
-	                main:
-	                    key: somekey
-	                    secret: somesecret
+        uecode:
+            amazon:
+                #custom config file is optional see http://docs.aws.amazon.com/aws-sdk-php/guide/latest/credentials.html for other configuration options    
+                custom_config_file: '%kernel.root_dir%/config/aws.json'
+                log_adapter: 'MonologLogAdapter'
 	```
 
 ## Usage
