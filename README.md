@@ -79,16 +79,17 @@ $service = $container->get('uecode.amazon');
 
 ```php
 // Example to get a particular AWS object
-// * AmazonClass - A wrapper for an Amazon service which would be located in Component/.
-// * connection config key - A config value relative to
-//   uecode.amazon.accounts.connections (e.g., "main").
-$obj = $service->getAmazonService('AmazonClass', '<connection config key>', array(<service options>));
+//for a list of API commands, see http://docs.aws.amazon.com/aws-sdk-php/latest/
+// * AmazonClass - An Amazon service name.  This will either load a wrapper component in AmazonBundle/Component, or AmazonBundle/Component/AmazonComponent
+// * $options - array containing global AWS configs, e.g. to override connection credentials
+$obj = $service->etAmazonService('AmazonClass', $options);
 ```
 
 ```php
-// At present, this lib only has support for Amazon SWF.
-$swf = $service->get('uecode.amazon')
- ->getAmazonService('SimpleWorkflow', '<connection config key>', array(<service options>));
+//example to get a list of s3 buckets
+//http://docs.aws.amazon.com/aws-sdk-php/latest/class-Aws.S3.S3Client.html
+$s3 = $service->get('uecode.amazon')->getAmazonService('s3', $aws_options);
+$buckets = $s3->callSDK( 'listBuckets', $service_options );
 ```
 
 This project is still in the making as are its docs but we should have some docs on
