@@ -79,6 +79,6 @@ class LoggerCompilerPass implements CompilerPassInterface
         $plugin->setPublic(false);
 
         $container->getDefinition($serviceId)
-            ->addMethodCall('addSubscriber', [new Reference('uecode_amazon.logger.' . $account['name'] . '.plugin')]);
+            ->addMethodCall('addGlobalPlugin', [new Reference('uecode_amazon.logger.' . $account['name'] . '.plugin')]);
     }
 }

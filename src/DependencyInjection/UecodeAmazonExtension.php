@@ -55,11 +55,6 @@ class UecodeAmazonExtension extends Extension
      */
     private function buildServicesForAccounts(array $accounts, ContainerBuilder $container)
     {
-        $factory = $container->setDefinition(
-            'uecode_amazon.factory',
-            new Definition('%uecode_amazon.factory.class%')
-        );
-
         foreach ($accounts as $name => $account) {
             $account['name'] = $name;
             $this->createAWSDefinition($account, $container);
@@ -78,7 +73,7 @@ class UecodeAmazonExtension extends Extension
             new Definition('%uecode_amazon.instance.class%', [$account])
         );
 
-        $definition->setFactoryService('uecode_amazon.factory')
+        $definition->setFactoryClass('%uecode_amazon.factory.class%')
             ->setFactoryMethod($container->getParameter('uecode_amazon.factory.method'))
             ->addTag('uecode_amazon.instance');
 
