@@ -24,13 +24,16 @@ use Symfony\Component\Config\FileLocator;
 use \Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use \Symfony\Component\DependencyInjection\Loader;
+use Symfony\Component\DependencyInjection\Reference;
 use \Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 /**
  * Uecode  Extension
  */
-class AmazonExtension extends Extension
+class UecodeAmazonExtension extends Extension
 {
+
+    private $logging;
 
     /**
      * {@inheritdoc}
@@ -59,25 +62,57 @@ class AmazonExtension extends Extension
         $factory->setPublic(false);
 
         foreach ($accounts as $name => $account) {
-            $this->createAWSDefinition($name, $account, $container);
+            $account['name'] = $name;
+            $this->createAWSDefinition($account, $container);
         }
     }
 
     /**
-     * @param string           $name
      * @param array            $account
      * @param ContainerBuilder $container
      */
-    private function createAWSDefinition($name, array $account, ContainerBuilder $container)
+    private function createAWSDefinition(array $account, ContainerBuilder $container)
     {
         $definition = $container->setDefinition(
-            'uecode_amazon.instance.' . $name,
+            'uecode_amazon.instance.' . $account['name'],
             new Definition('%uecode_amazon.instance.class%', [$account])
         );
 
         $definition->setFactoryService('uecode_amazon.factory')
             ->setFactoryMethod('%uecode_amazon.factory.method%');
 
-        $container->setAlias('aws.' . $name, $definition);
+        if ($account['logging']['enabled']) {
+            $this->addLogging($account, $definition, $container);
+        }
+
+        $container->setAlias('aws.' . $account['name'], $definition);
+    }
+
+    private function addLogging(array $account, Definition $definition, ContainerBuilder $container)
+    {
+        if (!$container->hasDefinition($account['logging']['logger_id'])) {
+            throw new \InvalidArgumentException(sprintf(
+                "The logger `%s` does not exist within the container.",
+                $account['logging']['logger_id']
+            ));
+        }
+
+        $logger = new Reference($account['logging']['logger_id']);
+
+        $container->setDefinition(
+            'uecode_amazon.logger.' . $account['name'],
+            new Definition('Guzzle\\Common\\Log\\MonologLogAdapter', [$logger])
+        )
+            ->setPublic(false);
+
+        $container->setDefinition(
+            'uecode_amazon.logger.plugin.' . $account['name'],
+            new Definition('Guzzle\\Plugin\\Log\\LogPlugin', [
+                new Reference('uecode_amazon.logger.' . $account['name'])
+            ])
+        )
+            ->setPublic(false);
+
+        $definition->addMethodCall('addSubscriber', [new Reference('uecode_amazon.logger.plugin.' . $account['name'])]);
     }
 }

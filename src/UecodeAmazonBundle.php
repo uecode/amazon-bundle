@@ -23,7 +23,7 @@ namespace Uecode\Bundle\AmazonBundle;
 
 use \Symfony\Component\HttpKernel\Bundle\Bundle;
 
-class AmazonBundle extends Bundle
+class UecodeAmazonBundle extends Bundle
 {
 
 }

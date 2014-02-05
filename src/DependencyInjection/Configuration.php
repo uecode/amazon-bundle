@@ -38,7 +38,11 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode    = $treeBuilder->root('uecode_amazon');
 
-        $rootNode->append($this->addAccount());
+        $rootNode
+            ->children()
+                ->append($this->addAccount())
+            ->end()
+        ;
 
         return $treeBuilder;
     }
@@ -46,9 +50,9 @@ class Configuration implements ConfigurationInterface
     private function addAccount()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode    = $treeBuilder->root('accounts');
+        $node    = $treeBuilder->root('accounts');
 
-        $rootNode
+        $node
             ->requiresAtLeastOneElement()
             ->useAttributeAsKey('name')
             ->prototype('array')
@@ -62,10 +66,32 @@ class Configuration implements ConfigurationInterface
                     ->scalarNode('region')
                         ->isRequired()
                     ->end()
+                    ->append($this->addLogging())
                 ->end()
             ->end()
         ->end();
 
-        return $rootNode;
+        return $node;
+    }
+
+    private function addLogging()
+    {
+        $treeBuilder = new TreeBuilder();
+        $node    = $treeBuilder->root('logging');
+
+        $node
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->booleanNode('enabled')
+                    ->defaultFalse()
+                ->end()
+                ->scalarNode('logger_id')
+                    ->defaultNull()
+                ->end()
+            ->end()
+        ;
+
+
+        return $node;
     }
 }
