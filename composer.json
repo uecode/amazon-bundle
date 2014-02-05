@@ -1,8 +1,8 @@
 {
 	"name":        "uecode/amazon-bundle",
 	"type":        "library",
-	"description": "Symfony2 Uecode Amazon Bundle",
-	"keywords":    ["php", "uecode"],
+	"description": "AWS SDK v2 Bundle for Symfony2",
+	"keywords":    ["php", "uecode", "aws"],
 	"homepage":    "https://github.com/uecode/amazon-bundle",
 	"license":     "MIT",
 	"authors":     [
