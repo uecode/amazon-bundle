@@ -1,11 +1,11 @@
 Amazon Bundle
 ============
 
-This bundle handles connections w/ various Amazon AWS services.
+This bundle is a semantic configuration and service provider for the AWS PHP SDK v2
 
 ## Copyright
 
-Copyright (c) 2013 Underground Elephant
+Copyright (c) 2014 Underground Elephant
 
 ## License
 
@@ -18,7 +18,7 @@ See LICENSE-2.0.txt.
 1. Add to composer.json under `require`
 
 	```
-	"uecode/amazoa-bundle": "dev-master",
+	"uecode/amazon-bundle": ">=2.0.0, <3.0.0",
 	```
 
 2. Register in `AppKernel`
@@ -26,20 +26,17 @@ See LICENSE-2.0.txt.
 	``` php
 		$bundles = array(
 		// ...
-		new Uecode\Bundle\UecodeBundle\UecodeBundle()
 		new Uecode\Bundle\AmazonBundle\AmazonBundle()
 	```
 
 3. Add Account info to your config.yml
 
 	```yml
-	uecode:
-	    amazon:
-	        accounts:
-	            connections:
-	                main:
-	                    key: somekey
-	                    secret: somesecret
+uecode_amazon:
+	  accounts:
+	      main:
+						key: somekey
+						secret: somesecret
 	```
 
 ## Usage
@@ -48,26 +45,24 @@ In your code, after doing the above, you should be able to get an amazon service
 
 ```php
 // get container
-$service = $container->get('uecode.amazon');
+$service = $container->get('uecode_amazon.instance.main');
+// OR
+$service = $container->get('aws.main');
 ```
+
+After getting the service, you will be able to fetch any of the services in the AWS service Locator.
+
+For help there, follow these guides: [AWS SDK for PHP][0]. When following there guides, you won't need to use the factory classes,
+you should just be able to run `service->get('service_name')`.
+
+For Example
 
 ```php
-// Example to get a particular AWS object
-// * AmazonClass - A wrapper for an Amazon service which would be located in Component/.
-// * connection config key - A config value relative to
-//   uecode.amazon.accounts.connections (e.g., "main").
-$obj = $service->getAmazonService('AmazonClass', '<connection config key>', array(<service options>));
+$cloudFront = $container->get('aws.main')->get('CloudFront');
 ```
-
-```php
-// At present, this lib only has support for Amazon SWF.
-$swf = $service->get('uecode.amazon')
- ->getAmazonService('SimpleWorkflow', '<connection config key>', array(<service options>));
-```
-
-This project is still in the making as are its docs but we should have some docs on
-creating SWF workflows soon.
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/uecode/amazon-bundle/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
+
+[0]: http://docs.aws.amazon.com/aws-sdk-php/guide/latest/index.html#service-specific-guides
