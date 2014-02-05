@@ -64,7 +64,7 @@ class UecodeAmazonExtension extends Extension
         foreach ($accounts as $name => $account) {
             $account['name'] = $name;
             $this->createAWSDefinition($account, $container);
-            $container->setParameter('uecode_amazon.instance.' , $name . '.config', $account);
+            $container->setParameter('uecode_amazon.instance.' . $name . '.config', $account);
         }
     }
 

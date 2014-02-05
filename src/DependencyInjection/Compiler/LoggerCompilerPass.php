@@ -59,7 +59,7 @@ class LoggerCompilerPass implements CompilerPassInterface
 
         $logger = $container->setDefinition(
             'uecode_amazon.logger.' . $account['name'] . '.logger',
-            new Definition('Monolog\\Logger', 'aws_' . $account['name'])
+            new Definition('Monolog\\Logger', ['aws_' . $account['name']])
         );
         $logger->addMethodCall('pushHandler', [$handler]);
 
