@@ -21,9 +21,17 @@
  */
 namespace Uecode\Bundle\AmazonBundle;
 
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use \Symfony\Component\HttpKernel\Bundle\Bundle;
+use Uecode\Bundle\AmazonBundle\DependencyInjection\Compiler\LoggerCompilerPass;
 
 class UecodeAmazonBundle extends Bundle
 {
 
+    public function build(ContainerBuilder $container)
+    {
+        parent::build($container);
+
+        $container->addCompilerPass(new LoggerCompilerPass());
+    }
 }

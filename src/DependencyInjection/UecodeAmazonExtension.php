@@ -64,6 +64,7 @@ class UecodeAmazonExtension extends Extension
         foreach ($accounts as $name => $account) {
             $account['name'] = $name;
             $this->createAWSDefinition($account, $container);
+            $container->setParameter('uecode_amazon.instance.' , $name . '.config', $account);
         }
     }
 
@@ -79,40 +80,10 @@ class UecodeAmazonExtension extends Extension
         );
 
         $definition->setFactoryService('uecode_amazon.factory')
-            ->setFactoryMethod('%uecode_amazon.factory.method%');
+            ->setFactoryMethod('%uecode_amazon.factory.method%')
+            ->addTag('uecode_amazon.instance');
 
-        if ($account['logging']['enabled']) {
-            $this->addLogging($account, $definition, $container);
-        }
 
         $container->setAlias('aws.' . $account['name'], $definition);
-    }
-
-    private function addLogging(array $account, Definition $definition, ContainerBuilder $container)
-    {
-        if (!$container->hasDefinition($account['logging']['logger_id'])) {
-            throw new \InvalidArgumentException(sprintf(
-                "The logger `%s` does not exist within the container.",
-                $account['logging']['logger_id']
-            ));
-        }
-
-        $logger = new Reference($account['logging']['logger_id']);
-
-        $container->setDefinition(
-            'uecode_amazon.logger.' . $account['name'],
-            new Definition('Guzzle\\Common\\Log\\MonologLogAdapter', [$logger])
-        )
-            ->setPublic(false);
-
-        $container->setDefinition(
-            'uecode_amazon.logger.plugin.' . $account['name'],
-            new Definition('Guzzle\\Plugin\\Log\\LogPlugin', [
-                new Reference('uecode_amazon.logger.' . $account['name'])
-            ])
-        )
-            ->setPublic(false);
-
-        $definition->addMethodCall('addSubscriber', [new Reference('uecode_amazon.logger.plugin.' . $account['name'])]);
     }
 }
