@@ -23,16 +23,14 @@
 		"email": "aaron@undergroundelephant.com"
 	},
 	"require":     {
-		"uecode/uecode-bundle": "dev-master",
-		"aws/aws-sdk-php": ">=2.5.0",
-		"amazonwebservices/aws-sdk-for-php": "1.6.*"
+		"aws/aws-sdk-php": ">=2.5.0"
 	},
 	"suggest":     {
 		"monolog/monolog": "Allows more advanced logging of the application flow"
 	},
 	"autoload":    {
-		"psr-0": {
-			"Uecode\\Bundle\\AmazonBundle": ""
+		"psr-4": {
+			"Uecode\\Bundle\\AmazonBundle": "src/"
 		}
 	}
 }

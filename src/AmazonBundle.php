@@ -1,11 +1,9 @@
 <?php
-
 /**
- * Activity task response
- *
- * @package amazon-bundle
+ * @package       amazon-bundle
+ * @author        Aaron Scherer
+ * @date          10/8/12
  * @copyright (c) 2013 Underground Elephant
- * @author John Pancoast
  *
  * Copyright 2013 Underground Elephant
  *
@@ -21,13 +19,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+namespace Uecode\Bundle\AmazonBundle;
 
-namespace Uecode\Bundle\AmazonBundle\Component\SimpleWorkflow;
+use \Symfony\Component\HttpKernel\Bundle\Bundle;
 
-/**
- * An activity task response. All task responses must extend this.
- */
-class ActivityTaskResponse
+class AmazonBundle extends Bundle
 {
-	// presently just for type hinting
+
 }
