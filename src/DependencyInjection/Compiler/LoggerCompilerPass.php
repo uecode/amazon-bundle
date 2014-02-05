@@ -61,21 +61,22 @@ class LoggerCompilerPass implements CompilerPassInterface
             'uecode_amazon.logger.' . $account['name'] . '.logger',
             new Definition('Monolog\\Logger', ['aws_' . $account['name']])
         );
-        $logger->addMethodCall('pushHandler', [$handler]);
-
-        $container->setDefinition(
-            'uecode_amazon.logger.' . $account['name'] . '.adapter',
-            new Definition('Guzzle\\Common\\Log\\MonologLogAdapter', [$logger])
-        )
+        $logger->addMethodCall('pushHandler', [$handler])
             ->setPublic(false);
 
-        $container->setDefinition(
+        $adapter = $container->setDefinition(
+            'uecode_amazon.logger.' . $account['name'] . '.adapter',
+            new Definition('Guzzle\\Common\\Log\\MonologLogAdapter', [$logger])
+        );
+        $adapter->setPublic(false);
+
+        $plugin = $container->setDefinition(
             'uecode_amazon.logger.' . $account['name'] . '.plugin',
             new Definition('Guzzle\\Plugin\\Log\\LogPlugin', [
                 new Reference('uecode_amazon.logger.' . $account['name'] . '.adapter')
             ])
-        )
-            ->setPublic(false);
+        );
+        $plugin->setPublic(false);
 
         $container->getDefinition($serviceId)
             ->addMethodCall('addSubscriber', [new Reference('uecode_amazon.logger.' . $account['name'] . '.plugin')]);
