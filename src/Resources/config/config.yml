@@ -1,4 +1,4 @@
 parameters:
-    uecode_amazon.factory.class:  \Aws\Common\Aws
+    uecode_amazon.factory.class:  Aws\Common\Aws
     uecode_amazon.factory.method: factory
     uecode_amazon.instance.class: %uecode_amazon.factory.class%
