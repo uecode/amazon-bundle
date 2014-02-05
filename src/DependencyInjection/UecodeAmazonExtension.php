@@ -80,7 +80,7 @@ class UecodeAmazonExtension extends Extension
         );
 
         $definition->setFactoryService('uecode_amazon.factory')
-            ->setFactoryMethod($container->getParameter('%uecode_amazon.factory.method%'))
+            ->setFactoryMethod($container->getParameter('uecode_amazon.factory.method'))
             ->addTag('uecode_amazon.instance');
 
 
