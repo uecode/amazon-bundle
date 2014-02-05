@@ -7,22 +7,22 @@ This bundle is a semantic configuration and service provider for the AWS PHP SDK
 
 1. Add to composer.json under `require`
 
-	```
-	"uecode/amazon-bundle": ">=2.0.0, <3.0.0",
-	```
+```
+"uecode/amazon-bundle": ">=2.0.0, <3.0.0",
+```
 
 2. Register in `AppKernel`
 
-	``` php
-		$bundles = array(
-			// ...
-			new Uecode\Bundle\AmazonBundle\AmazonBundle()
-		);
-	```
+``` php
+$bundles = array(
+	// ...
+	new Uecode\Bundle\AmazonBundle\AmazonBundle()
+);
+```
 
 3. Add Account info to your config.yml
 
-	```yml
+```yml
 uecode_amazon:
     accounts:
         main:
