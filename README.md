@@ -3,16 +3,6 @@ Amazon Bundle
 
 This bundle is a semantic configuration and service provider for the AWS PHP SDK v2
 
-## Copyright
-
-Copyright (c) 2014 Underground Elephant
-
-## License
-
-Licensed under the Apache License, Version 2.0.
-
-See LICENSE-2.0.txt.
-
 ## General Installation
 
 1. Add to composer.json under `require`
@@ -61,8 +51,19 @@ For Example
 $cloudFront = $container->get('aws.main')->get('CloudFront');
 ```
 
+## Copyright
+
+Copyright (c) 2014 Underground Elephant
+
+## License
+
+Licensed under the Apache License, Version 2.0.
+
+See [LICENSE][1].
+
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/uecode/amazon-bundle/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
 
 [0]: http://docs.aws.amazon.com/aws-sdk-php/guide/latest/index.html#service-specific-guides
+[1]: https://github.com/uecode/amazon-bundle/LICENSE
