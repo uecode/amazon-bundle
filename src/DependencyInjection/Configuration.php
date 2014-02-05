@@ -85,7 +85,7 @@ class Configuration implements ConfigurationInterface
                 ->booleanNode('enabled')
                     ->defaultFalse()
                 ->end()
-                ->scalarNode('logger_id')
+                ->scalarNode('handler_id')
                     ->defaultNull()
                 ->end()
             ->end()
