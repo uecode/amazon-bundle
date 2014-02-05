@@ -38,7 +38,7 @@ class LoggerCompilerPass implements CompilerPassInterface
     public function process(ContainerBuilder $container)
     {
         $serviceIds = $container->findTaggedServiceIds('uecode_amazon.instance');
-        foreach ($serviceIds as $serviceId) {
+        foreach (array_keys($serviceIds) as $serviceId) {
             $config = $container->getParameter($serviceId . '.config');
             if ($config['logging']['enabled']) {
                 $this->addLogging($serviceId, $config, $container);
