@@ -23,11 +23,11 @@ This bundle is a semantic configuration and service provider for the AWS PHP SDK
 
 	```yml
 uecode_amazon:
-	  accounts:
-	      main:
-						key: somekey
-						secret: somesecret
-	```
+    accounts:
+        main:
+            key: somekey
+            secret: somesecret
+```
 
 ## Usage
 
