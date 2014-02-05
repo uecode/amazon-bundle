@@ -59,7 +59,6 @@ class UecodeAmazonExtension extends Extension
             'uecode_amazon.factory',
             new Definition('%uecode_amazon.factory.class%')
         );
-        $factory->setPublic(false);
 
         foreach ($accounts as $name => $account) {
             $account['name'] = $name;

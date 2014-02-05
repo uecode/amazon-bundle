@@ -66,7 +66,7 @@ class LoggerCompilerPass implements CompilerPassInterface
 
         $adapter = $container->setDefinition(
             'uecode_amazon.logger.' . $account['name'] . '.adapter',
-            new Definition('Guzzle\\Common\\Log\\MonologLogAdapter', [$logger])
+            new Definition('Guzzle\\Log\\MonologLogAdapter', [$logger])
         );
         $adapter->setPublic(false);
 
