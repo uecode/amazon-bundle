@@ -41,11 +41,14 @@ class SimpleEmailService extends AbstractAmazonComponent
 		return new \AmazonSES($options);
 	}
 
-	public function sendMail($from, $to, $subject, $html, $text)
+	public function sendMail($from, $to, $subject, $html, $text, $bcc = null)
 	{
 		$ses = $this->getAmazonObject();
 		if( is_null( $ses) ) throw new \Exception( 'SES Object is Null' );
-		$response = $ses->send_email( $from, array( 'ToAddresses' => array( $to,),), array( 'Subject' => array( 'Data' => $subject, 'Charset' => 'UTF-8'), 'Body' => array( 'Text' => array( 'Data' => $text, 'Charset' => 'UTF-8'), 'Html' => array( 'Data' => $html, 'Charset' => 'UTF-8'))) );
+		if ( !is_null($bcc) )
+			$response = $ses->send_email( $from, array( 'ToAddresses' => array( $to,), 'BccAddresses' => array( $bcc,)), array( 'Subject' => array( 'Data' => $subject, 'Charset' => 'UTF-8'), 'Body' => array( 'Text' => array( 'Data' => $text, 'Charset' => 'UTF-8'), 'Html' => array( 'Data' => $html, 'Charset' => 'UTF-8'))) );
+		else
+			$response = $ses->send_email( $from, array( 'ToAddresses' => array( $to,),), array( 'Subject' => array( 'Data' => $subject, 'Charset' => 'UTF-8'), 'Body' => array( 'Text' => array( 'Data' => $text, 'Charset' => 'UTF-8'), 'Html' => array( 'Data' => $html, 'Charset' => 'UTF-8'))) );
 		return $response;
 	}
 
