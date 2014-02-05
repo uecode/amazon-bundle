@@ -84,6 +84,6 @@ class UecodeAmazonExtension extends Extension
             ->addTag('uecode_amazon.instance');
 
 
-        $container->setAlias('aws.' . $account['name'], $definition);
+        $container->setAlias('aws.' . $account['name'], 'uecode_amazon.instance.' . $account['name']);
     }
 }
