@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package       amazon-bundle
  * @author        Aaron Scherer
@@ -19,15 +20,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 namespace Uecode\Bundle\AmazonBundle;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use \Symfony\Component\HttpKernel\Bundle\Bundle;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Uecode\Bundle\AmazonBundle\DependencyInjection\Compiler\LoggerCompilerPass;
 
 class UecodeAmazonBundle extends Bundle
 {
-
     public function build(ContainerBuilder $container)
     {
         parent::build($container);
