@@ -16,7 +16,7 @@ This bundle is a semantic configuration and service provider for the AWS PHP SDK
 ``` php
 $bundles = array(
 	// ...
-	new Uecode\Bundle\AmazonBundle\AmazonBundle()
+	new Uecode\Bundle\AmazonBundle\AmazonBundle(),
 );
 ```
 
@@ -43,7 +43,7 @@ $service = $container->get('aws.main');
 
 After getting the service, you will be able to fetch any of the services in the AWS service Locator.
 
-For help there, follow these guides: [AWS SDK for PHP][0]. When following there guides, you won't need to use the factory classes,
+For help there, follow these guides: [AWS SDK for PHP][0]. When following the guides, you won't need to use the factory classes,
 you should just be able to run `service->get('service_name')`.
 
 For Example

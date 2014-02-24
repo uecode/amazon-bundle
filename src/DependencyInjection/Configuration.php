@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @package       amazon-bundle
- * @copyright (c) 2013 Underground Elephant
+ * @copyright (c) 2014 Underground Elephant
  * @author        Aaron Scherer
  *
  * Copyright 2013 Underground Elephant
@@ -18,10 +19,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 namespace Uecode\Bundle\AmazonBundle\DependencyInjection;
 
-use \Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
@@ -90,7 +92,6 @@ class Configuration implements ConfigurationInterface
                 ->end()
             ->end()
         ;
-
 
         return $node;
     }

@@ -4,7 +4,7 @@
 	"description": "AWS SDK v2 Bundle for Symfony2",
 	"keywords":    ["php", "uecode", "aws"],
 	"homepage":    "https://github.com/uecode/amazon-bundle",
-	"license":     "MIT",
+	"license":     "Apache 2.0",
 	"authors":     [
 		{
 			"name":     "Aaron Scherer",
@@ -23,7 +23,7 @@
 		"email": "aaron@undergroundelephant.com"
 	},
 	"require":     {
-		"aws/aws-sdk-php": ">=2.5.0"
+		"aws/aws-sdk-php": "~2.5"
 	},
 	"suggest":     {
 		"monolog/monolog": "Allows more advanced logging of the application flow"
