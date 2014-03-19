@@ -16,7 +16,7 @@ This bundle is a semantic configuration and service provider for the AWS PHP SDK
 ``` php
 $bundles = array(
 	// ...
-	new Uecode\Bundle\AmazonBundle\AmazonBundle()
+	new Uecode\Bundle\AmazonBundle\UecodeAmazonBundle()
 );
 ```
 
