@@ -23,9 +23,9 @@
 		"email": "aaron@undergroundelephant.com"
 	},
 	"require":     {
-		"uecode/uecode-bundle": "dev-master",
-		"aws/aws-sdk-php": ">=2.5.0",
-		"amazonwebservices/aws-sdk-for-php": "1.6.*"
+		"uecode/uecode-bundle":              "~1.0.0",
+		"aws/aws-sdk-php":                   "~2.5.0",
+		"amazonwebservices/aws-sdk-for-php": "~1.6.0"
 	},
 	"suggest":     {
 		"monolog/monolog": "Allows more advanced logging of the application flow"
