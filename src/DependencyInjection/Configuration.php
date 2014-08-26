@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package       amazon-bundle
  * @copyright (c) 2013 Underground Elephant
@@ -18,6 +19,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 namespace Uecode\Bundle\AmazonBundle\DependencyInjection;
 
 use \Symfony\Component\Config\Definition\Builder\TreeBuilder;
