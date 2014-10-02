@@ -1,36 +1,40 @@
 {
-	"name":        "uecode/amazon-bundle",
-	"type":        "library",
-	"description": "AWS SDK v2 Bundle for Symfony2",
-	"keywords":    ["php", "uecode", "aws"],
-	"homepage":    "https://github.com/uecode/amazon-bundle",
-	"license":     "MIT",
-	"authors":     [
-		{
-			"name":     "Aaron Scherer",
-			"email":    "aequasi@gmail.com",
-			"role":     "developer",
-			"homepage": "https://github.com/aequasi"
-		},
-		{
-			"name":     "John Pancoast",
-			"email":    "shideon@gmail.com",
-			"role":     "developer",
-			"homepage": "https://github.com/shideon"
-		}
-	],
-	"support":     {
-		"email": "aaron@undergroundelephant.com"
-	},
-	"require":     {
-		"aws/aws-sdk-php": ">=2.5.0"
-	},
-	"suggest":     {
-		"monolog/monolog": "Allows more advanced logging of the application flow"
-	},
-	"autoload":    {
-		"psr-4": {
-			"Uecode\\Bundle\\AmazonBundle\\": "src/"
-		}
-	}
+    "name": "uecode/amazon-bundle",
+    "type": "library",
+    "description": "AWS SDK v2 Bundle for Symfony2",
+    "keywords": [
+        "php",
+        "uecode",
+        "aws"
+    ],
+    "homepage": "https://github.com/uecode/amazon-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Aaron Scherer",
+            "email": "aequasi@gmail.com",
+            "role": "developer",
+            "homepage": "https://github.com/aequasi"
+        },
+        {
+            "name": "John Pancoast",
+            "email": "shideon@gmail.com",
+            "role": "developer",
+            "homepage": "https://github.com/shideon"
+        }
+    ],
+    "support": {
+        "email": "aaron@undergroundelephant.com"
+    },
+    "require": {
+        "aws/aws-sdk-php": ">=2.5.0"
+    },
+    "suggest": {
+        "monolog/monolog": "Allows more advanced logging of the application flow"
+    },
+    "autoload": {
+        "psr-4": {
+            "Uecode\\Bundle\\AmazonBundle\\": "src/"
+        }
+    }
 }
