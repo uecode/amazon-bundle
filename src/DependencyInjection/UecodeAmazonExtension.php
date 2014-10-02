@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package       amazon-bundle
  * @copyright (c) 2013 Underground Elephant
@@ -18,6 +19,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 namespace Uecode\Bundle\AmazonBundle\DependencyInjection;
 
 use Symfony\Component\Config\FileLocator;
@@ -27,14 +29,8 @@ use \Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\Reference;
 use \Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
-/**
- * Uecode  Extension
- */
 class UecodeAmazonExtension extends Extension
 {
-
-    private $logging;
-
     /**
      * {@inheritdoc}
      */
@@ -75,7 +71,8 @@ class UecodeAmazonExtension extends Extension
 
         $definition->setFactoryClass('%uecode_amazon.factory.class%')
             ->setFactoryMethod($container->getParameter('uecode_amazon.factory.method'))
-            ->addTag('uecode_amazon.instance');
+            ->addTag('uecode_amazon.instance')
+        ;
 
 
         $container->setAlias('aws.' . $account['name'], 'uecode_amazon.instance.' . $account['name']);
